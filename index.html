@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0B2545">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -10,8 +11,6 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
 :root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
@@ -220,6 +219,8 @@ button.cert{cursor:pointer} button.cert:hover{outline:1px solid var(--bad)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .filters{display:grid;gap:10px}
 .filters .seg{margin-top:0}
+.stars{color:var(--accent);font-size:16px;letter-spacing:1px;white-space:nowrap}
+.stars .off{color:var(--line)}
 .warnbox{margin-top:12px;background:var(--bad-soft);color:var(--bad);border-radius:10px;padding:10px 12px;font-size:13.5px;font-weight:600}
 </style>
 </head>
@@ -229,92 +230,135 @@ button.cert{cursor:pointer} button.cert:hover{outline:1px solid var(--bad)}
 <div id="modal" hidden></div>
 
 <script>
-const KEY='fx-shipping-v1';
+const KEY='fx-shipping-v3';
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const SEG={container:'Container',bulk:'Dry bulk',tanker:'Product tanker',bunker:'Singapore bunkering'};
+const SEGS=['container','bulk','tanker','bunker','gas','offshore'];
+const SEG={container:'Container',bulk:'Dry bulk',tanker:'Product tanker',bunker:'Bunkering',gas:'LPG gas',offshore:'Offshore'};
+const DIV={
+  container:{open:4e6,d:'Feeder and liner container services across Asia.'},
+  bulk:{open:3e6,d:'Tramp shipping for coal, iron ore, grain and fertiliser.'},
+  tanker:{open:4e6,d:'Clean petroleum products for oil majors and traders.'},
+  bunker:{open:2e6,d:'Fuel delivery to ships at Singapore and Johor anchorages.'},
+  gas:{open:6e6,d:'LPG carriers for petrochemical and energy clients.'},
+  offshore:{open:5e6,d:'Support vessels for oil and gas fields off Terengganu, Sabah and Sarawak.'}
+};
 const CLS={
-  feeder:{seg:'container',nama:'Container Feeder',size:'1,700 TEU',value:59.5e6,other:390e3,ratings:16,fuel:900,port:340e3,mk:1.36,scale:1,ldt:7000},
-  panamax:{seg:'container',nama:'Panamax Container',size:'4,250 TEU',value:119e6,other:560e3,ratings:18,fuel:1450,port:510e3,mk:1.35,scale:1,ldt:16000},
-  handy:{seg:'bulk',nama:'Handysize',size:'35,000 DWT',value:59.5e6,other:260e3,ratings:16,fuel:600,port:212e3,mk:1.36,scale:1,ldt:9000},
-  supra:{seg:'bulk',nama:'Supramax',size:'58,000 DWT',value:93.5e6,other:340e3,ratings:17,fuel:750,port:255e3,mk:1.36,scale:1,ldt:12000},
-  mr:{seg:'tanker',nama:'MR Product Tanker',size:'50,000 DWT',value:127.5e6,other:480e3,ratings:19,fuel:800,port:298e3,mk:1.36,scale:1,ldt:11000},
-  bunk:{seg:'bunker',nama:'Bunker Tanker',size:'6,500 DWT',value:34e6,other:190e3,ratings:8,fuel:120,port:64e3,mk:1.48,scale:0.6,ldt:2200}
+  feeder:{seg:'container',nama:'Container Feeder',size:'1,700 TEU',value:59.5e6,other:390e3,ratings:16,fuel:900,port:340e3,mk:1.55,scale:1,ldt:7000},
+  panamax:{seg:'container',nama:'Panamax Container',size:'4,250 TEU',value:119e6,other:560e3,ratings:18,fuel:1450,port:510e3,mk:1.55,scale:1,ldt:16000},
+  neo:{seg:'container',nama:'Neo-Panamax Container',size:'8,500 TEU',value:255e6,other:900e3,ratings:20,fuel:2600,port:850e3,mk:1.55,scale:1,ldt:28000},
+  handy:{seg:'bulk',nama:'Handysize',size:'35,000 DWT',value:59.5e6,other:260e3,ratings:16,fuel:600,port:212e3,mk:1.55,scale:1,ldt:9000},
+  supra:{seg:'bulk',nama:'Supramax',size:'58,000 DWT',value:93.5e6,other:340e3,ratings:17,fuel:750,port:255e3,mk:1.55,scale:1,ldt:12000},
+  kamsar:{seg:'bulk',nama:'Kamsarmax',size:'82,000 DWT',value:136e6,other:400e3,ratings:18,fuel:900,port:300e3,mk:1.55,scale:1,ldt:14000},
+  mr:{seg:'tanker',nama:'MR Product Tanker',size:'50,000 DWT',value:127.5e6,other:480e3,ratings:19,fuel:800,port:298e3,mk:1.55,scale:1,ldt:11000},
+  lr2:{seg:'tanker',nama:'LR2 Product Tanker',size:'115,000 DWT',value:250e6,other:650e3,ratings:20,fuel:1100,port:420e3,mk:1.55,scale:1,ldt:20000},
+  bunk:{seg:'bunker',nama:'Bunker Tanker',size:'6,500 DWT',value:34e6,other:190e3,ratings:8,fuel:120,port:64e3,mk:1.66,scale:0.6,ldt:2200},
+  lpg:{seg:'gas',nama:'LPG Carrier (MGC)',size:'38,000 cbm',value:210e6,other:620e3,ratings:20,fuel:950,port:350e3,mk:1.55,scale:1,ldt:12000},
+  psv:{seg:'offshore',nama:'Platform Supply Vessel',size:'4,000 DWT',value:48e6,other:240e3,ratings:12,fuel:250,port:30e3,mk:1.62,scale:0.85,ldt:2500},
+  ahts:{seg:'offshore',nama:'Anchor Handling Tug (AHTS)',size:'80 t bollard pull',value:70e6,other:320e3,ratings:14,fuel:350,port:35e3,mk:1.62,scale:0.9,ldt:3200}
 };
 const ROUTES={
   container:[["Port Klang","Shanghai",1,"Electronics and furniture"],["Tanjung Pelepas","Jebel Ali",2,"Mixed containers",1],["Port Klang","Chennai",1,"Tyres and packed palm oil"],["Singapore","Ho Chi Minh City",1,"Factory raw materials"],["Penang","Hong Kong",1,"Semiconductors"]],
   bulk:[["Kuantan","Qingdao",2,"Bauxite"],["Kalimantan","Port Klang",1,"Coal for power plants"],["Fremantle","Pasir Gudang",2,"Wheat"],["Port Hedland","Qingdao",2,"Iron ore"],["Bintulu","Manila",1,"Urea fertiliser"]],
   tanker:[["Singapore","Brisbane",2,"Diesel and gasoline"],["Pengerang","Vung Tau",1,"RON95 gasoline"],["Ras Tanura","Singapore",2,"Naphtha",1],["Melaka","Bangkok",1,"Jet fuel"]],
-  bunker:[["Singapore","Eastern Anchorage",1,"VLSFO deliveries to client ships"],["Tanjung Pelepas","Port limits",1,"MGO deliveries to container ships"],["Singapore","Western Anchorage",1,"VLSFO and MGO deliveries"]]
+  bunker:[["Singapore","Eastern Anchorage",1,"VLSFO deliveries to client ships"],["Tanjung Pelepas","Port limits",1,"MGO deliveries to container ships"],["Singapore","Western Anchorage",1,"VLSFO and MGO deliveries"]],
+  gas:[["Ras Tanura","Pasir Gudang",2,"Propane and butane",1],["Houston","Map Ta Phut",3,"LPG for a petrochemical plant"],["Bintulu","Haiphong",1,"Butane"],["Yanbu","Pengerang",2,"Propane",1]],
+  offshore:[["Kemaman","Terengganu oil fields"],["Labuan","Sabah deepwater fields"],["Bintulu","Sarawak gas fields"]]
 };
-const WHO={container:["Nusantara Line","Straits Express","Orient Feeder Co."],bulk:["Pacific Agri Trading","Borneo Minerals","Eastern Grain Sdn Bhd"],tanker:["Straits Energy","Andaman Petroleum","Gulf Products Ltd"],bunker:["Harbour Fuels","Marina Bunkering","Lion City Marine"]};
-const SHIPNAMES=["FX Harmony","FX Kenanga","FX Seri Melaka","FX Puteri","FX Bayu","FX Pelangi","FX Cahaya","FX Mutiara","FX Lautan","FX Bintang","FX Angsana","FX Tasik","FX Gelombang","FX Kayangan","FX Labuan","FX Merbok","FX Teratai","FX Rimba"];
+const WHO={container:["Nusantara Line","Straits Express","Orient Feeder Co."],bulk:["Pacific Agri Trading","Borneo Minerals","Eastern Grain Sdn Bhd"],tanker:["Straits Energy","Andaman Petroleum","Gulf Products Ltd"],bunker:["Harbour Fuels","Marina Bunkering","Lion City Marine"],gas:["Asia Petrochem","Gulf Gas Trading","Siam LPG"],offshore:["East Coast Oil Operator","Sabah Deepwater Ltd","Sarawak Gas Fields"]};
+const SHIPNAMES=["FX Harmony","FX Kenanga","FX Seri Melaka","FX Puteri","FX Bayu","FX Pelangi","FX Cahaya","FX Mutiara","FX Lautan","FX Bintang","FX Angsana","FX Tasik","FX Gelombang","FX Kayangan","FX Labuan","FX Merbok","FX Teratai","FX Rimba","FX Cempaka","FX Melati","FX Delima","FX Kasturi","FX Nilam","FX Zamrud","FX Permata","FX Intan","FX Seroja","FX Dahlia","FX Kemboja","FX Tioman","FX Langkawi","FX Redang","FX Pangkor","FX Sipadan","FX Kinabalu","FX Rajang","FX Muar","FX Johor","FX Perak","FX Pahang"];
 const RANKS={master:{t:'Master',mk:42000},co:{t:'Chief Officer',mk:30000},ce:{t:'Chief Engineer',mk:42000},se:{t:'2nd Engineer',mk:28000}};
 const RK=['master','co','ce','se'];
 const RATING_MK=7500;
-const CERTS={BST:['Basic Safety Training','A-VI/1',2200],PSCRB:['Survival Craft & Rescue Boats','A-VI/2',1800],AFF:['Advanced Fire Fighting','A-VI/3',2800],MFA:['Medical First Aid','A-VI/4-1',1500],MC:['Medical Care','A-VI/4-2',3500],SSO:['Ship Security Officer','A-VI/5',2500],BRM:['Bridge Resource Mgmt','A-II/2',3200],ERM:['Engine Resource Mgmt','A-III/2',3200],ECDIS:['ECDIS','A-II/1',4500],GMDSS:['GMDSS GOC','A-IV/2',6000],HV:['High Voltage','A-III/6',5500],OTB:['Basic Tanker Cargo Ops','A-V/1-1-1',2600],OTA:['Adv. Oil Tanker Cargo Ops','A-V/1-1-2',6500]};
+const CERTS={BST:['Basic Safety Training','A-VI/1',2200],PSCRB:['Survival Craft & Rescue Boats','A-VI/2',1800],AFF:['Advanced Fire Fighting','A-VI/3',2800],MFA:['Medical First Aid','A-VI/4-1',1500],MC:['Medical Care','A-VI/4-2',3500],SSO:['Ship Security Officer','A-VI/5',2500],BRM:['Bridge Resource Mgmt','A-II/2',3200],ERM:['Engine Resource Mgmt','A-III/2',3200],ECDIS:['ECDIS','A-II/1',4500],GMDSS:['GMDSS GOC','A-IV/2',6000],HV:['High Voltage','A-III/6',5500],OTB:['Basic Oil & Chemical Tanker','A-V/1-1-1',2600],OTA:['Advanced Oil Tanker Cargo Ops','A-V/1-1-2',6500],LGB:['Basic Liquefied Gas Tanker','A-V/1-2-1',2800],LGA:['Advanced Liquefied Gas Tanker','A-V/1-2-2',7500],DP:['Dynamic Positioning (NI)','Non-STCW',12000]};
 const REQ={master:['BST','PSCRB','AFF','MC','SSO','BRM','ECDIS','GMDSS'],co:['BST','PSCRB','AFF','MC','BRM','ECDIS','GMDSS'],ce:['BST','PSCRB','AFF','MFA','ERM','HV'],se:['BST','PSCRB','AFF','MFA','ERM','HV']};
 const PEOPLE={Malaysian:['Ahmad Faizal','Muhammad Hafiz','Lim Wei Jie','Tan Chee Keong','Rajesh Kumar','Suresh Nair','Azman Yusof','Kamal Hassan','Wong Ka Ming','Nik Amirul','Siti Aishah','Nurul Huda','Daniel Anak Jimbun','Mohd Firdaus'],Indonesian:['Budi Santoso','Agus Wijaya','Dedi Saputra','Eko Pratama','Hendra Hidayat','Rina Kartika'],Filipino:['Mark Dela Cruz','Jerome Santos','Rodel Reyes','Ramon Garcia','Arnel Mendoza','Grace Villanueva'],Indian:['Arjun Menon','Vikram Sharma','Rahul Iyer','Sanjay Singh','Pradeep Nair','Priya Raman'],Myanmar:['Kyaw Zin','Aung Min Oo','Zaw Naing','Htet Lin']};
 const REMARKS={hi:['Commended by PSC inspectors on last ship','Rehired four times by previous company','Excellent cargo operations record','Led a zero-incident contract last year'],mid:['Solid record, no incidents reported','Good feedback from previous Master','Reliable, completes every contract','Steady performer, a little slow on paperwork'],lo:['One incident report on last contract','Previous employer noted a late sign-on','Mixed feedback on safety drills','Left last contract early']};
+const DEPTS={
+  chartering:{t:'Chartering Manager',job:'Finds cargo and fixes your idle ships on charter. Better managers get higher rates.',pay:[22e3,45e3],notes:['Former broker at a Singapore shipbroking house','Strong network with oil majors','Ex-commercial manager at a container line','Known for tough rate negotiations','Fresh from a regional trading desk']},
+  crewing:{t:'Crewing Manager',job:'Recruits officers, checks CoC and STCW, plans crew relief and books travel.',pay:[18e3,35e3],notes:['Ran a Manila manning agency for 8 years','Former Chief Officer turned crewing manager','Built a cadet programme at a Malaysian owner','Good relationship with seafarer unions','Moved over from HR at a logistics firm']},
+  marine:{t:'Marine Superintendent',job:'Prepares ships for PSC and vetting, audits safety, investigates incidents and checks officer performance.',pay:[22e3,42e3],notes:['Ex-Master of product tankers','Former Port State Control inspector','Led SIRE vetting for a tanker pool','Ex-Master with a clean incident record','Recently came ashore as a Chief Officer']},
+  technical:{t:'Technical Superintendent',job:'Plans maintenance and dry docks, controls spares and repair budgets.',pay:[22e3,42e3],notes:['Former Chief Engineer on gas carriers','Managed 12 dry dockings in China','Ex-class surveyor','Strong cost control on spares','Recently came ashore as a 2nd Engineer']}
+};
+const OFFICES={
+  sg:{n:'Singapore',cost:2e6,mo:180e3,boost:{bunker:.06,tanker:.04,gas:.03},d:'Close to the world\'s largest bunkering port and tanker traders.'},
+  sh:{n:'Shanghai',cost:2e6,mo:160e3,boost:{container:.06,bulk:.05},d:'Direct access to Chinese cargo owners and steel mills.'},
+  db:{n:'Dubai',cost:2.5e6,mo:200e3,boost:{tanker:.05,gas:.06},d:'Middle East energy exporters and Gulf cargo.'},
+  jk:{n:'Jakarta',cost:1.2e6,mo:100e3,boost:{offshore:.05,bulk:.03,container:.02},d:'Indonesian coal, nickel and offshore projects.'},
+  ld:{n:'London',cost:3e6,mo:250e3,boost:{container:.03,bulk:.03,tanker:.03,bunker:.03,gas:.03,offshore:.03},d:'Shipbroking, insurance and finance network.'}
+};
+const TIERS=[{n:'Start-up owner',ships:0,divs:1,nw:0},{n:'Regional operator',ships:5,divs:2,nw:200e6},{n:'Established group',ships:10,divs:3,nw:400e6},{n:'Major shipping group',ships:18,divs:4,nw:800e6},{n:'Asian shipping giant',ships:30,divs:5,nw:1.5e9}];
 const ALLOW=[
   {k:'ot',t:'Fixed overtime',d:'Guaranteed overtime paid as a share of basic wage.',lv:['None','25%','35%'],val:[0,0.25,0.35],pts:[-10,0,4],def:1},
   {k:'leave',t:'Leave pay',d:'Paid leave days earned for each month on board.',lv:['4 days','7 days','9 days'],val:[4,7,9],pts:[-5,0,3],def:1},
   {k:'food',t:'Victualling allowance',d:'Food budget per crew per day. Required under MLC 2006.',lv:['RM 25','RM 35','RM 45'],val:[25,35,45],pts:[-7,0,4],def:1},
-  {k:'tank',t:'Tank cleaning allowance',d:'Per crew member each time cargo tanks are cleaned between grades.',lv:['Off','RM 600'],val:[0,600],seg:['tanker','bunker'],def:1},
+  {k:'tank',t:'Tank cleaning allowance',d:'Per crew member each time cargo tanks are cleaned between grades.',lv:['Off','RM 600'],val:[0,600],seg:['tanker','bunker','gas'],def:1},
   {k:'hold',t:'Hold cleaning allowance',d:'Per crew member for washing cargo holds after each bulk cargo.',lv:['Off','RM 500'],val:[0,500],seg:['bulk'],def:1},
   {k:'lash',t:'Lashing allowance',d:'Per crew member per month at sea for securing container lashings.',lv:['Off','RM 400'],val:[0,400],seg:['container'],def:1},
-  {k:'dg',t:'Dangerous cargo allowance',d:'Per crew member per month at sea when carrying flammable petroleum cargo.',lv:['Off','RM 300'],val:[0,300],seg:['tanker','bunker'],def:1},
-  {k:'hra',t:'High risk area bonus',d:'Extra pay inside IBF warlike or high-risk zones such as the Gulf. Without it, crew may refuse to sail there.',lv:['Off','100% basic'],val:[0,1],pts:[0,2],def:0},
+  {k:'dg',t:'Dangerous cargo allowance',d:'Per crew member per month at sea when carrying flammable petroleum or gas cargo.',lv:['Off','RM 300'],val:[0,300],seg:['tanker','bunker','gas'],def:1},
+  {k:'dp',t:'DP and offshore allowance',d:'Per crew member per month for dynamic positioning and anchor handling work.',lv:['Off','RM 500'],val:[0,500],seg:['offshore'],def:1},
+  {k:'hra',t:'High risk area bonus',d:'Extra pay inside IBF high-risk zones such as the Gulf. Without it, crew may refuse to sail there.',lv:['Off','100% basic'],val:[0,1],pts:[0,2],def:0},
   {k:'fest',t:'Festive bonus',d:'Half a month of basic wage every March for Hari Raya, Chinese New Year, Deepavali or Christmas.',lv:['Off','On'],val:[0,0.5],pts:[-2,4],def:1},
   {k:'comp',t:'Contract completion bonus',d:'RM 3,000 to each officer who finishes a contract. Good officers are more likely to come back.',lv:['Off','RM 3,000'],val:[0,3000],pts:[0,3],def:0},
   {k:'wifi',t:'Crew welfare and internet',d:'Onboard Wi-Fi data and recreation, per ship per month.',lv:['Off','RM 1,500'],val:[0,1500],pts:[-2,5],def:0}
 ];
 const MAINT=[{label:'Minimum',mult:0.85,decay:1.45},{label:'Standard',mult:1,decay:1},{label:'Premium',mult:1.25,decay:0.65}];
-const EXP={wages:'Crew wages, overtime and leave',food:'Victualling',allow:'Crew allowances and bonuses',fuel:'Fuel (bunkers)',port:'Port and agency charges',insur:'Insurance (H&M and P&I)',stores:'Stores, spares and lube oil',mgmt:'Ship management and admin',repair:'Repairs and breakdowns',dock:'Dry docking',train:'STCW training',recruit:'Recruitment and crew travel',overhead:'Office overhead',hseq:'HSEQ programme',interest:'Loan interest',penalty:'Claims, fines and penalties',commission:'Broker commissions'};
+const MINREP=[0,3.5,4];const PREM=[0,0.05,0.1,0.15];const DOCKAT=[0,60,65,70];
+const EXP={wages:'Crew wages, overtime and leave',food:'Victualling',allow:'Crew allowances and bonuses',fuel:'Fuel (bunkers)',port:'Port and agency charges',insur:'Insurance (H&M and P&I)',stores:'Stores, spares and lube oil',mgmt:'Ship management',repair:'Repairs and breakdowns',dock:'Dry docking',train:'STCW training',recruit:'Recruitment and crew travel',staff:'Department heads and shore staff',office:'Head office, branches and divisions',setup:'Division and office set-up',hseq:'HSEQ programme',interest:'Loan interest',penalty:'Claims, fines and penalties',commission:'Broker commissions'};
 const PLANS={
   a:{nama:'Container & Bulk',desc:'One container feeder and one Supramax. Balanced and a good place to start.',ships:[['feeder',11],['supra',9]],cash:27.5e6},
   b:{nama:'Tanker & Bunker',desc:'One MR product tanker and two bunker tankers in Singapore. Older ships, less cash.',ships:[['mr',13],['bunk',8],['bunk',16]],cash:19e6},
-  c:{nama:'Start Small',desc:'One old Handysize and one bunker tanker, with plenty of cash to buy ships.',ships:[['handy',15],['bunk',10]],cash:42.5e6}
+  c:{nama:'Start Small',desc:'One old Handysize and one bunker tanker, with plenty of cash to expand.',ships:[['handy',15],['bunk',10]],cash:42.5e6}
 };
 
-let st=null,tab='overview',confirmKey=null,startPlan='a',cf={stcw:0,rep:0,rank:'all'};
-const TABS=[['overview','Overview'],['fleet','Fleet'],['contracts','Contracts'],['crewing','Crewing'],['payroll','Salary'],['sp','Buy & Sell'],['finance','Finance'],['company','Company']];
+let st=null,tab='overview',confirmKey=null,startPlan='a',showPool=null;
+const TABS=[['overview','Overview'],['fleet','Fleet'],['contracts','Contracts'],['depts','Departments'],['crewing','Crewing'],['payroll','Salary'],['sp','Buy & Sell'],['finance','Finance'],['company','Company']];
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const r10k=n=>Math.round(n/1e4)*1e4;
 const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
-const mlabel=m=>MONTHS[m%12]+' '+(2027+Math.floor(m/12));
+const yearOf=m=>2027+Math.floor(m/12);
+const mlabel=m=>MONTHS[m%12]+' '+yearOf(m);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function fm(n){const s=n<0?'-':'';n=Math.abs(n);if(n>=1e6)return s+'RM '+(n/1e6).toFixed(2)+'M';if(n>=1e4)return s+'RM '+Math.round(n/1e3)+'k';if(n>=1e3)return s+'RM '+(n/1e3).toFixed(1)+'k';return s+'RM '+Math.round(n)}
+function fm(n){const s=n<0?'-':'';n=Math.abs(n);if(n>=1e9)return s+'RM '+(n/1e9).toFixed(2)+'B';if(n>=1e6)return s+'RM '+(n/1e6).toFixed(2)+'M';if(n>=1e4)return s+'RM '+Math.round(n/1e3)+'k';if(n>=1e3)return s+'RM '+(n/1e3).toFixed(1)+'k';return s+'RM '+Math.round(n)}
 const full=n=>'RM '+Math.round(n).toLocaleString('en-MY');
+const stars=n=>'<span class="stars" aria-label="'+n+' of 5 stars">'+'★'.repeat(n)+'<span class="off">'+'★'.repeat(5-n)+'</span></span>';
 
-/* ---------- model helpers ---------- */
+/* ---------- helpers ---------- */
+const segOf=cls=>CLS[cls].seg;
 const av=k=>{const a=ALLOW.find(x=>x.k===k);return a.val[st.allow[k]]};
-const isTank=cls=>['tanker','bunker'].includes(CLS[cls].seg);
-const reqFor=(rank,cls)=>REQ[rank].concat(cls&&isTank(cls)?['OTB','OTA']:[]);
+const isTank=cls=>['tanker','bunker','gas'].includes(segOf(cls));
+function segCerts(seg,rank){if(seg==='tanker'||seg==='bunker')return['OTB','OTA'];if(seg==='gas')return['LGB','LGA'];if(seg==='offshore'&&(rank==='master'||rank==='co'))return['DP'];return[]}
+const reqFor=(rank,cls)=>REQ[rank].concat(cls?segCerts(segOf(cls),rank):[]);
 const gapsOf=(p,cls)=>reqFor(p.rank,cls).filter(c=>!p.certs.includes(c));
 const filled=sh=>RK.filter(r=>sh.crew[r]);
 const manned=sh=>RK.every(r=>sh.crew[r]);
 const shipGaps=sh=>RK.reduce((a,r)=>a+(sh.crew[r]?gapsOf(sh.crew[r],sh.cls).length:0),0);
+const maxAge=cls=>['tanker','gas'].includes(segOf(cls))?22:25;
+const canTrade=sh=>sh.age<maxAge(sh.cls);
 function crewScore(sh){const f=filled(sh);if(!f.length)return 0;return Math.round(f.reduce((a,r)=>a+sh.crew[r].comp,0)/f.length)}
 function crewMult(sh){const f=filled(sh);let m=1.6-(f.length?crewScore(sh):40)/100;m+=Math.min(0.6,shipGaps(sh)*0.08);if(f.length<4)m+=0.3;return Math.max(0.5,m)}
+function coverage(d){return Math.min(1,(1+st.staff[d])*3/Math.max(1,st.ships.length))}
+function eff(d){const h=st.heads[d];return (h?h.skill/5:0.2)*coverage(d)}
 function earnBase(cls){const c=CLS[cls];const basic=(142000+c.ratings*RATING_MK)*c.scale;const crew=basic*(1.25+7/30)+(4+c.ratings)*35*30+1500;return (c.fuel*2635+crew+c.other+c.port)*c.mk}
-function valueOf(sh){const c=CLS[sh.cls];return c.value*Math.max(0.25,1-sh.age*0.028)*(0.75+0.25*st.idx[c.seg])}
+function valueOf(sh){const c=CLS[sh.cls];return c.value*Math.max(0.2,1-sh.age*0.022)*(0.85+0.15*st.idx[c.seg])}
 function fleetValue(){return st.ships.reduce((a,s)=>a+valueOf(s),0)}
 function netWorth(){return st.cash+fleetValue()-st.loan+st.orders.reduce((a,o)=>a+o.paid,0)}
-function dockCost(sh){return r10k(CLS[sh.cls].value*0.03)}
+function dockCost(sh){return r10k(CLS[sh.cls].value*0.03*(1.1-0.2*eff('technical')))}
 function shipById(id){return st.ships.find(s=>s.id===id)}
-function crewBasic(cls,ranks){const c=CLS[cls];return (ranks.reduce((a,r)=>a+st.wages[r],0)+c.ratings*st.wages.rating)*c.scale}
-function crewCostFor(cls,ranks,atSea,hra){
-  const c=CLS[cls],seg=c.seg,basic=crewBasic(cls,ranks),heads=ranks.length+c.ratings;
-  const wages=basic*(1+av('ot')+av('leave')/30),food=heads*av('food')*30;let allow=av('wifi');
-  if(atSea){if(seg==='container')allow+=heads*av('lash');if(seg==='tanker'||seg==='bunker')allow+=heads*av('dg');if(hra&&av('hra'))allow+=basic*0.5}
+function shipBasic(sh){const c=CLS[sh.cls];return (filled(sh).reduce((a,r)=>a+Math.max(st.wages[r],sh.crew[r].wage||0),0)+c.ratings*st.wages.rating)*c.scale}
+function scaleBasic(cls){const c=CLS[cls];return (RK.reduce((a,r)=>a+st.wages[r],0)+c.ratings*st.wages.rating)*c.scale}
+function crewCost(cls,basic,heads,atSea,hra){
+  const seg=segOf(cls);const wages=basic*(1+av('ot')+av('leave')/30),food=heads*av('food')*30;let allow=av('wifi');
+  if(atSea){if(seg==='container')allow+=heads*av('lash');if(['tanker','bunker','gas'].includes(seg))allow+=heads*av('dg');if(seg==='offshore')allow+=heads*av('dp');if(hra&&av('hra'))allow+=basic*0.5}
   return {wages,food,allow,heads,basic};
 }
-function packagePts(){const segs=new Set(st.ships.map(s=>CLS[s.cls].seg));let p=0;ALLOW.forEach(a=>{const lv=st.allow[a.k];if(a.pts)p+=a.pts[lv];else if(a.seg&&a.seg.some(x=>segs.has(x)))p+=lv?2:-5});return p}
+function packagePts(){const segs=new Set(st.ships.map(s=>segOf(s.cls)));let p=0;ALLOW.forEach(a=>{const lv=st.allow[a.k];if(a.pts)p+=a.pts[lv];else if(a.seg&&a.seg.some(x=>segs.has(x)))p+=lv?2:-5});return p}
 function wageRatio(){const yours=RK.reduce((a,r)=>a+st.wages[r],0)+st.wages.rating*4;const mk=RK.reduce((a,r)=>a+RANKS[r].mk,0)+RATING_MK*4;return yours/mk}
 function moraleTarget(){return clamp(62+(wageRatio()-1)*160+packagePts(),10,97)}
-function acceptChance(p){return clamp(0.45+(st.wages[p.rank]/p.expect-1)*2.5+(st.empRep-50)/120+(p.ex?0.2:0),0.05,0.97)}
+function acceptChance(p,offer){return clamp(0.5+(offer/p.expect-1)*2.5+(st.empRep-50)/120+(p.ex?0.2:0),0.05,0.97)}
+function boostFor(seg){return st.offices.reduce((a,k)=>a+(OFFICES[k].boost[seg]||0),0)}
+function tierIdx(){const nw=netWorth(),n=st.ships.length+st.orders.length,d=st.divs.length;let t=0;TIERS.forEach((x,i)=>{if(n>=x.ships&&d>=x.divs&&nw>=x.nw)t=i});return t}
 
 /* ---------- ledger ---------- */
 const newLedger=()=>({rev:{freight:0,hire:0},exp:{},cap:{buy:0,sell:0}});
@@ -323,124 +367,196 @@ function earn(cat,amt){st.cash+=amt;st.cur.rev[cat]+=amt}
 function capOut(a){st.cash-=a;st.cur.cap.buy+=a}
 function capIn(a){st.cash+=a;st.cur.cap.sell+=a}
 const sumObj=o=>Object.values(o).reduce((a,b)=>a+b,0);
+function addLog(t,tone,cat){st.log.unshift({m:st.m,t,tone:tone||'',cat:cat||''});st.log=st.log.slice(0,60)}
+function fix(){['rep','morale','board','empRep'].forEach(k=>st[k]=clamp(st[k],0,100))}
 
 /* ---------- generators ---------- */
-function shipName(){const free=SHIPNAMES.filter(n=>!st.used.includes(n));const n=free.length?pick(free):pick(SHIPNAMES)+' '+(st.used.length+1);st.used.push(n);return n}
+function shipName(){const free=SHIPNAMES.filter(n=>!st.used.includes(n));const n=free.length?pick(free):pick(SHIPNAMES)+' '+(st.used.length-SHIPNAMES.length+2);st.used.push(n);return n}
 function genSeafarer(rank,o={}){
   const mean=o.mean??(46+st.empRep*0.38);const comp=clamp(Math.round(mean+gauss()*11),30,98);
   const er={master:[12,26],co:[5,14],ce:[12,26],se:[4,13]}[rank];const exp=Math.round(rnd(er[0],er[1]));
   const rep=Math.round(clamp(1.8+comp/32+gauss()*0.35,1.5,5)*10)/10;
   const pc=0.55+comp/250+(o.boost||0);
   const certs=REQ[rank].filter(c=>c==='BST'||Math.random()<pc);
-  if(Math.random()<(o.tank??(0.45+comp/400))){certs.push('OTB');if(Math.random()<(o.tank?0.95:0.6))certs.push('OTA')}
+  const sc=o.seg?segCerts(o.seg,rank):[];
+  if(sc.length){if(Math.random()<0.5+comp/250+(o.boost||0))certs.push(...sc);else if(Math.random()<0.5)certs.push(sc[0])}
   const nat=pick(Object.keys(PEOPLE));
   return {id:st.nid++,name:pick(PEOPLE[nat]),nat,rank,age:exp+Math.round(rnd(22,27)),exp,comp,rep,certs,
-    expect:Math.round(RANKS[rank].mk*(0.85+comp/400+exp/200)/500)*500,left:0,ex:false,exAge:0,declined:false,
+    expect:Math.round(RANKS[rank].mk*(0.8+comp/500+exp/300)/500)*500,left:0,ex:false,exAge:0,flag:false,wage:0,
     remark:pick(REMARKS[rep>=4.3?'hi':rep>=3.4?'mid':'lo'])};
+}
+function genHead(d,mean){
+  const skill=clamp(Math.round((mean??3)+gauss()*0.9),1,5),P=DEPTS[d].pay;
+  const nat=Math.random()<0.7?'Malaysian':pick(Object.keys(PEOPLE));
+  return {id:st.nid++,name:pick(PEOPLE[nat]),nat,skill,pay:Math.round((P[0]+(P[1]-P[0])*(skill-1)/4)*rnd(0.92,1.08)/500)*500,yrs:Math.round(6+skill*3+rnd(0,6)),note:DEPTS[d].notes[5-skill]};
 }
 function newShip(cls,age,crewed){
   const sh={id:st.nid++,name:shipName(),cls,age,cond:Math.round(clamp(94-age*1.4+rnd(-4,4),58,95)),status:'idle',left:0,c:null,crew:{master:null,co:null,ce:null,se:null}};
-  if(crewed)RK.forEach(r=>{const p=genSeafarer(r,{mean:68,boost:0.25,tank:isTank(cls)?0.92:0.3});p.left=Math.round(rnd(2,8));sh.crew[r]=p});
+  if(crewed)RK.forEach(r=>{const p=genSeafarer(r,{mean:68,boost:0.3,seg:segOf(cls)});p.left=Math.round(rnd(2,8));sh.crew[r]=p});
   return sh;
 }
-function addLog(t,tone){st.log.unshift({m:st.m,t,tone:tone||''});st.log=st.log.slice(0,40)}
-function fix(){['rep','morale','board','empRep'].forEach(k=>st[k]=clamp(st[k],0,100))}
-
 function genOffer(cls){
-  const c=CLS[cls],seg=c.seg,r=pick(ROUTES[seg]),repF=0.9+st.rep/500,base=earnBase(cls);
-  if(Math.random()<0.32){const months=pick([4,6,9,12]);const hire=r10k((base-c.fuel*2635-c.port)*st.idx[seg]*rnd(0.95,1.1)*repF);
-    return {id:st.nid++,cls,type:'TC',months,hire,rev:hire*months,who:pick(WHO[seg]),from:r[0],to:null,cargo:'Charterer pays fuel and port charges',hra:false}}
-  return {id:st.nid++,cls,type:'VC',months:r[2],rev:r10k(base*r[2]*st.idx[seg]*rnd(0.88,1.15)*repF*(r[4]?1.12:1)),who:pick(WHO[seg]),from:r[0],to:r[1],cargo:r[3],hra:!!r[4]};
+  const c=CLS[cls],seg=c.seg,r=pick(ROUTES[seg]),base=earnBase(cls);
+  let f=(0.9+st.rep/500)*(0.95+0.1*eff('chartering'))*(1+boostFor(seg));
+  if(seg==='tanker'||seg==='gas')f*=0.93+0.1*eff('marine');
+  if(seg==='offshore'||Math.random()<0.32){
+    const months=seg==='offshore'?pick([6,9,12,18,24]):pick([4,6,9,12]);
+    const hire=r10k((base-c.fuel*2635-c.port)*st.idx[seg]*rnd(0.95,1.1)*f);
+    return {id:st.nid++,cls,type:'TC',months,hire,rev:hire*months,who:pick(WHO[seg]),from:r[0],to:seg==='offshore'?r[1]:null,cargo:seg==='offshore'?'Field support for '+r[1]:'Charterer pays fuel and port charges',hra:false};
+  }
+  return {id:st.nid++,cls,type:'VC',months:r[2],rev:r10k(base*r[2]*st.idx[seg]*rnd(0.88,1.15)*f*(r[4]?1.12:1)),who:pick(WHO[seg]),from:r[0],to:r[1],cargo:r[3],hra:!!r[4]};
 }
-function genOffers(){const owned=[...new Set(st.ships.map(s=>s.cls))],all=Object.keys(CLS),out=[];owned.forEach(c=>out.push(genOffer(c)));while(out.length<5)out.push(genOffer(owned.length&&Math.random()<0.75?pick(owned):pick(all)));st.offers=out}
-function genListing(){const cls=pick(Object.keys(CLS)),age=Math.round(rnd(4,19));return {id:st.nid++,cls,age,cond:Math.round(clamp(92-age*1.5+rnd(-6,6),50,95)),price:r10k(valueOf({cls,age})*rnd(0.95,1.1)),seller:pick(['Greek owner','Singapore fund','Japanese owner','Indonesian operator','Norwegian owner'])}}
+function genOffers(){
+  const out=[];[...new Set(st.ships.map(s=>s.cls))].forEach(c=>{const n=1+st.ships.filter(s=>s.cls===c&&s.status==='idle').length;for(let i=0;i<Math.min(n,3);i++)out.push(genOffer(c))});
+  const open=Object.keys(CLS).filter(k=>st.divs.includes(segOf(k)));for(let i=0;i<2;i++)out.push(genOffer(pick(open)));
+  st.offers=out.slice(0,18);
+}
+function genListing(seg){const open=Object.keys(CLS).filter(k=>seg?segOf(k)===seg:st.divs.includes(segOf(k)));const cls=pick(open),age=Math.round(rnd(3,seg?14:18));return {id:st.nid++,cls,age,cond:Math.round(clamp(92-age*1.5+rnd(-6,6),50,95)),price:r10k(valueOf({cls,age})*rnd(0.95,1.1)),seller:pick(['Greek owner','Singapore fund','Japanese owner','Indonesian operator','Norwegian owner','Chinese leasing firm'])}}
 function refreshBids(){st.bids={};st.ships.forEach(s=>st.bids[s.id]=r10k(valueOf(s)*rnd(0.9,1.03)))}
 function bidFor(sh){if(st.bids[sh.id]==null)st.bids[sh.id]=r10k(valueOf(sh)*rnd(0.9,1.03));return st.bids[sh.id]}
-function refreshPool(){
-  st.pool=st.pool.filter(p=>p.ex&&++p.exAge<=4);st.pool.forEach(p=>p.declined=false);
-  const vac=[];st.ships.forEach(s=>RK.forEach(r=>{if(!s.crew[r])vac.push(r)}));
-  vac.forEach(r=>{if(!st.pool.some(p=>p.rank===r&&!p.ex))st.pool.push(genSeafarer(r))});
-  while(st.pool.length<8)st.pool.push(genSeafarer(pick(RK)));
-}
+function headPool(d){if(!st.headPool[d]||!st.headPool[d].length)st.headPool[d]=[genHead(d,2),genHead(d,3),genHead(d,4)];return st.headPool[d]}
+
+function estCost(o){const c=CLS[o.cls],cc=crewCost(o.cls,scaleBasic(o.cls),4+c.ratings,true,o.hra);const run=(cc.wages+cc.food+cc.allow+c.other*(0.55+0.45*MAINT[st.maint].mult))*o.months;return o.type==='VC'?o.months*(c.fuel*st.bunker*st.fuelEff+c.port)+run:run}
+const estProfit=o=>o.rev-estCost(o);
 
 function fresh(company,plan){
-  st={company,m:0,cash:0,loan:0,rate:0.07,rep:50,morale:65,board:70,empRep:55,maint:1,hseq:false,fuelEff:1,
-      bunker:2615,prevBunker:2615,scrap:2000,idx:{container:1,bulk:0.95,tanker:1.05,bunker:1},bunkerHist:[2615],
+  st={v:3,company,m:0,cash:0,loan:0,rate:0.065,rep:50,morale:65,board:70,empRep:55,maint:1,hseq:false,fuelEff:1,
+      bunker:2615,prevBunker:2615,scrap:2000,idx:{container:1,bulk:0.95,tanker:1.05,bunker:1,gas:1,offshore:0.95},bunkerHist:[2615],
       wages:{master:42000,co:30000,ce:42000,se:28000,rating:7500},allow:{},
-      ships:[],offers:[],market:[],pool:[],bids:{},orders:[],log:[],hist:[],cur:null,neg:0,queue:[],over:null,nid:1,flags:{},used:[]};
+      pol:{autoCharter:1,mode:1,minRep:0,needStcw:1,premium:1,autoTrain:1,dockAt:2},
+      heads:{},staff:{},headPool:{},divs:[],offices:[],
+      ships:[],offers:[],market:[],pool:[],bids:{},orders:[],log:[],hist:[],cur:null,neg:0,queue:[],over:null,nid:1,flags:{},used:[],tierMax:0};
   ALLOW.forEach(a=>st.allow[a.k]=a.def);st.cur=newLedger();
-  const P=PLANS[plan];P.ships.forEach(([c,a])=>st.ships.push(newShip(c,a,true)));st.cash=P.cash;
+  Object.keys(DEPTS).forEach(d=>{st.heads[d]=genHead(d,3);st.staff[d]=0});
+  const P=PLANS[plan];P.ships.forEach(([c,a])=>{st.ships.push(newShip(c,a,true));if(!st.divs.includes(segOf(c)))st.divs.push(segOf(c))});st.cash=P.cash;
   st.morale=moraleTarget();
-  st.startNW=netWorth();st.target=Math.round(st.startNW*1.35/1e6)*1e6;st.reviewNW=st.startNW;
-  genOffers();for(let i=0;i<5;i++)st.market.push(genListing());refreshBids();refreshPool();
-  addLog('You have been appointed CEO of '+company+'. Board target: net worth of '+fm(st.target)+' by Dec 2029.','');
+  st.startNW=netWorth();st.yearNW=st.startNW;st.target=Math.round(st.startNW*1.08/1e6)*1e6;st.reviewNW=st.startNW;
+  genOffers();for(let i=0;i<5;i++)st.market.push(genListing());refreshBids();
+  addLog('You have been appointed CEO of '+company+'. Board target for 2027: net worth of '+fm(st.target)+'.','');
+  autoCharter((t,tn,c)=>addLog(t,tn,c));
   save();
+}
+
+/* ---------- department automation ---------- */
+function place(sh,r,p,note){
+  const cur=sh.crew[r];if(cur)sendHome(cur);
+  spend('recruit',p.ex?3500:7500);p.ex=false;p.flag=false;p.left=Math.round(rnd(6,9));sh.crew[r]=p;st.pool=st.pool.filter(x=>x!==p);
+  if(st.pol.autoTrain)gapsOf(p,sh.cls).forEach(c=>{spend('train',CERTS[c][2]);p.certs.push(c)});
+  note&&note(`Crewing hired ${p.name} as ${RANKS[r].t} on ${sh.name}${cur?', replacing '+cur.name:''}.`,'good');
+}
+function autoCrew(note){
+  const ce=eff('crewing'),mean=36+st.empRep*0.3+ce*24;
+  st.ships.forEach(sh=>RK.forEach(r=>{
+    const cur=sh.crew[r];if(cur&&!cur.flag)return;
+    const seg=segOf(sh.cls);let cands=[0,1,2,3].map(()=>genSeafarer(r,{mean,seg,boost:ce*0.15})).concat(st.pool.filter(p=>p.rank===r));
+    cands=cands.filter(p=>p.rep>=MINREP[st.pol.minRep]);
+    if(st.pol.needStcw&&!st.pol.autoTrain)cands=cands.filter(p=>!gapsOf(p,sh.cls).length);
+    if(cur)cands=cands.filter(p=>p.comp>cur.comp+4);
+    cands.sort((a,b)=>b.comp-a.comp);
+    const cap=st.wages[r]*(1+PREM[st.pol.premium]);let over=null;
+    for(const p of cands){
+      if(p.expect<=cap){const offer=Math.max(st.wages[r],p.expect);if(Math.random()<acceptChance(p,offer)){p.wage=offer;place(sh,r,p,(t,tn)=>note(t,tn,'crew'));return}}
+      else if(!over)over=p;
+    }
+    if(cur){cur.flag=false;note(`Crewing found no better ${RANKS[r].t} than ${cur.name} this month.`,'','crew');return}
+    if(over&&!st.queue.some(q=>q.id==='premium'))st.queue.push({kind:'event',id:'premium',ship:sh.id,extra:{r,p:over},title:'Crewing Manager requests approval',
+      body:`${sh.name} has no ${RANKS[r].t}. The best candidate, ${over.name} (${over.nat}, competence ${over.comp}, reputation ${over.rep.toFixed(1)}), asks for ${full(over.expect)} a month. Your scale is ${full(st.wages[r])} and your policy allows up to ${full(cap)}.`});
+    else note(`Crewing could not find a ${RANKS[r].t} for ${sh.name}. The ship cannot sail until one is found.`,'bad','crew');
+  }));
+}
+function autoTrain(){if(!st.pol.autoTrain)return;st.ships.forEach(sh=>filled(sh).forEach(r=>{const p=sh.crew[r];gapsOf(p,sh.cls).forEach(c=>{spend('train',CERTS[c][2]);p.certs.push(c)})}))}
+function autoDock(note){const t=DOCKAT[st.pol.dockAt];if(!t)return;st.ships.forEach(sh=>{if(sh.status==='idle'&&sh.cond<t){const c=dockCost(sh);if(st.cash>c*2){spend('dock',c);sh.status='dock';sh.left=1;note('Technical sent '+sh.name+' to dry dock ('+fm(c)+').','')}}})}
+function autoCharter(note){
+  if(!st.pol.autoCharter)return;
+  st.ships.filter(sh=>sh.status==='idle'&&manned(sh)&&canTrade(sh)).forEach(sh=>{
+    let best=null,bs=0;
+    st.offers.filter(o=>o.cls===sh.cls&&!(o.hra&&!av('hra'))).forEach(o=>{const p=estProfit(o);if(p<=0)return;let s=p/o.months;if(st.pol.mode===0&&o.type==='VC')s*=1.15;if(st.pol.mode===2&&o.type==='TC')s*=1.25+o.months*0.01;if(s>bs){bs=s;best=o}});
+    if(best){sh.status='voyage';sh.left=best.months;sh.c=best;st.offers=st.offers.filter(x=>x!==best);note('Chartering fixed '+sh.name+(best.type==='VC'?' '+best.from+' → '+best.to:' on a '+best.months+'-month time charter')+' for '+best.who+'.','','charter')}
+    else note('Chartering found no profitable cargo for '+sh.name+' this month.','bad','charter');
+  });
 }
 
 /* ---------- events ---------- */
 const voyaging=s=>s.ships.filter(x=>x.status==='voyage');
 const aboard=(s,f)=>{const out=[];s.ships.forEach(sh=>RK.forEach(r=>{const p=sh.crew[r];if(p&&(!f||f(p,sh)))out.push({sh,r,p})}));return out};
+function findPerson(id){for(const sh of st.ships)for(const r of RK)if(sh.crew[r]&&sh.crew[r].id===id)return sh.crew[r];return null}
 const EVENTS={
+  premium:{elig:()=>[],choices:[['Approve the higher wage','Hire at the candidate\'s asking wage. The ship can sail.',(s,sh,q)=>{const p=q.extra.p;p.wage=p.expect;if(sh&&!sh.crew[q.extra.r]){place(sh,q.extra.r,p);return [p.name+' joined '+sh.name+' as '+RANKS[q.extra.r].t+'.','good']}return ['The position was already filled.','']}],
+    ['Reject and keep searching','Crewing tries again next month. The ship stays idle.',()=>['Crewing will keep searching next month.','']]]},
   pscCert:{elig:s=>aboard(s,(p,sh)=>sh.status!=='delivery'&&gapsOf(p,sh.cls).length>0),
-    make:x=>{const cert=pick(gapsOf(x.p,x.sh.cls));return {extra:{pid:x.p.id,cert},ship:x.sh.id,title:'PSC detention: missing STCW certificate',body:`During a Port State Control inspection in Singapore, ${RANKS[x.r].t} ${x.p.name} on ${x.sh.name} could not show a valid ${CERTS[cert][0]} certificate (STCW ${CERTS[cert][1]}). The ship is detained until the crew meets STCW requirements.`}},
-    choices:[['Pay fine and send officer for training','RM 40k fine plus course fee. Ship released.',(s,sh,q)=>{const p=findPerson(q.extra.pid);spend('penalty',40000);spend('train',CERTS[q.extra.cert][2]);if(p&&!p.certs.includes(q.extra.cert))p.certs.push(q.extra.cert);s.rep-=1;s.empRep+=1;return ['Officer completed the course and the ship was released.','']}],
-             ['Appeal the detention','RM 20k legal cost. Ship held a month, reputation drops.',(s,sh)=>{spend('penalty',20000);s.rep-=4;if(sh&&sh.status==='voyage')sh.left+=1;return ['Appeal rejected. Ship held for a month and the charterer is unhappy.','bad']}]]},
+    make:x=>{const cert=pick(gapsOf(x.p,x.sh.cls));return {extra:{pid:x.p.id,cert},ship:x.sh.id,title:'PSC detention: missing certificate',body:`During a Port State Control inspection in Singapore, ${RANKS[x.r].t} ${x.p.name} on ${x.sh.name} could not show a valid ${CERTS[cert][0]} certificate (${CERTS[cert][1]}). The ship is detained.`}},
+    choices:[['Pay the fine and train the officer','RM 40k fine plus course fee. Ship released.',(s,sh,q)=>{const p=findPerson(q.extra.pid);spend('penalty',40000);spend('train',CERTS[q.extra.cert][2]);if(p&&!p.certs.includes(q.extra.cert))p.certs.push(q.extra.cert);s.rep-=1;return ['Officer completed the course and the ship was released.','']}],
+             ['Appeal the detention','RM 20k legal cost. Ship held a month, reputation drops.',(s,sh)=>{spend('penalty',20000);s.rep-=4;if(sh&&sh.status==='voyage')sh.left+=1;return ['Appeal rejected. Ship held for a month.','bad']}]]},
   psc:{elig:s=>s.ships.filter(x=>x.status!=='delivery'&&x.cond<(s.hseq?70:78)),
     make:sh=>({ship:sh.id,title:'PSC detention: safety deficiencies',body:`PSC officers inspected ${sh.name} and found defects in the firefighting system and maintenance records. The ship cannot sail until they are fixed.`}),
-    choices:[['Repair immediately','RM 450k. Ship released within days.',(s,sh)=>{spend('repair',450000);s.rep-=1;sh.cond=Math.min(100,sh.cond+6);return ['Technicians fixed the defects and the ship was released.','']}],
+    choices:[['Repair immediately','RM 450k. Ship released within days.',(s,sh)=>{spend('repair',450000);s.rep-=1;sh.cond=Math.min(100,sh.cond+6);return ['Defects fixed and the ship was released.','']}],
              ['Appeal and wait','RM 120k, ship held a month, reputation drops.',(s,sh)=>{spend('penalty',120000);s.rep-=4;if(sh.status==='voyage')sh.left+=1;return ['Appeal failed. Ship held for a month.','bad']}]]},
-  customs:{elig:s=>voyaging(s).filter(x=>['container','bulk'].includes(CLS[x.cls].seg)),
+  vetting:{elig:s=>s.ships.filter(x=>['tanker','gas'].includes(segOf(x.cls))&&x.status!=='delivery'),
+    make:sh=>({ship:sh.id,title:'Oil major vetting inspection',body:`A SIRE vetting inspector boarded ${sh.name} and recorded 9 observations, mostly on cargo procedures and mooring equipment. Oil majors may stop chartering the ship until they are closed.`}),
+    choices:[['Fix every observation','RM 600k. Ship condition improves and clients stay confident.',(s,sh)=>{spend('repair',600000);sh.cond=Math.min(100,sh.cond+5);s.rep+=2;return ['All observations closed out. The ship is approved again.','good']}],
+             ['Close only the urgent items','RM 150k. Reputation with oil majors drops.',(s)=>{spend('repair',150000);s.rep-=5;return ['Some oil majors have put the ship on hold.','bad']}]]},
+  customs:{elig:s=>voyaging(s).filter(x=>['container','bulk'].includes(segOf(x.cls))),
     make:sh=>({ship:sh.id,title:'Cargo held by Customs',body:`Royal Malaysian Customs at Port Klang is holding cargo from ${sh.name}. The HS codes on the manifest do not match the Bill of Lading, so the duty value is in question.`}),
     choices:[['Appoint a customs agent and pay the penalty','RM 150k. Declaration corrected, cargo released.',()=>{spend('penalty',150000);return ['The customs agent corrected the declaration. Cargo released.','']}],
              ['Dispute the decision','50/50: released free, or a RM 600k penalty.',s=>{if(Math.random()<0.5){s.rep+=1;return ['Your documents were proven correct. No penalty.','good']}spend('penalty',600000);s.rep-=3;return ['Dispute failed. RM 600k penalty and late delivery.','bad']}]]},
-  typhoon:{elig:s=>voyaging(s).filter(x=>CLS[x.cls].seg!=='bunker'),
-    make:sh=>({ship:sh.id,title:'Typhoon warning',body:`A typhoon is crossing the route of ${sh.name} in the South China Sea. The Master asks the operations office for instructions.`}),
+  typhoon:{elig:s=>voyaging(s).filter(x=>!['bunker','offshore'].includes(segOf(x.cls))),
+    make:sh=>({ship:sh.id,title:'Typhoon warning',body:`A typhoon is crossing the route of ${sh.name} in the South China Sea. The Master asks for instructions.`}),
     choices:[['Shelter in the nearest port','Safe, but the voyage is a month late.',(s,sh)=>{sh.left+=1;s.rep-=1;s.morale+=4;return ['The ship sheltered safely. The crew appreciated it.','']}],
              ['Keep sailing','Saves time, 35% risk of heavy damage.',(s,sh)=>{if(Math.random()<0.35*crewMult(sh)){sh.cond=Math.max(20,sh.cond-18);spend('repair',1400000);s.rep-=3;s.morale-=10;return ['Heavy seas damaged cargo and deck. RM 1.4M in repairs.','bad']}s.rep+=1;return ['The Master skirted the storm and arrived on time.','good']}]]},
   bunkerSpike:{elig:()=>[true],make:()=>({title:'Bunker prices spike',body:'Tension in the Middle East pushed up VLSFO prices in Singapore. Voyage charters cost more because the owner pays for fuel.'}),
     choices:[['Understood','Bunker price up about 18%.',s=>{s.bunker=Math.min(4000,s.bunker*1.18);s.idx.tanker=Math.min(1.6,s.idx.tanker+0.12);return ['VLSFO now '+full(s.bunker)+' per tonne.','bad']}]]},
   redsea:{elig:()=>[true],make:()=>({title:'Red Sea route disrupted',body:'Attacks in the Red Sea are sending ships around the Cape of Good Hope. Voyages are longer and freight rates rise.'}),
-    choices:[['Understood','Container and tanker rates rise.',s=>{s.idx.container=Math.min(1.6,s.idx.container+0.22);s.idx.tanker=Math.min(1.6,s.idx.tanker+0.12);return ['Container freight rates jumped.','good']}]]},
+    choices:[['Understood','Container, tanker and gas rates rise.',s=>{s.idx.container=Math.min(1.6,s.idx.container+0.22);s.idx.tanker=Math.min(1.6,s.idx.tanker+0.12);s.idx.gas=Math.min(1.6,s.idx.gas+0.1);return ['Freight rates jumped.','good']}]]},
   union:{elig:s=>s.morale<55?[true]:[],make:()=>({title:'Seafarers union asks for a pay rise',body:'The union says your crew package is below market and asks for an 8% rise on all wages.'}),
     choices:[['Agree to 8% rise','All wages up 8%, morale improves.',s=>{Object.keys(s.wages).forEach(k=>s.wages[k]=Math.round(s.wages[k]*1.08/100)*100);s.morale+=12;s.empRep+=6;return ['Wages raised 8%. Morale and employer rating improve.','good']}],
              ['Reject','Saves money, risks a strike.',s=>{s.morale-=12;s.empRep-=8;const v=voyaging(s);if(v.length&&Math.random()<0.4){const sh=pick(v);sh.left+=1;s.rep-=3;return ['Crew of '+sh.name+' went on strike in port. Voyage a month late.','bad']}return ['The union is unhappy. Morale and employer rating drop.','bad']}]]},
   misconduct:{elig:s=>aboard(s,p=>p.rep<3.4),
-    make:x=>({ship:x.sh.id,extra:{r:x.r},title:'Officer misconduct reported',body:`The Master of ${x.sh.name} reports that ${RANKS[x.r].t} ${x.p.name} was unfit for duty during cargo operations. Previous employers had flagged similar concerns.`}),
-    choices:[['Dismiss and repatriate','RM 12k travel. Position becomes vacant.',(s,sh,q)=>{spend('recruit',12000);sh.crew[q.extra.r]=null;s.rep+=1;return ['Officer dismissed. Recruit a replacement in the Crewing tab.','']}],
+    make:x=>({ship:x.sh.id,extra:{r:x.r},title:'Officer misconduct reported',body:`The Marine Superintendent reports that ${RANKS[x.r].t} ${x.p.name} on ${x.sh.name} was unfit for duty during cargo operations. Previous employers had flagged similar concerns.`}),
+    choices:[['Dismiss and repatriate','RM 12k travel. Crewing finds a replacement at month end.',(s,sh,q)=>{spend('recruit',12000);sh.crew[q.extra.r]=null;s.rep+=1;return ['Officer dismissed. Crewing is searching for a replacement.','']}],
              ['Give a final warning','No cost now, but risk of an incident.',(s)=>{if(Math.random()<0.35){spend('penalty',250000);s.rep-=3;return ['A cargo spill followed. Terminal claim of RM 250k.','bad']}return ['The officer improved and finished the month without trouble.','']}]]},
   family:{elig:s=>aboard(s),
     make:x=>({ship:x.sh.id,extra:{r:x.r},title:'Early sign-off request',body:`${RANKS[x.r].t} ${x.p.name} on ${x.sh.name} has a family emergency at home and asks to sign off early.`}),
-    choices:[['Approve the sign-off','RM 8k travel. Position becomes vacant.',(s,sh,q)=>{const p=sh.crew[q.extra.r];spend('recruit',8000);sh.crew[q.extra.r]=null;if(p){p.ex=true;p.exAge=0;p.left=0;st.pool.push(p)}s.empRep+=4;s.morale+=3;return ['Officer flown home. They will be glad to sail with you again.','good']}],
+    choices:[['Approve the sign-off','RM 8k travel. Crewing finds a relief at month end.',(s,sh,q)=>{const p=sh.crew[q.extra.r];spend('recruit',8000);sh.crew[q.extra.r]=null;if(p){p.ex=true;p.exAge=0;p.left=0;st.pool.push(p)}s.empRep+=4;s.morale+=3;return ['Officer flown home. They will be glad to sail with you again.','good']}],
              ['Ask them to finish the contract','No cost, morale and employer rating drop.',s=>{s.morale-=8;s.empRep-=6;return ['The officer stays, but word spreads among seafarers.','bad']}]]},
-  mlc:{elig:s=>s.allow.food===0?[true]:[],make:()=>({title:'MLC complaint about food',body:'Crew filed a complaint with the flag state that the food budget is too low under the Maritime Labour Convention.'}),
-    choices:[['Raise victualling to RM 35','Higher food cost, complaint closed.',s=>{s.allow.food=1;s.morale+=5;return ['Victualling raised. Complaint closed.','good']}],
-             ['Ignore','RM 200k fine, employer rating drops.',s=>{spend('penalty',200000);s.empRep-=8;return ['Flag state fined the company RM 200k.','bad']}]]},
-  longTC:{elig:s=>s.rep>=58?s.ships.filter(x=>x.status==='idle'&&manned(x)):[],
-    make:sh=>({ship:sh.id,title:'12-month time charter offer',body:`Your reputation caught a major client's attention. They want ${sh.name} for 12 months at a premium rate, fuel on their account.`}),
-    choices:[['Accept','Steady monthly hire for a year.',(s,sh)=>{const c=CLS[sh.cls];const hire=r10k((earnBase(sh.cls)-c.fuel*2635-c.port)*Math.max(1,s.idx[c.seg])*1.12);sh.status='voyage';sh.left=12;sh.c={type:'TC',months:12,hire,rev:hire*12,who:pick(WHO[c.seg]),from:'Regional',to:null,hra:false};return [sh.name+' chartered for 12 months at '+fm(hire)+' a month.','good']}],
-             ['Decline','Keep the ship free.',()=>['Offer declined.','']]]},
+  poach:{elig:s=>Object.keys(DEPTS).filter(d=>s.heads[d]&&s.heads[d].skill>=3),
+    make:d=>{const h=st.heads[d];return {extra:{d},title:'Rival company targets your '+DEPTS[d].t,body:`A competitor has offered ${h.name}, your ${DEPTS[d].t}, a 20% higher salary. ${h.name} wants to know if you will match it.`}},
+    choices:[['Match the offer','Salary up 20%. They stay.',(s,sh,q)=>{const h=s.heads[q.extra.d];h.pay=Math.round(h.pay*1.2/500)*500;return [h.name+' stays with a new salary of '+full(h.pay)+'.','good']}],
+             ['Let them go','The post is vacant until you appoint someone.',(s,sh,q)=>{const h=s.heads[q.extra.d];s.heads[q.extra.d]=null;return [h.name+' has left. Appoint a new '+DEPTS[q.extra.d].t+' in Departments.','bad']}]]},
+  tender:{elig:s=>s.divs.includes('offshore')?s.ships.filter(x=>segOf(x.cls)==='offshore'&&x.status==='idle'&&manned(x)):[],
+    make:sh=>({ship:sh.id,title:'Offshore tender: 18-month field support',body:`An oil and gas operator off Terengganu invites bids for an 18-month charter. ${sh.name} qualifies. How should Chartering bid?`}),
+    choices:[['Bid at market rate','About 80% chance to win.',(s,sh)=>tenderWin(sh,0.8,1)],['Bid 20% above market','About 40% chance to win.',(s,sh)=>tenderWin(sh,0.4,1.2)]]},
   cii:{elig:s=>s.flags.cii?[]:[true],make:()=>({title:'IMO tightens carbon rules',body:'The IMO tightened Carbon Intensity Indicator (CII) ratings. Clients will avoid poorly rated ships.'}),
     choices:[['Install fuel-saving upgrades','RM 500k per ship. Fuel use down 10%.',s=>{s.flags.cii=1;spend('repair',500000*s.ships.length);s.fuelEff=0.9;s.rep+=3;return ['New propellers and hull coatings fitted. Fuel use down 10%.','good']}],
              ['Wait and see','No cost now, reputation drops.',s=>{s.flags.cii=1;s.rep-=5;return ['Clients are worried about your fleet\'s carbon rating.','bad']}]]},
   robbery:{elig:s=>voyaging(s),make:sh=>({ship:sh.id,title:'Robbery in the Singapore Strait',body:`Robbers boarded ${sh.name} at night and stole engine spares. No crew were hurt.`}),
     choices:[['Report to the authorities','RM 180k in spares, morale drops.',s=>{spend('repair',180000);s.morale-=6;return ['Report filed and security watches increased.','bad']}]]},
-  medevac:{elig:s=>voyaging(s).filter(x=>CLS[x.cls].seg!=='bunker'),make:sh=>({ship:sh.id,title:'Crew member injured',body:`An AB on ${sh.name} was badly hurt on deck. The remote doctor advises hospital treatment now.`}),
+  medevac:{elig:s=>voyaging(s).filter(x=>segOf(x.cls)!=='bunker'),make:sh=>({ship:sh.id,title:'Crew member injured',body:`An AB on ${sh.name} was badly hurt on deck. The remote doctor advises hospital treatment now.`}),
     choices:[['Send a helicopter','RM 350k. Voyage unaffected.',s=>{spend('penalty',350000);s.morale+=5;s.empRep+=3;return ['The AB was flown to hospital and is stable.','good']}],
              ['Divert to the nearest port','RM 120k, voyage a month late.',(s,sh)=>{spend('port',120000);sh.left+=1;return ['Ship diverted and the AB reached hospital.','']}]]},
   claim:{elig:s=>voyaging(s).filter(x=>x.c&&x.c.type==='VC'),make:sh=>({ship:sh.id,title:'Cargo damage claim',body:`Seawater entered a hold on ${sh.name} and damaged cargo. The cargo owner is claiming compensation.`}),
     choices:[['Claim through the P&I Club','Pay the RM 100k deductible only.',()=>{spend('penalty',100000);return ['P&I Club handled the claim.','']}],
              ['Settle with the client','RM 380k, better client relationship.',s=>{spend('penalty',380000);s.rep+=4;return ['The client appreciated the quick settlement.','good']}]]},
-  drop:{elig:()=>[true],make:()=>{const seg=pick(Object.keys(SEG));return {extra:{seg},title:SEG[seg]+' market slumps',body:'Too many new ships entered the '+SEG[seg].toLowerCase()+' market. Rates are expected to fall.'}},
+  drop:{elig:s=>s.divs,make:seg=>({extra:{seg},title:SEG[seg]+' market slumps',body:'Too many new ships entered the '+SEG[seg].toLowerCase()+' market. Rates are expected to fall.'}),
     choices:[['Understood','This segment\'s index falls.',(s,sh,q)=>{const g=q.extra.seg;s.idx[g]=Math.max(0.6,s.idx[g]-0.2);return [SEG[g]+' index fell. Time charters are safer for now.','bad']}]]},
-  boom:{elig:()=>[true],make:()=>({title:'Chinese demand surges',body:'Steel mills and power plants in China are importing more iron ore and coal. Bulk carriers are in demand.'}),
-    choices:[['Understood','Dry bulk index rises.',s=>{s.idx.bulk=Math.min(1.6,s.idx.bulk+0.22);return ['Dry bulk rates jumped.','good']}]]},
+  boom:{elig:s=>s.divs,make:seg=>({extra:{seg},title:SEG[seg]+' market boom',body:{container:'E-commerce demand from China is filling every container slot.',bulk:'Chinese steel mills are importing record iron ore and coal.',tanker:'Refinery outages in Europe are pulling Asian diesel west.',bunker:'Record ship calls at Singapore are lifting bunker demand.',gas:'Petrochemical plants in Asia are buying more LPG.',offshore:'New oil and gas field projects off Malaysia need support vessels.'}[seg]}),
+    choices:[['Understood','This segment\'s index rises.',(s,sh,q)=>{const g=q.extra.seg;s.idx[g]=Math.min(1.6,s.idx[g]+0.22);return [SEG[g]+' rates jumped.','good']}]]},
   refi:{elig:s=>s.loan>0&&s.rate>0.055?[true]:[],make:()=>({title:'Bank offers refinancing',body:'Your bank offers to cut the loan rate by 0.75% a year for a RM 120k fee.'}),
     choices:[['Accept','Pay RM 120k, lower interest.',s=>{spend('interest',120000);s.rate=Math.max(0.05,s.rate-0.0075);return ['Rate now '+(s.rate*100).toFixed(2)+'% a year.','good']}],['Decline','Keep the current rate.',()=>['No change.','']]]}
 };
-function findPerson(id){for(const sh of st.ships)for(const r of RK)if(sh.crew[r]&&sh.crew[r].id===id)return sh.crew[r];return null}
+function tenderWin(sh,p,mult){
+  if(!sh||sh.status!=='idle')return ['The vessel was no longer available.',''];
+  if(Math.random()>p)return ['A rival owner won the tender.','bad'];
+  const c=CLS[sh.cls],hire=r10k((earnBase(sh.cls)-c.fuel*2635-c.port)*st.idx.offshore*mult*(1+boostFor('offshore')));
+  sh.status='voyage';sh.left=18;sh.c={type:'TC',months:18,hire,rev:hire*18,who:'East Coast Oil Operator',from:'Kemaman',to:'Terengganu oil fields',cargo:'Field support',hra:false};st.rep+=2;
+  return ['Tender won. '+sh.name+' starts an 18-month charter at '+fm(hire)+' a month.','good'];
+}
 function rollEvent(){
-  const ids=Object.keys(EVENTS).filter(id=>EVENTS[id].elig(st).length>0);if(!ids.length)return;
-  const id=pick(ids),x=pick(EVENTS[id].elig(st));const ev=EVENTS[id].make(x);
+  const ids=Object.keys(EVENTS).filter(id=>EVENTS[id].make&&EVENTS[id].elig(st).length>0);if(!ids.length)return;
+  const id=pick(ids),x=pick(EVENTS[id].elig(st));
+  if(['psc','pscCert','vetting','misconduct'].includes(id)&&Math.random()<eff('marine')*0.5){
+    const sh=x.sh||x;if(sh&&sh.name){st.rep+=1;addLog('Marine Superintendent prepared '+sh.name+' well. Inspection passed with no deficiencies.','good','marine')}return;
+  }
+  const ev=EVENTS[id].make(x);
   st.queue.push({kind:'event',id,ship:ev.ship??null,extra:ev.extra||null,title:ev.title,body:ev.body});
 }
 
@@ -448,29 +564,30 @@ function rollEvent(){
 function signOff(sh,r,note){
   const p=sh.crew[r];sh.crew[r]=null;if(av('comp'))spend('allow',3000);spend('recruit',3500);
   const back=Math.random()<st.morale/100*0.8+(av('comp')?0.2:0);
-  if(back){p.ex=true;p.exAge=0;p.left=0;p.comp=Math.min(98,p.comp+1);st.pool.push(p)}
-  note(`${RANKS[r].t} ${p.name} signed off ${sh.name}${back?' and is open to rejoining':''}. Position vacant.`,back?'':'bad');
+  if(back){p.ex=true;p.exAge=0;p.left=0;p.flag=false;p.comp=Math.min(98,p.comp+1);st.pool.push(p)}
+  note(`${RANKS[r].t} ${p.name} signed off ${sh.name}${back?' and wants to rejoin later':''}.`,'','crew');
 }
-function sendHome(p){spend('recruit',5000);if(Math.random()<st.morale/100){p.ex=true;p.exAge=0;p.left=0;st.pool.push(p)}}
+function sendHome(p){spend('recruit',5000);if(!p.flag&&Math.random()<st.morale/100){p.ex=true;p.exAge=0;p.left=0;st.pool.push(p)}}
 
 /* ---------- turn ---------- */
 function endMonth(){
   if(!st||st.over||st.queue.length)return;
-  const s=st,notes=[],mStart=s.m;const note=(t,tone)=>{notes.push({t,tone});addLog(t,tone)};
+  const s=st,notes=[],mStart=s.m;const note=(t,tone,cat)=>{notes.push({t,tone});addLog(t,tone,cat)};
+  const te=eff('technical');
   s.orders.forEach(o=>{o.left--;if(o.left<=0){const bal=o.price-o.paid,pay=Math.min(Math.max(0,s.cash),bal);capOut(pay);const rest=bal-pay;if(rest>0)s.loan+=rest;
-    const sh=newShip(o.cls,0,false);sh.cond=100;s.ships.push(sh);note(`Newbuilding ${sh.name} delivered${rest>0?'. Shipyard financing of '+fm(rest)+' added to your loan':''}. Recruit officers before it sails.`,'good')}});
+    const sh=newShip(o.cls,0,false);sh.cond=100;s.ships.push(sh);note(`Newbuilding ${sh.name} delivered${rest>0?'. Shipyard financing of '+fm(rest)+' added to your loan':''}.`,'good')}});
   s.orders=s.orders.filter(o=>o.left>0);
   s.ships.forEach(sh=>{
-    const c=CLS[sh.cls],atSea=sh.status==='voyage',cc=crewCostFor(sh.cls,filled(sh),atSea,atSea&&sh.c&&sh.c.hra);
+    const c=CLS[sh.cls],atSea=sh.status==='voyage',cc=crewCost(sh.cls,shipBasic(sh),filled(sh).length+c.ratings,atSea,atSea&&sh.c&&sh.c.hra);
     spend('wages',cc.wages);spend('food',cc.food);spend('allow',cc.allow);
     spend('insur',c.other*0.35);spend('stores',c.other*0.45*MAINT[s.maint].mult);spend('mgmt',c.other*0.2);
-    if(sh.status==='delivery'){sh.left--;if(sh.left<=0){sh.status='idle';note(sh.name+' delivered.'+(manned(sh)?'':' Recruit officers before it sails.'),'good')}return}
+    if(sh.status==='delivery'){sh.left--;if(sh.left<=0){sh.status='idle';note(sh.name+' delivered.','good')}return}
     if(sh.status==='dock'){sh.left--;if(sh.left<=0){sh.status='idle';sh.cond=96;note(sh.name+' finished dry dock. Condition now 96%.','good')}return}
     if(sh.status==='idle'){sh.cond=Math.max(30,sh.cond-0.6);return}
     const k=sh.c;let off=false;
-    sh.cond=Math.max(20,sh.cond-(2+Math.random()*2.5)*MAINT[s.maint].decay*(1+sh.age/40));
-    let p=(0.008+Math.max(0,65-sh.cond)*0.018)*crewMult(sh);if(s.hseq)p*=0.6;if(s.morale<40)p*=1.4;
-    if(Math.random()<p){const cost=r10k(rnd(6e5,1.4e6));spend('repair',cost);sh.left+=1;s.rep-=4;off=true;note('Engine breakdown on '+sh.name+'. Repairs '+fm(cost)+', voyage a month late.','bad')}
+    sh.cond=Math.max(20,sh.cond-(2+Math.random()*2.5)*MAINT[s.maint].decay*(1+sh.age/40)*(1.2-0.4*te));
+    let p=(0.008+Math.max(0,65-sh.cond)*0.018)*crewMult(sh)*(1.4-0.8*te);if(s.hseq)p*=0.6;if(s.morale<40)p*=1.4;
+    if(Math.random()<p){const cost=r10k(rnd(6e5,1.4e6));spend('repair',cost);sh.left+=1;s.rep-=4;off=true;note('Engine breakdown on '+sh.name+'. Repairs '+fm(cost)+', a month lost.','bad')}
     if(k.type==='VC'){spend('fuel',c.fuel*s.bunker*s.fuelEff);spend('port',c.port)}
     else if(!off)earn('hire',k.hire);else note(sh.name+' was off-hire, so no hire was paid.','bad');
     sh.left--;
@@ -479,46 +596,62 @@ function endMonth(){
         if(isTank(sh.cls)&&av('tank'))spend('allow',cc.heads*av('tank'));
         if(c.seg==='bulk'&&av('hold'))spend('allow',cc.heads*av('hold'))}
       else note(sh.name+' finished its time charter with '+k.who+'.','good');
-      s.rep+=2;sh.status='idle';sh.c=null;
+      s.rep+=1.5;sh.status='idle';sh.c=null;
     }
   });
   s.ships.forEach(sh=>RK.forEach(r=>{const p=sh.crew[r];if(!p)return;p.left--;p.exp+=1/12;if(p.left<=0&&sh.status!=='voyage')signOff(sh,r,note)}));
-  if(mStart%12===2&&av('fest')){const b=s.ships.reduce((a,sh)=>a+crewBasic(sh.cls,filled(sh)),0)*0.5;spend('allow',b);note('Festive bonus of '+fm(b)+' paid to all crew.','good')}
-  spend('overhead',150000+25000*s.ships.length);if(s.hseq)spend('hseq',190000);spend('interest',s.loan*s.rate/12);
+  s.pool=s.pool.filter(p=>++p.exAge<=6);
+  autoCrew(note);autoTrain();autoDock(note);
+  if(mStart%12===2&&av('fest')){const b=s.ships.reduce((a,sh)=>a+shipBasic(sh),0)*0.5;spend('allow',b);note('Festive bonus of '+fm(b)+' paid to all crew.','good')}
+  spend('office',100000+50000*s.divs.length+s.offices.reduce((a,k)=>a+OFFICES[k].mo,0));
+  Object.keys(DEPTS).forEach(d=>{if(s.heads[d])spend('staff',s.heads[d].pay);spend('staff',s.staff[d]*14000)});
+  if(s.hseq)spend('hseq',190000);spend('interest',s.loan*s.rate/12);
   s.ships.forEach(sh=>sh.age+=1/12);
-  const mt=moraleTarget();s.morale+=(mt-s.morale)*0.25;s.empRep+=((mt*0.7+15+(s.hseq?5:0))-s.empRep)*0.2;
-  Object.keys(s.idx).forEach(k=>{s.idx[k]=clamp(s.idx[k]+gauss()*0.06+(1-s.idx[k])*0.08,0.6,1.6)});
+  const mt=moraleTarget();s.morale+=(mt-s.morale)*0.25;s.empRep+=((mt*0.7+12+(s.hseq?5:0)+eff('crewing')*8)-s.empRep)*0.2;
+  SEGS.forEach(k=>{s.idx[k]=clamp(s.idx[k]+gauss()*0.06+(1-s.idx[k])*0.08,0.6,1.6)});
   s.prevBunker=s.bunker;s.bunker=clamp(s.bunker*(1+gauss()*0.045)+(2680-s.bunker)*0.08,2000,4000);s.bunkerHist.push(s.bunker);s.bunkerHist=s.bunkerHist.slice(-24);
   s.scrap=clamp(s.scrap*(1+gauss()*0.04),1600,2500);
   const rev=sumObj(s.cur.rev),exp=sumObj(s.cur.exp);
-  s.hist.push({m:mStart,rev,exp,net:rev-exp,revD:{...s.cur.rev},expD:{...s.cur.exp},cap:{...s.cur.cap}});s.hist=s.hist.slice(-36);s.cur=newLedger();
+  s.hist.push({m:mStart,rev,exp,net:rev-exp,revD:{...s.cur.rev},expD:{...s.cur.exp},cap:{...s.cur.cap}});s.hist=s.hist.slice(-48);s.cur=newLedger();
   s.m++;fix();
-  if(s.cash<0){s.neg++;addLog(s.neg>=2?'Cash negative two months in a row.':'Negative cash! Take a loan or sell assets before the end of next month.','bad')}else s.neg=0;
-  genOffers();s.market.splice(0,2);while(s.market.length<5)s.market.push(genListing());refreshBids();refreshPool();
-  s.queue.push({kind:'report',rev,exp,notes,m:mStart});
-  if(Math.random()<0.6)rollEvent();
+  if(s.cash<0){s.neg++;addLog(s.neg>=2?'Cash negative two months in a row.':'Negative cash! Take a loan or sell a ship before the end of next month.','bad')}else s.neg=0;
+  genOffers();s.market.splice(0,2);while(s.market.length<5)s.market.push(genListing());refreshBids();if(s.m%3===0)s.headPool={};
+  autoCharter(note);
+  s.queue.unshift({kind:'report',rev,exp,notes,m:mStart});
+  if(Math.random()<0.65)rollEvent();
+  const t=tierIdx();if(t>s.tierMax){s.tierMax=t;s.board+=10;s.rep+=5;s.queue.push({kind:'tier',t});addLog(s.company+' is now a '+TIERS[t].n+'.','good')}
+  fix();
   if(s.neg>=2)s.over={type:'fired',why:'The company ran out of cash two months in a row.'};
+  else if(s.m%12===0)annualReview();
   else if(s.m%3===0)boardReview();
-  if(!s.over&&s.m>=36)s.over={type:'end'};
   if(s.over)s.queue.push({kind:'end'});
   confirmKey=null;save();render();
 }
 function boardReview(){
   const s=st,nw=netWorth(),prev=s.reviewNW,pct=(nw-prev)/Math.abs(prev)*100;let d,v;
-  if(pct>=5){d=10;v='The board is very pleased with the company\'s growth.'}else if(pct>=0){d=3;v='The board is satisfied, but wants faster growth.'}
-  else if(pct>-5){d=-8;v='The board is worried about the fall in company value.'}else{d=-15;v='The board is disappointed and wants a recovery plan.'}
+  if(pct>=2.5){d=8;v='The board is very pleased with the company\'s growth.'}else if(pct>=0){d=3;v='The board is satisfied, but wants faster growth.'}
+  else if(pct>-3){d=-5;v='The board is worried about the fall in company value.'}else{d=-12;v='The board is disappointed and wants a recovery plan.'}
   if(s.rep<35){d-=5;v+=' Low client reputation was raised.'}if(s.empRep<35){d-=3;v+=' Poor crewing standards were raised.'}
-  s.board=clamp(s.board+d,0,100);s.reviewNW=nw;s.queue.push({kind:'board',prev,nw,pct,v,d,q:s.m/3});
+  s.board=clamp(s.board+d,0,100);s.reviewNW=nw;s.queue.push({kind:'board',prev,nw,pct,v,d,q:((s.m/3-1)%4)+1,y:yearOf(s.m-1)});
+  if(s.board<20)s.over={type:'fired',why:'The board of directors lost confidence in your leadership.'};
+}
+function annualReview(){
+  const s=st,nw=netWorth(),hit=nw>=s.target,y=yearOf(s.m-1),ytd=s.hist.filter(x=>yearOf(x.m)===y);
+  const d=hit?12:(nw>=s.yearNW?-3:-10);s.board=clamp(s.board+d,0,100);
+  const old=s.target;s.yearNW=nw;s.reviewNW=nw;s.target=Math.round(nw*1.08/1e6)*1e6;
+  s.queue.push({kind:'annual',y,nw,old,hit,d,rev:ytd.reduce((a,x)=>a+x.rev,0),exp:ytd.reduce((a,x)=>a+x.exp,0),next:s.target});
+  addLog('Annual meeting '+y+': target '+(hit?'achieved':'missed')+'. New target for '+(y+1)+': '+fm(s.target)+'.',hit?'good':'bad');
   if(s.board<20)s.over={type:'fired',why:'The board of directors lost confidence in your leadership.'};
 }
 
 /* ---------- actions ---------- */
 function loanCap(){return Math.max(0,fleetValue()*0.5-st.loan)}
+const loanStep=()=>Math.max(8e6,fleetValue()*0.1);
+const nbPrice=cls=>r10k(CLS[cls].value*1.12*(0.9+0.1*st.idx[segOf(cls)]));
 function act(a,v){
-  if(a==='tab'){tab=v;confirmKey=null;render();window.scrollTo(0,0);return}
+  if(a==='tab'){tab=v;confirmKey=null;showPool=null;render();window.scrollTo(0,0);return}
   if(a==='plan'){startPlan=v;render();return}
   if(a==='begin'){const n=(document.getElementById('co-name').value||'').trim()||'FX Shipping Sdn Bhd';fresh(n.slice(0,40),startPlan);tab='overview';render();return}
-  if(a==='filter'){const [k,x]=v.split(':');cf[k]=k==='rank'?x:+x;render();return}
   if(!st)return;
   if(a==='end')return endMonth();
   if(a==='accept'){
@@ -526,30 +659,29 @@ function act(a,v){
     if(!o||!sh||sh.status!=='idle'||!manned(sh))return;
     if(o.hra&&!av('hra')){if(Math.random()<0.5){st.morale-=6;st.empRep-=4;addLog('Crew of '+sh.name+' refused to sail to '+o.to+' without a high risk area bonus.','bad');save();render();return}st.empRep-=3;st.morale-=4}
     sh.status='voyage';sh.left=o.months;sh.c=o;st.offers=st.offers.filter(x=>x!==o);
-    addLog(sh.name+(o.type==='VC'?' sails '+o.from+' → '+o.to+' for '+o.who+'.':' chartered for '+o.months+' months to '+o.who+'.'),'');
+    addLog('You fixed '+sh.name+(o.type==='VC'?' '+o.from+' → '+o.to+' for '+o.who+'.':' on a '+o.months+'-month time charter to '+o.who+'.'),'','charter');
   }
   if(a==='dock'){const sh=shipById(+v),c=dockCost(sh);if(sh.status!=='idle'||st.cash<c)return;spend('dock',c);sh.status='dock';sh.left=1;addLog(sh.name+' sent to dry dock. Cost '+fm(c)+'.','')}
   if(a==='sell'){const key='sell'+v;if(confirmKey!==key){confirmKey=key;render();return}
-    const sh=shipById(+v);if(!sh||sh.status!=='idle')return;const p=bidFor(sh);capIn(p);spend('commission',p*0.01);filled(sh).forEach(r=>sendHome(sh.crew[r]));st.ships=st.ships.filter(x=>x!==sh);addLog(sh.name+' sold for '+fm(p)+'. Officers repatriated.','')}
+    const sh=shipById(+v);if(!sh||sh.status!=='idle')return;const p=bidFor(sh);capIn(p);spend('commission',p*0.01);filled(sh).forEach(r=>sendHome(sh.crew[r]));st.ships=st.ships.filter(x=>x!==sh);addLog(sh.name+' sold for '+fm(p)+'.','')}
   if(a==='scrap'){const key='scrap'+v;if(confirmKey!==key){confirmKey=key;render();return}
     const sh=shipById(+v);if(!sh||sh.status!=='idle')return;const p=r10k(CLS[sh.cls].ldt*st.scrap);capIn(p);filled(sh).forEach(r=>sendHome(sh.crew[r]));st.ships=st.ships.filter(x=>x!==sh);addLog(sh.name+' sold for demolition at '+fm(p)+'.','')}
-  if(a==='buy'){const m=st.market.find(x=>x.id===+v);if(!m||st.cash<m.price*1.01)return;capOut(m.price);spend('commission',m.price*0.01);const sh=newShip(m.cls,m.age,false);sh.cond=m.cond;sh.status='delivery';sh.left=1;st.ships.push(sh);st.market=st.market.filter(x=>x!==m);addLog('Bought '+sh.name+' ('+CLS[m.cls].nama+') for '+fm(m.price)+'. Recruit officers before it sails.','good')}
+  if(a==='buy'){const m=st.market.find(x=>x.id===+v);if(!m||st.cash<m.price*1.01)return;capOut(m.price);spend('commission',m.price*0.01);const sh=newShip(m.cls,m.age,false);sh.cond=m.cond;sh.status='delivery';sh.left=1;st.ships.push(sh);st.market=st.market.filter(x=>x!==m);addLog('Bought '+sh.name+' ('+CLS[m.cls].nama+') for '+fm(m.price)+'. Crewing will man it on delivery.','good')}
   if(a==='order'){const price=nbPrice(v),dep=price*0.2;if(st.cash<dep)return;capOut(dep);st.orders.push({id:st.nid++,cls:v,price,paid:dep,left:12});addLog('Ordered a new '+CLS[v].nama+' for '+fm(price)+'. 20% deposit paid, delivery in 12 months.','good')}
-  if(a==='borrow'){const amt=Math.min(8e6,loanCap());if(amt<5e5)return;st.loan+=amt;st.cash+=amt;addLog('Bank loan of '+fm(amt)+' approved.','')}
-  if(a==='repay'){const amt=Math.min(8e6,st.loan,Math.max(0,st.cash));if(amt<=0)return;st.loan-=amt;st.cash-=amt;addLog('Repaid '+fm(amt)+' of the loan.','')}
+  if(a==='borrow'){const amt=Math.min(loanStep(),loanCap());if(amt<5e5)return;st.loan+=amt;st.cash+=amt;addLog('Bank loan of '+fm(amt)+' approved.','')}
+  if(a==='repay'){const amt=Math.min(loanStep(),st.loan,Math.max(0,st.cash));if(amt<=0)return;st.loan-=amt;st.cash-=amt;addLog('Repaid '+fm(amt)+' of the loan.','')}
   if(a==='wage'){const [r,d]=v.split(':');const step=r==='rating'?250:1000;st.wages[r]=clamp(st.wages[r]+(+d)*step,r==='rating'?4000:15000,r==='rating'?14000:80000)}
   if(a==='allow'){const [k,l]=v.split(':');st.allow[k]=+l}
+  if(a==='pol'){const [k,x]=v.split(':');st.pol[k]=+x}
   if(a==='maint')st.maint=+v;
   if(a==='hseq')st.hseq=v==='1';
-  if(a==='train'){const [pid,cert]=v.split(':');const p=findPerson(+pid);if(!p||p.certs.includes(cert))return;spend('train',CERTS[cert][2]);p.certs.push(cert);addLog(p.name+' completed '+CERTS[cert][0]+' (STCW '+CERTS[cert][1]+').','good')}
-  if(a==='hire'){
-    const p=st.pool.find(x=>x.id===+v),sel=document.getElementById('hire-'+v);if(!p||!sel||!sel.value||p.declined)return;
-    const [sid,r]=sel.value.split(':');const sh=shipById(+sid);if(!sh)return;
-    if(Math.random()>acceptChance(p)){p.declined=true;addLog(p.name+' declined your offer. Try a better wage scale or package.','bad');save();render();return}
-    spend('recruit',p.ex?3500:7500);if(sh.crew[r])sendHome(sh.crew[r]);
-    p.ex=false;p.declined=false;p.left=Math.round(rnd(6,9));sh.crew[r]=p;st.pool=st.pool.filter(x=>x!==p);st.empRep+=0;
-    addLog(p.name+' joined '+sh.name+' as '+RANKS[r].t+'.','good');
-  }
+  if(a==='staff'){const [d,x]=v.split(':');st.staff[d]=clamp(st.staff[d]+(+x),0,15)}
+  if(a==='pool'){showPool=showPool===v?null:v;render();return}
+  if(a==='appoint'){const [d,i]=v.split(':');const h=headPool(d)[+i];if(!h)return;const old=st.heads[d];spend('recruit',30000);st.heads[d]=h;st.headPool[d]=st.headPool[d].filter(x=>x!==h);showPool=null;addLog('Appointed '+h.name+' as '+DEPTS[d].t+(old?', replacing '+old.name:'')+'.','good')}
+  if(a==='opendiv'){const c=DIV[v].open;if(st.divs.includes(v)||st.cash<c)return;spend('setup',c);st.divs.push(v);for(let i=0;i<2;i++)st.market.unshift(genListing(v));addLog('Opened the '+SEG[v]+' division. Ships of this type are now on the market.','good')}
+  if(a==='office'){const o=OFFICES[v];if(st.offices.includes(v)||st.cash<o.cost)return;spend('setup',o.cost);st.offices.push(v);addLog('Opened a branch office in '+o.n+'.','good')}
+  if(a==='flag'){const p=findPerson(+v);if(p)p.flag=!p.flag}
+  if(a==='train'){const [pid,cert]=v.split(':');const p=findPerson(+pid);if(!p||p.certs.includes(cert))return;spend('train',CERTS[cert][2]);p.certs.push(cert);addLog(p.name+' completed '+CERTS[cert][0]+'.','good','crew')}
   if(a==='reset'){if(confirmKey!=='reset'){confirmKey='reset';render();return}st=null;confirmKey=null;try{localStorage.removeItem(KEY)}catch(e){}render();return}
   if(a==='choose'){const q=st.queue[0],e=EVENTS[q.id],sh=q.ship!=null?shipById(q.ship):null;const [res,tone]=e.choices[+v][2](st,sh,q);q.result=res;q.tone=tone;fix();addLog(q.title+'. '+res,tone)}
   if(a==='next'){const q=st.queue.shift();if(q&&q.kind==='end')st.queue=[]}
@@ -557,7 +689,6 @@ function act(a,v){
   if(!['sell','scrap'].includes(a))confirmKey=null;
   save();render();
 }
-const nbPrice=cls=>r10k(CLS[cls].value*1.12*(0.9+0.1*st.idx[CLS[cls].seg]));
 
 /* ---------- views ---------- */
 function spark(vals,w,h){
@@ -568,122 +699,133 @@ function spark(vals,w,h){
 function arrow(now,prev){const d=now-prev;if(Math.abs(d)<0.005*prev)return '<span class="muted">flat</span>';return `<span class="${d>0?'up':'down'}">${d>0?'▲':'▼'} ${Math.abs(d/prev*100).toFixed(1)}%</span>`}
 const kpi=(l,v,cls)=>`<div class="kpi"><small>${l}</small><b class="${cls||''}">${v}</b></div>`;
 function condBar(label,v){const c=v>=70?'ok':v>=55?'mid':'low';return `<div class="cond ${c}"><div style="display:flex;justify-content:space-between"><span>${label}</span><b class="num">${Math.round(v)}</b></div><div class="bar"><i style="width:${clamp(v,0,100)}%"></i></div></div>`}
+function segRow(a,cur,labels){return `<div class="seg">${labels.map((l,i)=>`<button type="button" data-a="${a}" data-v="${i}" aria-pressed="${cur===i}">${l}</button>`).join('')}</div>`}
+function polRow(k,labels){return `<div class="seg">${labels.map((l,i)=>`<button type="button" data-a="pol" data-v="${k}:${i}" aria-pressed="${st.pol[k]===i}">${l}</button>`).join('')}</div>`}
+function memoLog(cat,n){const l=st.log.filter(x=>x.cat===cat).slice(0,n);return l.length?`<ul class="log">${l.map(x=>`<li><span class="m">${mlabel(x.m)}</span><span class="${x.tone}">${esc(x.t)}</span></li>`).join('')}</ul>`:'<p class="muted small" style="margin:0">Nothing yet. Activity appears after you end the month.</p>'}
 
 function vOverview(){
-  const nw=netWorth(),pct=clamp((nw-st.startNW)/(st.target-st.startNW)*100,0,100),L=st.hist[st.hist.length-1];
-  const idxRows=Object.keys(SEG).map(k=>{const v=st.idx[k];return `<div class="idx-row"><span>${SEG[k]}</span><div class="idx-track"><i style="width:${(v-0.6)*100}%"></i><u></u></div><span class="num" style="text-align:right">${Math.round(v*100)}</span></div>`}).join('');
+  const nw=netWorth(),t=tierIdx(),nx=TIERS[t+1],L=st.hist[st.hist.length-1];
+  const pct=clamp((nw-st.yearNW)/Math.max(1,st.target-st.yearNW)*100,0,100);
+  const divRows=st.divs.map(d=>{const sh=st.ships.filter(s=>segOf(s.cls)===d);return `<div><div class="idx-row"><span>${SEG[d]}</span><div class="idx-track"><i style="width:${(st.idx[d]-0.6)*100}%"></i><u></u></div><span class="num" style="text-align:right">${Math.round(st.idx[d]*100)}</span></div><div class="muted small">${sh.length} ships · ${sh.filter(s=>s.status==='voyage').length} trading</div></div>`}).join('');
   return `<section class="card">
-    <div class="goal-top"><div><div class="muted small">Company net worth</div><div class="big num">${fm(nw)}</div></div><div class="muted small" style="text-align:right">Board target<br><b class="num" style="color:var(--ink)">${fm(st.target)}</b> by Dec 2029</div></div>
+    <div class="goal-top"><div><span class="chip">${TIERS[t].n}</span><div class="muted small" style="margin-top:8px">Company net worth</div><div class="big num">${fm(nw)}</div></div><div class="muted small" style="text-align:right">${yearOf(st.m)} board target<br><b class="num" style="color:var(--ink)">${fm(st.target)}</b></div></div>
     <div class="bar"><i style="width:${pct}%"></i></div>
-    <div class="kpis k3">${kpi('Cash',fm(st.cash),st.cash<0?'down':'')}${kpi('Client reputation',Math.round(st.rep)+'/100')}${kpi('Board confidence',Math.round(st.board)+'/100',st.board<35?'down':'')}${kpi('Crew morale',Math.round(st.morale)+'/100',st.morale<45?'down':'')}${kpi('Employer rating',Math.round(st.empRep)+'/100',st.empRep<40?'down':'')}${kpi('Fleet',st.ships.length+' ships')}</div>
+    <div class="kpis k3">${kpi('Cash',fm(st.cash),st.cash<0?'down':'')}${kpi('Client reputation',Math.round(st.rep)+'/100')}${kpi('Board confidence',Math.round(st.board)+'/100',st.board<35?'down':'')}${kpi('Crew morale',Math.round(st.morale)+'/100',st.morale<45?'down':'')}${kpi('Employer rating',Math.round(st.empRep)+'/100',st.empRep<40?'down':'')}${kpi('Fleet',st.ships.length+(st.orders.length?' + '+st.orders.length:'')+' ships')}</div>
+    ${nx?`<p class="muted small" style="margin:14px 0 0">Next level, <b style="color:var(--ink)">${nx.n}</b>: ${nx.ships} ships (now ${st.ships.length+st.orders.length}), ${nx.divs} divisions (now ${st.divs.length}), net worth ${fm(nx.nw)}.</p>`:'<p class="up small" style="margin:14px 0 0"><b>You have reached the top level.</b></p>'}
   </section>
-  <h2>Market this month</h2>
+  <h2>Divisions and market</h2>
   <section class="card mkt">
     <div class="bunker"><div><div class="muted small">VLSFO bunker price, Singapore</div><div class="price">${full(st.bunker)}<span class="muted small"> / tonne</span></div><div class="small">${arrow(st.bunker,st.prevBunker)} vs last month</div></div>${spark(st.bunkerHist,140,48)}</div>
-    <div class="muted small" style="margin-top:4px">Freight rate index (100 = normal)</div>${idxRows}
+    <div class="muted small" style="margin-top:4px">Freight rate index for your divisions (100 = normal)</div>${divRows}
   </section>
   ${L?`<h2>${mlabel(L.m)} result</h2><section class="card pl">
     <div><span>Revenue</span><b class="num up">${fm(L.rev)}</b></div><div><span>Expenditure</span><span class="num">-${fm(L.exp)}</span></div>
-    <div class="tot"><span>Net profit</span><span class="num ${L.net<0?'down':'up'}">${fm(L.net)}</span></div>
-    <div><span></span><button type="button" class="btn" data-a="tab" data-v="finance">See expenditure</button></div></section>`
-  :`<section class="help">Your first month. Check your officers in <b>Crewing</b>, then pick contracts in <b>Contracts</b> and tap <b>End month</b>. All figures are in Malaysian Ringgit.</section>`}
+    <div class="tot"><span>Net profit</span><span class="num ${L.net<0?'down':'up'}">${fm(L.net)}</span></div></section>`
+  :`<section class="help">You are the decision maker. Your department heads run the daily work: <b>Chartering</b> fixes cargo, <b>Crewing</b> recruits officers, <b>Marine</b> and <b>Technical</b> look after the ships. Set their policies in <b>Departments</b>, decide wages, buy ships and open new divisions, then tap <b>End month</b>.</section>`}
   <h2>Reports and news</h2>
-  <section class="card"><ul class="log">${st.log.slice(0,10).map(l=>`<li><span class="m">${mlabel(l.m)}</span><span class="${l.tone}">${esc(l.t)}</span></li>`).join('')}</ul></section>`;
+  <section class="card"><ul class="log">${st.log.slice(0,12).map(l=>`<li><span class="m">${mlabel(l.m)}</span><span class="${l.tone}">${esc(l.t)}</span></li>`).join('')}</ul></section>`;
 }
 
 function statusPill(sh){
-  if(sh.status==='idle')return manned(sh)?'<span class="pill p-idle">Available</span>':'<span class="pill p-dock">Undermanned</span>';
+  if(!canTrade(sh)&&sh.status==='idle')return '<span class="pill p-dock">Too old to trade</span>';
+  if(sh.status==='idle')return manned(sh)?'<span class="pill p-idle">Idle</span>':'<span class="pill p-dock">Undermanned</span>';
   if(sh.status==='voyage')return `<span class="pill p-voy">${sh.c.type==='TC'?'On charter':'At sea'} · ${sh.left} mo</span>`;
   if(sh.status==='dock')return '<span class="pill p-dock">Dry dock</span>';
   return '<span class="pill p-del">Delivery</span>';
 }
-function vacText(sh){const v=RK.filter(r=>!sh.crew[r]).map(r=>RANKS[r].t);return v.length?'Vacant: '+v.join(', '):''}
 function vFleet(){
   if(!st.ships.length)return `<section class="help">You have no ships. Buy one in <b>Buy & Sell</b>.</section>`;
-  return `<section class="help">Dry dock a ship when condition falls below 65%. A ship needs all four senior officers on board (safe manning) before it can take a contract.</section>
-  <div class="ships">${st.ships.map(sh=>{const c=CLS[sh.cls],dc=dockCost(sh),g=shipGaps(sh),f=filled(sh).length;
-    return `<article class="card"><div class="ship-head"><div><div class="ship-name">${esc(sh.name)}</div><div class="facts"><span>${c.nama} · <b>${c.size}</b></span><span>Age <b>${Math.floor(sh.age)} yrs</b></span><span>Value <b class="num">${fm(valueOf(sh))}</b></span><span>Crew <b>${f+c.ratings}</b></span></div></div>${statusPill(sh)}</div>
+  const groups=st.divs.map(d=>[d,st.ships.filter(s=>segOf(s.cls)===d)]).filter(g=>g[1].length);
+  return `<section class="help">Technical sends ships to dry dock automatically when condition falls below your threshold. Tankers and gas carriers stop getting charters at 22 years, other ships at 25.</section>
+  ${groups.map(([d,ships])=>`<h2>${SEG[d]} · ${ships.length}</h2><div class="ships">${ships.map(sh=>{const c=CLS[sh.cls],dc=dockCost(sh),g=shipGaps(sh),f=filled(sh).length;
+    return `<article class="card"><div class="ship-head"><div><div class="ship-name">${esc(sh.name)}</div><div class="facts"><span>${c.nama} · <b>${c.size}</b></span><span>Age <b>${Math.floor(sh.age)} yrs</b></span><span>Value <b class="num">${fm(valueOf(sh))}</b></span></div></div>${statusPill(sh)}</div>
     ${condBar('Ship condition (%)',sh.cond)}
-    <div class="facts" style="margin-top:10px"><span>Officers <b>${f}/4</b></span><span>Crew competence <b>${crewScore(sh)||'–'}</b></span><span>${g?`<b class="down">${g} STCW gaps</b>`:'<b class="up">STCW complete</b>'}</span></div>
-    ${f<4?`<div class="warnbox">${vacText(sh)}. Ship cannot sail.</div>`:''}
-    ${sh.status==='voyage'?`<div class="voyage">${sh.c.type==='VC'?`<b>${esc(sh.c.from)} → ${esc(sh.c.to)}</b> · ${esc(sh.c.cargo)}${sh.c.hra?' <span class="tag warn">High risk area</span>':''}<br><span class="muted">Voyage charter for ${esc(sh.c.who)}. Freight ${fm(sh.c.rev)} on arrival.</span>`:`<b>Time charter with ${esc(sh.c.who)}</b><br><span class="muted">Hire ${fm(sh.c.hire)} a month.</span>`}</div>`:''}
+    <div class="facts" style="margin-top:10px"><span>Officers <b>${f}/4</b></span><span>Crew competence <b>${crewScore(sh)||'–'}</b></span><span>${g?`<b class="down">${g} certificate gaps</b>`:'<b class="up">Certificates complete</b>'}</span></div>
+    ${sh.status==='voyage'?`<div class="voyage">${sh.c.type==='VC'?`<b>${esc(sh.c.from)} → ${esc(sh.c.to)}</b> · ${esc(sh.c.cargo)}${sh.c.hra?' <span class="tag warn">High risk area</span>':''}<br><span class="muted">Voyage charter for ${esc(sh.c.who)}. Freight ${fm(sh.c.rev)} on arrival.</span>`:`<b>Time charter with ${esc(sh.c.who)}</b>${sh.c.to?' · '+esc(sh.c.to):''}<br><span class="muted">Hire ${fm(sh.c.hire)} a month.</span>`}</div>`:''}
     ${sh.status==='dock'?`<div class="voyage">In the shipyard for class survey, hull cleaning and engine overhaul.</div>`:''}
-    <div class="actions">${sh.status==='idle'?`<button type="button" class="btn" data-a="tab" data-v="${f<4?'crewing':'contracts'}">${f<4?'Recruit officers':'Find a contract'}</button><button type="button" class="btn" data-a="dock" data-v="${sh.id}" ${st.cash<dc?'disabled':''}>Dry dock (${fm(dc)})</button>`:''}<button type="button" class="btn" data-a="tab" data-v="crewing">View crew</button></div>
-    </article>`}).join('')}</div>`;
+    ${sh.status==='idle'&&f<4?`<div class="voyage">Crewing is recruiting the missing officers. They join at the end of the month.</div>`:''}
+    ${sh.status==='idle'?`<div class="actions"><button type="button" class="btn" data-a="dock" data-v="${sh.id}" ${st.cash<dc?'disabled':''}>Dry dock now (${fm(dc)})</button>${!canTrade(sh)?'<button type="button" class="btn" data-a="tab" data-v="sp">Sell or scrap</button>':''}</div>`:''}
+    </article>`}).join('')}</div>`).join('')}`;
 }
 
 function vContracts(){
-  const unmanned=st.ships.filter(s=>s.status==='idle'&&!manned(s));
-  const cards=st.offers.map(o=>{const c=CLS[o.cls],ok=st.ships.filter(s=>s.status==='idle'&&s.cls===o.cls&&manned(s));
-    const cc=crewCostFor(o.cls,RK,true,o.hra),run=(cc.wages+cc.food+cc.allow+c.other*(0.55+0.45*MAINT[st.maint].mult))*o.months;
-    const cost=o.type==='VC'?o.months*(c.fuel*st.bunker*st.fuelEff+c.port)+run:run,prof=o.rev-cost;
+  const cards=st.offers.map(o=>{const c=CLS[o.cls],ok=st.ships.filter(s=>s.status==='idle'&&s.cls===o.cls&&manned(s)&&canTrade(s));const cost=estCost(o),prof=o.rev-cost;
     return `<article class="card">
-      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span><span class="chip">${o.type==='VC'?'Voyage charter':'Time charter'}</span>${o.hra?' <span class="tag warn">High risk area</span>':''}</span><span class="muted small">${c.nama} · ${c.size}</span></div>
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span><span class="chip">${o.type==='VC'?'Voyage charter':'Time charter'}</span>${o.hra?' <span class="tag warn">High risk area</span>':''}</span><span class="muted small">${c.nama}</span></div>
       <div class="route">${o.type==='VC'?esc(o.from)+' → '+esc(o.to):o.months+' months for '+esc(o.who)}</div>
       <div class="muted small">${o.type==='VC'?esc(o.cargo)+' · '+esc(o.who)+' · '+o.months+(o.months>1?' months':' month'):'Hire '+fm(o.hire)+'/month · '+esc(o.cargo)}</div>
       <div class="money"><div><small>${o.type==='VC'?'Freight':'Total hire'}</small><b class="num">${fm(o.rev)}</b></div><div><small>Est. cost</small><b class="num">${fm(cost)}</b></div><div><small>Est. profit</small><b class="num ${prof<0?'down':'up'}">${fm(prof)}</b></div></div>
-      ${o.hra&&!av('hra')?'<div class="warnbox">Your high risk area bonus is off. Crew may refuse this voyage.</div>':''}
-      ${ok.length?`<div class="assign"><select id="sel-${o.id}" aria-label="Choose a ship">${ok.map(s=>`<option value="${s.id}">${esc(s.name)} (${Math.round(s.cond)}%)</option>`).join('')}</select><button type="button" class="btn primary" data-a="accept" data-v="${o.id}">Accept</button></div>`:`<div class="muted small" style="margin-top:12px">No crewed ${c.nama} available.</div>`}
+      ${ok.length?`<div class="assign"><select id="sel-${o.id}" aria-label="Choose a ship">${ok.map(s=>`<option value="${s.id}">${esc(s.name)} (${Math.round(s.cond)}%)</option>`).join('')}</select><button type="button" class="btn primary" data-a="accept" data-v="${o.id}">Fix now</button></div>`:`<div class="muted small" style="margin-top:12px">No idle ${c.nama} ready.</div>`}
     </article>`}).join('');
-  return `<section class="help"><b>Voyage charter:</b> one voyage, freight paid on arrival. You pay fuel, so profit moves with the bunker price.<br><b>Time charter:</b> ship rented by the month. Charterer pays fuel and port charges. Smaller profit, but steady.</section>
-  ${unmanned.length?`<div class="warnbox">${unmanned.map(s=>esc(s.name)).join(', ')} cannot take contracts until all officers are recruited.</div>`:''}
-  <div class="offers">${cards}</div>`;
+  return `<section class="help">${st.pol.autoCharter?`Your Chartering Manager fixes idle ships automatically at the end of each month (${['voyage charters first','balanced','time charters first'][st.pol.mode]}). You can still fix a ship yourself here.`:'Auto-chartering is off. Fix ships yourself here, or turn it on in Departments.'}</section>
+  <h2>Chartering activity</h2><section class="card">${memoLog('charter',6)}</section>
+  <h2>Offers on the market</h2><div class="offers">${cards}</div>`;
+}
+
+function deptCard(d){
+  const D=DEPTS[d],h=st.heads[d],e=eff(d),cov=coverage(d);
+  let pol='';
+  if(d==='chartering')pol=`<div class="setting"><h3>Auto-chartering</h3>${polRow('autoCharter',['Off','On'])}<div class="muted small" style="margin-top:12px">Preference</div>${polRow('mode',['Voyage first','Balanced','Time charter first'])}</div>`;
+  if(d==='crewing')pol=`<div class="setting"><h3>Crewing standard</h3><div class="muted small">Minimum officer reputation</div>${polRow('minRep',['Any','3.5+','4.0+'])}
+    <div class="muted small" style="margin-top:12px">Full STCW required before joining</div>${polRow('needStcw',['No','Yes'])}
+    <div class="muted small" style="margin-top:12px">Train missing certificates automatically</div>${polRow('autoTrain',['No','Yes'])}
+    <div class="muted small" style="margin-top:12px">Wage above scale Crewing may offer without asking you</div>${polRow('premium',['0%','5%','10%','15%'])}</div>`;
+  if(d==='marine')pol=`<div class="setting"><h3>HSEQ safety programme</h3><div class="muted small">RM 190k a month. Cuts breakdowns 40%, lowers PSC risk and lifts your employer rating.</div><div class="seg"><button type="button" data-a="hseq" data-v="0" aria-pressed="${!st.hseq}">Off</button><button type="button" data-a="hseq" data-v="1" aria-pressed="${st.hseq}">On</button></div></div>`;
+  if(d==='technical')pol=`<div class="setting"><h3>Maintenance level</h3>${segRow('maint',st.maint,MAINT.map(m=>m.label))}<div class="muted small" style="margin-top:12px">Send to dry dock automatically when condition falls below</div>${polRow('dockAt',['Manual','60%','65%','70%'])}</div>`;
+  const pool=showPool===d?`<div class="setting"><h3>Candidates</h3>${headPool(d).map((c,i)=>`<div class="crew-row"><div class="ship-head"><div><div class="who">${esc(c.name)}</div><div class="facts"><span>${c.nat}</span><span><b>${c.yrs} yrs</b> experience</span><span>Salary <b class="num">${fm(c.pay)}</b>/mo</span></div></div>${stars(c.skill)}</div><p class="muted small remark">“${esc(c.note)}”</p><div class="actions"><button type="button" class="btn primary" data-a="appoint" data-v="${d}:${i}">Appoint · RM 30k fee</button></div></div>`).join('')}</div>`:'';
+  return `<section class="card">
+    <div class="ship-head"><div><span class="chip">${D.t}</span><div class="ship-name" style="margin-top:8px">${h?esc(h.name):'<span class="down">Vacant</span>'}</div>
+      ${h?`<div class="facts"><span>${h.nat}</span><span><b>${h.yrs} yrs</b> experience</span><span>Salary <b class="num">${fm(h.pay)}</b>/mo</span></div>`:''}</div>${h?stars(h.skill):''}</div>
+    ${h?`<p class="muted small remark">“${esc(h.note)}”</p>`:'<div class="warnbox">Without a head this department works at 20% effectiveness.</div>'}
+    <p class="small" style="margin:10px 0 0">${D.job}</p>
+    ${condBar('Effectiveness',e*100)}
+    <div class="wage-row" style="border-top:0;padding-bottom:0"><div><b>Team size</b><div class="muted small">${st.staff[d]} staff · RM 14k each · covers ${Math.round(cov*100)}% of your ${st.ships.length} ships</div></div>
+      <div class="stepper"><button type="button" data-a="staff" data-v="${d}:-1" aria-label="Remove staff">−</button><b>${st.staff[d]}</b><button type="button" data-a="staff" data-v="${d}:1" aria-label="Add staff">+</button></div></div>
+    ${pol}
+    <div class="actions"><button type="button" class="btn" data-a="pool" data-v="${d}">${showPool===d?'Hide candidates':(h?'Replace head':'Appoint a head')}</button></div>
+    ${pool}
+  </section>`;
+}
+function vDepts(){
+  return `<section class="help">Each head and each staff member covers 3 ships. When the fleet grows beyond that, add staff or effectiveness drops. Heads with more stars cost more but do a better job.</section>
+  ${Object.keys(DEPTS).map(deptCard).join('')}`;
 }
 
 function certChips(p,cls,trainable){
-  const req=REQ[p.rank],tank=['OTB','OTA'];
-  let h=req.map(c=>p.certs.includes(c)?`<span class="cert" title="${CERTS[c][0]}">${c}</span>`:(trainable?`<button type="button" class="cert miss" data-a="train" data-v="${p.id}:${c}" title="Train ${CERTS[c][0]}">Train ${c} · ${fm(CERTS[c][2])}</button>`:`<span class="cert miss" title="${CERTS[c][0]}">No ${c}</span>`)).join('');
-  const needTank=cls?isTank(cls):false;
-  h+=tank.map(c=>p.certs.includes(c)?`<span class="cert tank" title="${CERTS[c][0]}">${c}</span>`:(needTank?(trainable?`<button type="button" class="cert miss" data-a="train" data-v="${p.id}:${c}">Train ${c} · ${fm(CERTS[c][2])}</button>`:`<span class="cert miss">No ${c}</span>`):'')).join('');
-  return `<div class="certs">${h}</div>`;
+  const req=reqFor(p.rank,cls);
+  return `<div class="certs">${req.map(c=>p.certs.includes(c)?`<span class="cert${['OTB','OTA','LGB','LGA','DP'].includes(c)?' tank':''}" title="${CERTS[c][0]}">${c}</span>`:(trainable?`<button type="button" class="cert miss" data-a="train" data-v="${p.id}:${c}" title="Train ${CERTS[c][0]}">Train ${c} · ${fm(CERTS[c][2])}</button>`:`<span class="cert miss">No ${c}</span>`)).join('')}</div>`;
 }
 function vCrewing(){
-  const all=aboard(st),n=all.length;
-  const compliant=all.filter(x=>!gapsOf(x.p,x.sh.cls).length).length;
+  const all=aboard(st),n=all.length,compliant=all.filter(x=>!gapsOf(x.p,x.sh.cls).length).length;
   const avgC=n?Math.round(all.reduce((a,x)=>a+x.p.comp,0)/n):0,avgR=n?(all.reduce((a,x)=>a+x.p.rep,0)/n).toFixed(1):'–';
   const vac=[];st.ships.forEach(s=>RK.forEach(r=>{if(!s.crew[r])vac.push({s,r})}));
-  const due=all.filter(x=>x.p.left<=1).length;
-  let pool=st.pool.filter(p=>(cf.rank==='all'||p.rank===cf.rank)&&(!cf.stcw||!gapsOf(p,null).length)&&p.rep>=cf.rep);
-  pool.sort((a,b)=>(b.ex-a.ex)||b.comp-a.comp);
-  const slotOpts=p=>{const o=[];st.ships.forEach(s=>{if(!s.crew[p.rank])o.push(`<option value="${s.id}:${p.rank}">${esc(s.name)} (vacant)${isTank(s.cls)&&!(p.certs.includes('OTB')&&p.certs.includes('OTA'))?' · lacks tanker certs':''}</option>`)});st.ships.forEach(s=>{const c=s.crew[p.rank];if(c)o.push(`<option value="${s.id}:${p.rank}">${esc(s.name)}: replace ${esc(c.name)}</option>`)});return o.join('')};
+  const h=st.heads.crewing;
   return `<h2>Crewing standard</h2>
   <section class="card"><div class="kpis k3" style="margin-top:0">
     ${kpi('Employer rating',Math.round(st.empRep)+'/100',st.empRep<40?'down':'')}${kpi('STCW compliance',n?Math.round(compliant/n*100)+'%':'–',compliant<n?'down':'up')}${kpi('Avg competence',avgC||'–')}
-    ${kpi('Avg reputation',avgR+' / 5')}${kpi('Vacancies',vac.length,vac.length?'down':'')}${kpi('Due for relief',due)}</div>
-    <p class="muted small" style="margin:12px 0 0">Employer rating is how seafarers see your company. It rises with fair wages, a good allowance package, morale and safety, and brings better candidates.</p>
+    ${kpi('Avg reputation',avgR+' / 5')}${kpi('Vacancies',vac.length,vac.length?'down':'')}${kpi('Officers',n)}</div>
+    <p class="muted small" style="margin:12px 0 0">Crewing Manager: <b style="color:var(--ink)">${h?esc(h.name):'vacant'}</b>. Policy: reputation ${['any','3.5+','4.0+'][st.pol.minRep]}, STCW ${st.pol.needStcw?'required':'not required'}, auto-training ${st.pol.autoTrain?'on':'off'}, up to ${PREM[st.pol.premium]*100}% above scale.</p>
+    <div class="actions"><button type="button" class="btn" data-a="tab" data-v="depts">Change crewing policy</button></div>
   </section>
-  ${vac.length?`<div class="warnbox">Vacant: ${vac.map(x=>esc(x.s.name)+' '+RANKS[x.r].t).join(' · ')}</div>`:''}
-  <h2>Recruit seafarers</h2>
-  <section class="card filters">
-    <div class="seg">${[['all','All ranks']].concat(RK.map(r=>[r,{master:'Master',co:'C/O',ce:'C/E',se:'2/E'}[r]])).map(([k,l])=>`<button type="button" data-a="filter" data-v="rank:${k}" aria-pressed="${cf.rank===k}">${l}</button>`).join('')}</div>
-    <div class="seg"><button type="button" data-a="filter" data-v="stcw:0" aria-pressed="${!cf.stcw}">Any STCW</button><button type="button" data-a="filter" data-v="stcw:1" aria-pressed="${!!cf.stcw}">STCW complete only</button></div>
-    <div class="seg"><button type="button" data-a="filter" data-v="rep:0" aria-pressed="${cf.rep===0}">Any reputation</button><button type="button" data-a="filter" data-v="rep:3.5" aria-pressed="${cf.rep===3.5}">3.5+</button><button type="button" data-a="filter" data-v="rep:4" aria-pressed="${cf.rep===4}">4.0+</button></div>
-  </section>
-  <div class="offers">${pool.length?pool.map(p=>{const ch=acceptChance(p),w=st.wages[p.rank];return `<article class="card">
-    <div class="ship-head"><div><span class="chip">${RANKS[p.rank].t}</span> ${p.ex?'<span class="tag good">Ex-crew</span>':''}<div class="ship-name" style="margin-top:6px">${esc(p.name)}</div><div class="facts"><span>${p.nat}</span><span>Age <b>${p.age}</b></span><span><b>${Math.floor(p.exp)} yrs</b> at sea</span><span>CoC <b>${p.rank==='master'||p.rank==='ce'?'Class 1':'Class 2'}</b></span></div></div>
-    <div class="score"><b>${p.rep.toFixed(1)}</b><small>reputation / 5</small></div></div>
-    ${condBar('Competence',p.comp)}
-    ${certChips(p,null,false)}
-    <p class="muted small remark">“${esc(p.remark)}”</p>
-    <div class="money"><div><small>Expects</small><b class="num">${fm(p.expect)}</b></div><div><small>Your scale</small><b class="num ${w<p.expect?'down':'up'}">${fm(w)}</b></div><div><small>Will accept</small><b class="num">${Math.round(ch*100)}%</b></div></div>
-    ${p.declined?'<div class="muted small" style="margin-top:12px">Declined your offer this month.</div>':`<div class="assign"><select id="hire-${p.id}" aria-label="Assign to ship">${slotOpts(p)}</select><button type="button" class="btn primary" data-a="hire" data-v="${p.id}" ${st.ships.length?'':'disabled'}>Hire · ${fm(p.ex?3500:7500)}</button></div>`}
-  </article>`}).join(''):'<section class="help">No candidates match these filters. New candidates arrive every month.</section>'}</div>
+  ${vac.length?`<div class="warnbox">Vacant: ${vac.map(x=>esc(x.s.name)+' '+RANKS[x.r].t).join(' · ')}. Crewing fills these at the end of the month.</div>`:''}
+  <h2>Crewing activity</h2><section class="card">${memoLog('crew',8)}</section>
   <h2>Officers on board</h2>
-  <div class="ships">${st.ships.map(sh=>`<section class="card"><div class="ship-head"><div class="ship-name">${esc(sh.name)}</div><span class="muted small">${CLS[sh.cls].nama} · ${CLS[sh.cls].ratings} ratings via manning agency</span></div>
-    ${RK.map(r=>{const p=sh.crew[r];if(!p)return `<div class="crew-row"><div class="rk">${RANKS[r].t}</div><div class="down" style="font-weight:700">Vacant</div></div>`;
-      return `<div class="crew-row"><div class="rk">${RANKS[r].t}</div><div class="who">${esc(p.name)}</div><div class="facts"><span>${p.nat}</span><span>Competence <b>${p.comp}</b></span><span>Reputation <b>${p.rep.toFixed(1)}</b></span><span>${p.left>0?'Contract <b>'+p.left+' mo</b> left':'<b class="down">Due for relief</b>'}</span></div>${certChips(p,sh.cls,true)}</div>`}).join('')}
+  <p class="muted small" style="margin:-4px 0 0">Tap <b>Replace</b> to ask Crewing to find a better officer for that post.</p>
+  <div class="ships">${st.ships.map(sh=>`<section class="card"><div class="ship-head"><div class="ship-name">${esc(sh.name)}</div><span class="muted small">${CLS[sh.cls].nama} · ${CLS[sh.cls].ratings} ratings via agency</span></div>
+    ${RK.map(r=>{const p=sh.crew[r];if(!p)return `<div class="crew-row"><div class="rk">${RANKS[r].t}</div><div class="down" style="font-weight:700">Vacant, Crewing is searching</div></div>`;
+      return `<div class="crew-row"><div class="ship-head"><div><div class="rk">${RANKS[r].t}</div><div class="who">${esc(p.name)}</div></div><button type="button" class="btn ${p.flag?'danger':''}" data-a="flag" data-v="${p.id}">${p.flag?'Replacing…':'Replace'}</button></div><div class="facts"><span>${p.nat}</span><span>Competence <b>${p.comp}</b></span><span>Reputation <b>${p.rep.toFixed(1)}</b></span><span>Wage <b class="num">${fm(Math.max(st.wages[r],p.wage||0))}</b></span><span>${p.left>0?'<b>'+p.left+' mo</b> left':'<b>Due for relief</b>'}</span></div>${certChips(p,sh.cls,!st.pol.autoTrain)}</div>`}).join('')}
   </section>`).join('')}</div>`;
 }
 
 function vPayroll(){
   const rows=RK.map(r=>[r,RANKS[r].t,RANKS[r].mk]).concat([['rating','Junior officers & ratings (avg)',RATING_MK]]);
   let tot={wages:0,food:0,allow:0,heads:0,basic:0};
-  st.ships.forEach(sh=>{const at=sh.status==='voyage';const c=crewCostFor(sh.cls,filled(sh),at,at&&sh.c&&sh.c.hra);Object.keys(tot).forEach(k=>tot[k]+=c[k])});
-  const segs=new Set(st.ships.map(s=>CLS[s.cls].seg));
+  st.ships.forEach(sh=>{const at=sh.status==='voyage';const c=crewCost(sh.cls,shipBasic(sh),filled(sh).length+CLS[sh.cls].ratings,at,at&&sh.c&&sh.c.hra);Object.keys(tot).forEach(k=>tot[k]+=c[k])});
+  const segs=new Set(st.ships.map(s=>segOf(s.cls)));
   return `<h2>Basic wage scale per month</h2>
   <section class="card">${rows.map(([k,t,mk])=>{const w=st.wages[k],pc=Math.round(w/mk*100);return `<div class="wage-row"><div><b>${t}</b><div class="muted small">Market ${full(mk)} · <span class="${pc<95?'down':pc>105?'up':''}">${pc}% of market</span></div></div>
     <div class="stepper"><button type="button" data-a="wage" data-v="${k}:-1" aria-label="Lower ${t} wage">−</button><b>${full(w)}</b><button type="button" data-a="wage" data-v="${k}:1" aria-label="Raise ${t} wage">+</button></div></div>`}).join('')}
-    <p class="muted small" style="margin:10px 0 0">Bunker tankers are harbour craft and pay 60% of this scale. Ratings are supplied by a manning agency at your average rating wage.</p></section>
+    <p class="muted small" style="margin:10px 0 0">Bunker tankers pay 60% of this scale and offshore vessels 85 to 90%. Officers hired above scale keep their agreed wage.</p></section>
   <h2>Allowances and bonuses</h2>
   <section class="card">${ALLOW.map(a=>{const used=!a.seg||a.seg.some(x=>segs.has(x));return `<div class="setting"><h3>${a.t}</h3><div class="muted small">${a.d}${a.seg?` <span class="tag">${a.seg.map(x=>SEG[x]).join(' / ')}</span>`:''}${a.seg&&!used?' <span class="tag">Not in fleet</span>':''}</div>
     <div class="seg">${a.lv.map((l,i)=>`<button type="button" data-a="allow" data-v="${a.k}:${i}" aria-pressed="${st.allow[a.k]===i}">${l}</button>`).join('')}</div></div>`}).join('')}</section>
@@ -696,26 +838,26 @@ function vPayroll(){
     <div><span>Monthly allowances</span><span class="num">${fm(tot.allow)}</span></div>
     <div class="tot"><span>Total crew cost</span><span class="num">${fm(tot.wages+tot.food+tot.allow)}</span></div>
     <div><span>Package score (morale target)</span><b class="num">${Math.round(moraleTarget())}/100</b></div>
-  </section>
-  <p class="muted small">Tank cleaning and hold cleaning allowances are paid when a voyage ends. The festive bonus is paid every March and completion bonuses at sign-off.</p>`;
+  </section>`;
 }
 
 function vSP(){
   return `<h2>Second-hand ships for sale</h2>
   <div class="offers">${st.market.map(m=>{const c=CLS[m.cls],tot=m.price*1.01;return `<article class="card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="chip">${SEG[c.seg]}</span><span class="muted small">Seller: ${m.seller}</span></div><div class="route">${c.nama} · ${c.size}</div>
-    <div class="facts"><span>Built <b>${2027+Math.floor(st.m/12)-m.age}</b> (${m.age} yrs)</span><span>Survey condition <b>${m.cond}%</b></span><span>Fuel <b>${c.fuel} t</b>/mo at sea</span></div>
+    <div class="facts"><span>Built <b>${yearOf(st.m)-m.age}</b> (${m.age} yrs)</span><span>Survey condition <b>${m.cond}%</b></span></div>
     <div class="money"><div><small>Price</small><b class="num">${fm(m.price)}</b></div><div><small>Broker 1%</small><b class="num">${fm(m.price*0.01)}</b></div><div><small>Total</small><b class="num">${fm(tot)}</b></div></div>
-    <div class="actions"><button type="button" class="btn primary" data-a="buy" data-v="${m.id}" ${st.cash<tot?'disabled':''}>Buy ship</button><span class="muted small" style="align-self:center">Arrives next month without officers.</span></div></article>`}).join('')}</div>
+    <div class="actions"><button type="button" class="btn primary" data-a="buy" data-v="${m.id}" ${st.cash<tot?'disabled':''}>Buy ship</button></div></article>`}).join('')}</div>
+  <p class="muted small">Only ships for your open divisions are listed. Open new divisions in <b>Company</b>.</p>
   <h2>Sell or scrap your ships</h2>
   <div class="offers">${st.ships.length?st.ships.map(sh=>{const b=bidFor(sh),scrap=r10k(CLS[sh.cls].ldt*st.scrap),ks='sell'+sh.id,kd='scrap'+sh.id,idle=sh.status==='idle';
     return `<article class="card"><div class="ship-head"><div><div class="ship-name">${esc(sh.name)}</div><div class="facts"><span>${CLS[sh.cls].nama}</span><span>Age <b>${Math.floor(sh.age)} yrs</b></span><span>Condition <b>${Math.round(sh.cond)}%</b></span></div></div>${statusPill(sh)}</div>
     <div class="money"><div><small>Best buyer offer</small><b class="num">${fm(b)}</b></div><div><small>Scrap value</small><b class="num">${fm(scrap)}</b></div><div><small>Book value</small><b class="num">${fm(valueOf(sh))}</b></div></div>
-    ${idle?`<div class="actions"><button type="button" class="btn ${confirmKey===ks?'danger':''}" data-a="sell" data-v="${sh.id}">${confirmKey===ks?'Confirm sale for '+fm(b):'Sell to buyer'}</button>${sh.age>=18?`<button type="button" class="btn ${confirmKey===kd?'danger':''}" data-a="scrap" data-v="${sh.id}">${confirmKey===kd?'Confirm demolition':'Sell for demolition'}</button>`:''}</div>`:'<div class="muted small" style="margin-top:12px">Ships can be sold only when idle in port.</div>'}
+    ${idle?`<div class="actions"><button type="button" class="btn ${confirmKey===ks?'danger':''}" data-a="sell" data-v="${sh.id}">${confirmKey===ks?'Confirm sale for '+fm(b):'Sell to buyer'}</button>${sh.age>=18?`<button type="button" class="btn ${confirmKey===kd?'danger':''}" data-a="scrap" data-v="${sh.id}">${confirmKey===kd?'Confirm demolition':'Sell for demolition'}</button>`:''}</div>`:'<div class="muted small" style="margin-top:12px">Ships can be sold only when idle.</div>'}
   </article>`}).join(''):'<section class="help">You have no ships to sell.</section>'}</div>
-  <p class="muted small">Scrap value = lightweight tonnage (LDT) × demolition price, now ${full(st.scrap)} per LDT. Demolition is available for ships aged 18 years or more.</p>
+  <p class="muted small">Scrap value = lightweight tonnage (LDT) × demolition price, now ${full(st.scrap)} per LDT.</p>
   <h2>Order a newbuilding</h2>
-  ${st.orders.length?`<section class="card pl">${st.orders.map(o=>`<div><span>${CLS[o.cls].nama} · ${o.left} months to delivery</span><span class="num">${fm(o.paid)} of ${fm(o.price)} paid</span></div>`).join('')}</section>`:''}
-  <div class="offers">${Object.keys(CLS).map(k=>{const c=CLS[k],p=nbPrice(k);return `<article class="card"><span class="chip">${SEG[c.seg]}</span><div class="route">${c.nama} · ${c.size}</div>
+  ${st.orders.length?`<section class="card pl">${st.orders.map(o=>`<div><span>${CLS[o.cls].nama} · ${o.left} months to delivery</span><span class="num">${fm(o.paid)} of ${fm(o.price)}</span></div>`).join('')}</section>`:''}
+  <div class="offers">${Object.keys(CLS).filter(k=>st.divs.includes(segOf(k))).map(k=>{const c=CLS[k],p=nbPrice(k);return `<article class="card"><span class="chip">${SEG[c.seg]}</span><div class="route">${c.nama} · ${c.size}</div>
     <div class="facts"><span>Price <b class="num">${fm(p)}</b></span><span>Deposit <b class="num">${fm(p*0.2)}</b></span><span>Delivery <b>12 months</b></span></div>
     <div class="actions"><button type="button" class="btn" data-a="order" data-v="${k}" ${st.cash<p*0.2?'disabled':''}>Order from shipyard</button></div></article>`}).join('')}</div>
   <p class="muted small">The 80% balance is due on delivery. Any shortfall becomes shipyard financing on your loan.</p>`;
@@ -723,55 +865,58 @@ function vSP(){
 
 function chart12(){
   const h=st.hist.slice(-12);if(!h.length)return '<p class="muted">The chart appears after your first month.</p>';
-  const W=Math.max(320,h.length*48),H=170,pad=30,mx=Math.max(...h.map(x=>Math.max(x.rev,x.exp)))||1,bw=(W-pad)/h.length;
+  const W=Math.max(320,h.length*48),H=170,pad=34,mx=Math.max(...h.map(x=>Math.max(x.rev,x.exp)))||1,bw=(W-pad)/h.length;
   const y=v=>H-22-(v/mx)*(H-40);
   let g='';for(let i=0;i<=2;i++){const v=mx*i/2,yy=y(v);g+=`<line x1="${pad}" x2="${W}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${pad-4}" y="${yy+4}" text-anchor="end" font-size="10" fill="var(--muted)">${(v/1e6).toFixed(0)}M</text>`}
   h.forEach((x,i)=>{const x0=pad+i*bw+bw*0.15,w=bw*0.33;g+=`<rect x="${x0}" y="${y(x.rev)}" width="${w}" height="${H-22-y(x.rev)}" rx="2" fill="var(--accent)"/><rect x="${x0+w+2}" y="${y(x.exp)}" width="${w}" height="${H-22-y(x.exp)}" rx="2" fill="var(--muted)" opacity=".55"/><text x="${x0+w}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--muted)">${MONTHS[x.m%12]}</text>`});
   return `<div class="chart-wrap"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Revenue and expenditure by month">${g}</svg></div><div class="legend"><span><i style="background:var(--accent)"></i>Revenue</span><span><i style="background:var(--muted);opacity:.55"></i>Expenditure</span></div>`;
 }
 function vFinance(){
-  const L=st.hist[st.hist.length-1],cap=loanCap();
-  const yr=Math.floor(Math.max(0,st.m-1)/12),ytd=st.hist.filter(x=>Math.floor(x.m/12)===yr);
+  const L=st.hist[st.hist.length-1],cap=loanCap(),step=loanStep();
+  const yr=yearOf(Math.max(0,st.m-1)),ytd=st.hist.filter(x=>yearOf(x.m)===yr);
   const yRev=ytd.reduce((a,x)=>a+x.rev,0),yExp=ytd.reduce((a,x)=>a+x.exp,0),yBuy=ytd.reduce((a,x)=>a+x.cap.buy,0),ySell=ytd.reduce((a,x)=>a+x.cap.sell,0);
   let bd='';if(L){const items=Object.entries(L.expD).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);const mx=items.length?items[0][1]:1;
     bd=items.map(([k,v])=>`<div class="hbar"><span>${EXP[k]}</span><span class="v">${fm(v)}</span><div class="t"><i style="width:${v/mx*100}%"></i></div></div>`).join('')}
   return `<h2>${L?'Expenditure, '+mlabel(L.m):'Expenditure'}</h2>
   <section class="card">${L?`<div class="pl" style="margin-bottom:14px"><div><span>Freight revenue</span><span class="num">${fm(L.revD.freight)}</span></div><div><span>Time charter hire</span><span class="num">${fm(L.revD.hire)}</span></div><div><span>Total expenditure</span><span class="num">-${fm(L.exp)}</span></div><div class="tot"><span>Net profit</span><span class="num ${L.net<0?'down':'up'}">${fm(L.net)}</span></div></div>${bd}`:'<p class="muted" style="margin:0">Your first expenditure report appears after you end the month.</p>'}</section>
   <h2>Last 12 months</h2><section class="card">${chart12()}</section>
-  <h2>Year to date, ${2027+yr}</h2>
+  <h2>Year to date, ${yr}</h2>
   <section class="card pl"><div><span>Revenue</span><b class="num up">${fm(yRev)}</b></div><div><span>Expenditure</span><span class="num">-${fm(yExp)}</span></div><div class="tot"><span>Operating profit</span><span class="num ${yRev-yExp<0?'down':'up'}">${fm(yRev-yExp)}</span></div>
     <div><span>Ships bought (capital)</span><span class="num">${fm(yBuy)}</span></div><div><span>Ships sold (capital)</span><span class="num">${fm(ySell)}</span></div></section>
   <h2>Bank financing</h2>
   <section class="card"><div class="pl"><div><span>Current loan</span><b class="num">${fm(st.loan)}</b></div><div><span>Interest rate</span><span class="num">${(st.rate*100).toFixed(2)}% a year</span></div><div><span>Monthly interest</span><span class="num">${fm(st.loan*st.rate/12)}</span></div><div><span>Remaining limit (50% of fleet value)</span><span class="num">${fm(cap)}</span></div></div>
-    <div class="actions"><button type="button" class="btn primary" data-a="borrow" ${cap<5e5?'disabled':''}>Borrow ${fm(Math.min(8e6,cap))}</button><button type="button" class="btn" data-a="repay" ${st.loan<=0||st.cash<=0?'disabled':''}>Repay ${fm(Math.min(8e6,st.loan,Math.max(0,st.cash)))}</button></div></section>`;
+    <div class="actions"><button type="button" class="btn primary" data-a="borrow" ${cap<5e5?'disabled':''}>Borrow ${fm(Math.min(step,cap))}</button><button type="button" class="btn" data-a="repay" ${st.loan<=0||st.cash<=0?'disabled':''}>Repay ${fm(Math.min(step,st.loan,Math.max(0,st.cash)))}</button></div></section>`;
 }
 
 function vCompany(){
-  return `<h2>Technical and safety</h2>
-  <section class="card">
-    <div class="setting"><h3>Maintenance level</h3><div class="muted small">Premium slows ship wear but raises stores and spares cost.</div><div class="seg">${MAINT.map((m,i)=>`<button type="button" data-a="maint" data-v="${i}" aria-pressed="${st.maint===i}">${m.label}</button>`).join('')}</div></div>
-    <div class="setting"><h3>HSEQ safety programme</h3><div class="muted small">RM 190k a month. Cuts breakdowns 40%, lowers PSC risk and lifts your employer rating.</div><div class="seg"><button type="button" data-a="hseq" data-v="0" aria-pressed="${!st.hseq}">Off</button><button type="button" data-a="hseq" data-v="1" aria-pressed="${st.hseq}">On</button></div></div>
-  </section>
-  <h2>Your company structure</h2>
-  <section class="card"><ul class="dept">
-    <li><b>Chartering</b><span class="muted">Contracts tab.</span></li><li><b>Operations</b><span class="muted">Voyages and decisions during crises at sea.</span></li>
-    <li><b>Technical</b><span class="muted">Dry docking and maintenance level.</span></li><li><b>Crewing</b><span class="muted">Recruiting, STCW training, sign-on and sign-off.</span></li>
-    <li><b>Payroll</b><span class="muted">Wage scale and allowances in the Salary tab.</span></li><li><b>HSEQ</b><span class="muted">Safety programme and IMO compliance.</span></li>
-    <li><b>S&P</b><span class="muted">Buying, selling, scrapping and newbuilding orders.</span></li><li><b>Finance</b><span class="muted">Expenditure, loans and reporting to the board.</span></li>
-    <li><b>Documentation</b><span class="muted">Bills of Lading, manifests and customs.</span></li></ul></section>
+  const t=tierIdx();
+  return `<h2>Company status</h2>
+  <section class="card"><ul class="dept">${TIERS.map((x,i)=>`<li><b class="${i<=t?'up':'muted'}">${i<=t?'✓ ':''}${x.n}</b><span class="muted">${i?x.ships+' ships, '+x.divs+' divisions, net worth '+fm(x.nw):'Where every owner starts'}</span></li>`).join('')}</ul></section>
+  <h2>Divisions</h2>
+  <div class="offers">${SEGS.map(s=>{const open=st.divs.includes(s),n=st.ships.filter(x=>segOf(x.cls)===s).length;return `<article class="card"><div class="ship-head"><div class="ship-name">${SEG[s]}</div>${open?'<span class="pill p-voy">Open</span>':'<span class="pill p-del">Not open</span>'}</div>
+    <p class="small muted" style="margin:6px 0 0">${DIV[s].d}</p>
+    <div class="facts" style="margin-top:8px"><span>Ship types <b>${Object.values(CLS).filter(c=>c.seg===s).map(c=>c.nama).join(', ')}</b></span>${open?`<span>Fleet <b>${n}</b></span>`:''}</div>
+    ${open?'':`<div class="actions"><button type="button" class="btn primary" data-a="opendiv" data-v="${s}" ${st.cash<DIV[s].open?'disabled':''}>Open division · ${fm(DIV[s].open)}</button><span class="muted small" style="align-self:center">Then RM 50k a month</span></div>`}</article>`}).join('')}</div>
+  <h2>Offices</h2>
+  <section class="card"><div class="ship-head"><div><b>Kuala Lumpur</b><div class="muted small">Head office</div></div><span class="pill p-voy">Open</span></div></section>
+  <div class="offers">${Object.entries(OFFICES).map(([k,o])=>{const open=st.offices.includes(k);return `<article class="card"><div class="ship-head"><div><b>${o.n}</b><div class="muted small">${o.d}</div></div>${open?'<span class="pill p-voy">Open</span>':''}</div>
+    <div class="facts" style="margin-top:8px"><span>Rates <b>${Object.entries(o.boost).map(([s,b])=>SEG[s]+' +'+Math.round(b*100)+'%').join(', ')}</b></span><span>Running <b class="num">${fm(o.mo)}</b>/mo</span></div>
+    ${open?'':`<div class="actions"><button type="button" class="btn" data-a="office" data-v="${k}" ${st.cash<o.cost?'disabled':''}>Open office · ${fm(o.cost)}</button></div>`}</article>`}).join('')}</div>
   <h2>Glossary</h2>
   <section class="card"><dl class="gloss">
+    <dt>Marine Supt</dt><dd>Marine Superintendent. Usually a former Master. Looks after safety, PSC and vetting readiness, and officer performance.</dd>
+    <dt>Technical Supt</dt><dd>Technical Superintendent. Usually a former Chief Engineer. Looks after maintenance, repairs and dry docks.</dd>
     <dt>STCW</dt><dd>IMO convention on training and certification of seafarers. Codes like A-VI/1 refer to its sections.</dd>
     <dt>CoC</dt><dd>Certificate of Competency. Class 1 for Master and Chief Engineer, Class 2 for Chief Officer and 2nd Engineer.</dd>
+    <dt>SIRE</dt><dd>Oil majors' ship inspection scheme. Tankers and gas carriers need clean vetting to get good charters.</dd>
+    <dt>DP</dt><dd>Dynamic positioning. Keeps offshore vessels in place by computer. Officers need a Nautical Institute DP certificate.</dd>
     <dt>MLC 2006</dt><dd>Maritime Labour Convention, covering wages, food, rest hours and repatriation.</dd>
-    <dt>IBF</dt><dd>International Bargaining Forum. Sets crew rights in warlike and high-risk areas, including bonus pay.</dd>
-    <dt>TEU / DWT</dt><dd>Container capacity / maximum cargo weight a ship can carry.</dd>
-    <dt>VLSFO</dt><dd>Very low sulphur fuel oil, used to meet the IMO 2020 rules.</dd>
-    <dt>Bill of Lading</dt><dd>Cargo receipt, contract of carriage and document of title.</dd>
+    <dt>IBF</dt><dd>International Bargaining Forum. Sets crew rights in high-risk areas, including bonus pay.</dd>
+    <dt>TEU / DWT / cbm</dt><dd>Container capacity / cargo weight / gas tank volume.</dd>
+    <dt>AHTS / PSV</dt><dd>Anchor handling tug supply vessel / platform supply vessel, used in offshore oil and gas.</dd>
     <dt>PSC</dt><dd>Port State Control, inspection of foreign ships by port authorities.</dd>
     <dt>Off-hire</dt><dd>The ship cannot perform, so the charterer stops paying hire.</dd>
     <dt>LDT</dt><dd>Lightweight tonnage, the weight of the empty ship. Used to price demolition.</dd>
-    <dt>P&I Club</dt><dd>Shipowners' liability insurance, covering cargo and crew claims.</dd>
   </dl></section>
   <div><button type="button" class="btn ${confirmKey==='reset'?'danger':''}" data-a="reset">${confirmKey==='reset'?'Tap again to start over':'Start a new game'}</button></div>`;
 }
@@ -780,7 +925,7 @@ function vStart(){
   return `<div class="wrap start">
     <section class="hero"><svg viewBox="0 0 200 90" aria-hidden="true"><path d="M10 60 L190 60 L170 82 L28 82 Z" fill="#fff"/><rect x="40" y="36" width="22" height="22" fill="#fff"/><rect x="66" y="36" width="22" height="22" fill="#fff"/><rect x="92" y="36" width="22" height="22" fill="#fff"/><rect x="118" y="36" width="22" height="22" fill="#fff"/><rect x="150" y="18" width="20" height="40" fill="#fff"/></svg>
       <h1>FX Shipping</h1>
-      <p>You are the new CEO. Run a fleet out of Port Klang and Singapore for 36 months: charter your ships, recruit STCW-qualified officers, set crew pay and allowances, buy and sell tonnage, and control expenditure. Hit the board's target or get fired.</p></section>
+      <p>You are the new CEO. Appoint your department heads, set crewing standards, pay and allowances, buy ships and open new divisions from container lines to LPG and offshore. Grow from a small owner into an Asian shipping giant. Meet the board's yearly target or get fired.</p></section>
     <label class="field">Company name<input id="co-name" maxlength="40" placeholder="FX Shipping Sdn Bhd" autocomplete="off"></label>
     <div><div style="font-weight:600;margin-bottom:8px">Choose your starting fleet</div>
       <div class="plans">${Object.entries(PLANS).map(([k,p])=>`<button type="button" class="plan" data-a="plan" data-v="${k}" aria-pressed="${startPlan===k}"><b>${p.nama}</b><span>${p.desc} Cash ${fm(p.cash)}.</span></button>`).join('')}</div></div>
@@ -791,13 +936,13 @@ function render(){
   const app=document.getElementById('app');
   if(!st){app.innerHTML=vStart();renderModal();return}
   if(!TABS.some(t=>t[0]===tab))tab='overview';
-  const vac=st.ships.reduce((a,s)=>a+RK.filter(r=>!s.crew[r]).length,0),idle=st.ships.filter(s=>s.status==='idle'&&manned(s)).length;
-  const body={overview:vOverview,fleet:vFleet,contracts:vContracts,crewing:vCrewing,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
+  const vac=st.ships.reduce((a,s)=>a+RK.filter(r=>!s.crew[r]).length,0),noHead=Object.keys(DEPTS).filter(d=>!st.heads[d]).length;
+  const body={overview:vOverview,fleet:vFleet,contracts:vContracts,depts:vDepts,crewing:vCrewing,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
   app.innerHTML=`<header class="top"><div class="wrap">
-    <div class="top-row"><div class="brand"><div class="co">${esc(st.company)}</div><div class="when">FX Shipping · ${st.over?'Game over':'Month '+(st.m+1)+' of 36 · '+mlabel(st.m)}</div></div>
+    <div class="top-row"><div class="brand"><div class="co">${esc(st.company)}</div><div class="when">${st.over?'Game over':'Month '+(st.m+1)+' · '+mlabel(st.m)}</div></div>
       <div class="cashpill"><small>Cash</small><b class="${st.cash<0?'neg':''}">${fm(st.cash)}</b></div>
       <button type="button" class="btn-end" data-a="end" ${st.over?'disabled':''}>End month</button></div>
-    <nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" class="tab" role="tab" data-a="tab" data-v="${k}" aria-selected="${tab===k}">${l}${k==='contracts'&&idle?' ('+idle+')':''}${k==='crewing'&&vac?' ('+vac+')':''}</button>`).join('')}</nav>
+    <nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" class="tab" role="tab" data-a="tab" data-v="${k}" aria-selected="${tab===k}">${l}${k==='crewing'&&vac?' ('+vac+')':''}${k==='depts'&&noHead?' (!)':''}</button>`).join('')}</nav>
   </div></header><main class="wrap">${body}</main>`;
   renderModal();
 }
@@ -809,35 +954,36 @@ function renderModal(){
   if(q.kind==='report'){const net=q.rev-q.exp;
     h=`<div class="eyebrow">Monthly report · ${mlabel(q.m)}</div><h3>${net>=0?'Profit':'Loss'} of ${fm(Math.abs(net))} this month</h3>
     <div class="pl" style="margin-bottom:14px"><div><span>Revenue</span><b class="num up">${fm(q.rev)}</b></div><div><span>Expenditure</span><span class="num">-${fm(q.exp)}</span></div><div class="tot"><span>Cash now</span><span class="num ${st.cash<0?'down':''}">${fm(st.cash)}</span></div></div>
-    ${q.notes.length?`<ul class="notes">${q.notes.map(n=>`<li class="${n.tone==='bad'?'down':n.tone==='good'?'up':''}">${esc(n.t)}</li>`).join('')}</ul>`:'<p class="muted">No major incidents this month.</p>'}
+    ${q.notes.length?`<ul class="notes">${q.notes.slice(0,14).map(n=>`<li class="${n.tone==='bad'?'down':n.tone==='good'?'up':''}">${esc(n.t)}</li>`).join('')}${q.notes.length>14?`<li class="muted">and ${q.notes.length-14} more in Reports and news</li>`:''}</ul>`:'<p class="muted">A quiet month.</p>'}
     ${st.cash<0&&!st.over?'<p class="down"><b>Warning:</b> cash is negative. Borrow or sell a ship before the end of next month.</p>':''}
     <button type="button" class="btn primary" data-a="next">Continue</button>`}
   else if(q.kind==='event'){const e=EVENTS[q.id];
-    h=`<div class="eyebrow">CEO decision needed</div><h3>${esc(q.title)}</h3><p>${esc(q.body)}</p>`+(q.result?`<div class="result ${q.tone==='bad'?'down':q.tone==='good'?'up':''}">${esc(q.result)}</div><button type="button" class="btn primary" data-a="next">Continue</button>`
+    h=`<div class="eyebrow">${q.id==='premium'?'Memo from Crewing':'CEO decision needed'}</div><h3>${esc(q.title)}</h3><p>${esc(q.body)}</p>`+(q.result?`<div class="result ${q.tone==='bad'?'down':q.tone==='good'?'up':''}">${esc(q.result)}</div><button type="button" class="btn primary" data-a="next">Continue</button>`
       :`<div class="choices">${e.choices.map((c,i)=>`<button type="button" class="choice" data-a="choose" data-v="${i}"><b>${c[0]}</b><span>${c[1]}</span></button>`).join('')}</div>`)}
   else if(q.kind==='board'){
-    h=`<div class="eyebrow">Board meeting · Quarter ${q.q}</div><h3>${esc(q.v)}</h3>
-    <div class="pl" style="margin-bottom:14px"><div><span>Net worth last quarter</span><span class="num">${fm(q.prev)}</span></div><div><span>Net worth now</span><b class="num">${fm(q.nw)}</b></div><div><span>Change</span><span class="num ${q.pct<0?'down':'up'}">${q.pct>=0?'+':''}${q.pct.toFixed(1)}%</span></div><div class="tot"><span>Board confidence</span><span class="num">${Math.round(st.board)}/100 (${q.d>=0?'+':''}${q.d})</span></div></div>
+    h=`<div class="eyebrow">Board meeting · Q${q.q} ${q.y}</div><h3>${esc(q.v)}</h3>
+    <div class="pl" style="margin-bottom:14px"><div><span>Net worth last quarter</span><span class="num">${fm(q.prev)}</span></div><div><span>Net worth now</span><b class="num">${fm(q.nw)}</b></div><div><span>Change</span><span class="num ${q.pct<0?'down':'up'}">${q.pct>=0?'+':''}${q.pct.toFixed(1)}%</span></div><div><span>Year target</span><span class="num">${fm(st.target)}</span></div><div class="tot"><span>Board confidence</span><span class="num">${Math.round(st.board)}/100 (${q.d>=0?'+':''}${q.d})</span></div></div>
     ${st.board<35&&!st.over?'<p class="down">If board confidence falls below 20, you will be fired.</p>':''}<button type="button" class="btn primary" data-a="next">Continue</button>`}
-  else if(q.kind==='end'){const nw=netWorth();let t,p;
-    if(st.over.type==='fired'){t='You\'re fired';p=st.over.why+' The board has appointed a new CEO.'}
-    else if(nw>=st.target*1.2){t='Legendary CEO';p='You beat the target by a wide margin. FX Shipping is now a key player in the Straits of Malacca.'}
-    else if(nw>=st.target){t='Your contract is renewed';p='You hit the board\'s target. Congratulations.'}
-    else{t='Contract not renewed';p='The company survived, but the board\'s target was missed.'}
-    h=`<div class="eyebrow">Game over</div><h3>${t}</h3><p>${p}</p>
-    <div class="pl" style="margin-bottom:14px"><div><span>Final net worth</span><b class="num">${fm(nw)}</b></div><div><span>Target</span><span class="num">${fm(st.target)}</span></div><div><span>Started with</span><span class="num">${fm(st.startNW)}</span></div><div><span>Fleet size</span><span class="num">${st.ships.length} ships</span></div><div><span>Employer rating</span><span class="num">${Math.round(st.empRep)}/100</span></div></div>
+  else if(q.kind==='annual'){
+    h=`<div class="eyebrow">Annual general meeting · ${q.y}</div><h3>${q.hit?'Target achieved':'Target missed'}</h3>
+    <div class="pl" style="margin-bottom:14px"><div><span>Revenue ${q.y}</span><b class="num up">${fm(q.rev)}</b></div><div><span>Expenditure ${q.y}</span><span class="num">-${fm(q.exp)}</span></div><div><span>Net worth</span><b class="num">${fm(q.nw)}</b></div><div><span>Target</span><span class="num">${fm(q.old)}</span></div><div><span>Board confidence</span><span class="num">${Math.round(st.board)}/100 (${q.d>=0?'+':''}${q.d})</span></div><div class="tot"><span>New target for ${q.y+1}</span><span class="num">${fm(q.next)}</span></div></div>
+    <button type="button" class="btn primary" data-a="next">Continue</button>`}
+  else if(q.kind==='tier'){
+    h=`<div class="eyebrow">Milestone reached</div><h3>${esc(st.company)} is now a ${TIERS[q.t].n}</h3><p>The board and your clients have noticed. Board confidence +10 and client reputation +5.</p>${TIERS[q.t+1]?`<p class="muted">Next level, ${TIERS[q.t+1].n}: ${TIERS[q.t+1].ships} ships, ${TIERS[q.t+1].divs} divisions and net worth ${fm(TIERS[q.t+1].nw)}.</p>`:''}<button type="button" class="btn primary" data-a="next">Continue</button>`}
+  else if(q.kind==='end'){const nw=netWorth();
+    h=`<div class="eyebrow">Game over</div><h3>You're fired</h3><p>${esc(st.over.why)} The board has appointed a new CEO.</p>
+    <div class="pl" style="margin-bottom:14px"><div><span>Months as CEO</span><b class="num">${st.m}</b></div><div><span>Highest level</span><span>${TIERS[st.tierMax].n}</span></div><div><span>Final net worth</span><b class="num">${fm(nw)}</b></div><div><span>Started with</span><span class="num">${fm(st.startNW)}</span></div><div><span>Fleet size</span><span class="num">${st.ships.length} ships</span></div></div>
     <button type="button" class="btn primary" data-a="again">Play again</button>`}
   el.hidden=false;el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${h}</div>`;
 }
 
 function save(){try{if(st)localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
-function load(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){return null}}
+function load(){try{const s=localStorage.getItem(KEY);const o=s?JSON.parse(s):null;return o&&o.v===3?o:null}catch(e){return null}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;act(b.dataset.a,b.dataset.v)});
-function start(data){const d=data&&data.st&&data.st.wages?data.st:null;st=d||load();if(st&&!st.wages)st=null;if(data&&data.tab)tab=data.tab;render()}
+function start(data){const d=data&&data.st&&data.st.v===3?data.st:null;st=d||load();if(data&&data.tab)tab=data.tab;render()}
 window.claude?.hot?.snapshot?.(()=>({st,tab}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 </script>
-
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
