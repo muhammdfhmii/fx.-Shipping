@@ -289,39 +289,56 @@ svg.map{display:block;width:100%;height:auto;max-height:68vh;background:var(--se
 <script>
 const KEY='fx-shipping-v4';const OLDKEY='fx-shipping-v3';
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const SEGS=['container','bulk','tanker','bunker','gas','offshore'];
-const SEG={container:'Container',bulk:'Dry bulk',tanker:'Product tanker',bunker:'Bunkering',gas:'LPG gas',offshore:'Offshore'};
+const SEGS=['container','bulk','tanker','bunker','gas','lng','offshore'];
+const SEG={container:'Container',bulk:'Dry bulk',tanker:'Tanker',bunker:'Bunkering',gas:'LPG gas',lng:'LNG',offshore:'Offshore'};
 const DIV={
   container:{open:4e6,d:'Feeder and liner container services across Asia.'},
   bulk:{open:3e6,d:'Tramp shipping for coal, iron ore, grain and fertiliser.'},
-  tanker:{open:4e6,d:'Clean petroleum products for oil majors and traders.'},
+  tanker:{open:4e6,d:'Crude oil, clean products and chemicals for oil majors and traders.'},
   bunker:{open:2e6,d:'Fuel delivery to ships at Singapore and Johor anchorages.'},
   gas:{open:6e6,d:'LPG carriers for petrochemical and energy clients.'},
+  lng:{open:15e6,d:'LNG carriers on long charters to energy majors and utilities in Japan, Korea and China. The most expensive ships in shipping.'},
   offshore:{open:5e6,d:'Support vessels for oil and gas fields off Terengganu, Sabah and Sarawak.'}
 };
 const CLS={
   feeder:{seg:'container',nama:'Container Feeder',size:'1,700 TEU',value:59.5e6,other:390e3,ratings:16,fuel:900,port:340e3,mk:1.55,scale:1,ldt:7000},
   panamax:{seg:'container',nama:'Panamax Container',size:'4,250 TEU',value:119e6,other:560e3,ratings:18,fuel:1450,port:510e3,mk:1.55,scale:1,ldt:16000},
+  ulcv:{seg:'container',nama:'Ultra Large Container Ship',size:'24,000 TEU',value:900e6,other:1.4e6,ratings:22,fuel:4200,port:1.4e6,mk:1.55,scale:1,ldt:55000,only:1},
   neo:{seg:'container',nama:'Neo-Panamax Container',size:'8,500 TEU',value:255e6,other:900e3,ratings:20,fuel:2600,port:850e3,mk:1.55,scale:1,ldt:28000},
   handy:{seg:'bulk',nama:'Handysize',size:'35,000 DWT',value:59.5e6,other:260e3,ratings:16,fuel:600,port:212e3,mk:1.55,scale:1,ldt:9000},
   supra:{seg:'bulk',nama:'Supramax',size:'58,000 DWT',value:93.5e6,other:340e3,ratings:17,fuel:750,port:255e3,mk:1.55,scale:1,ldt:12000},
+  ultra:{seg:'bulk',nama:'Ultramax',size:'64,000 DWT',value:115e6,other:360e3,ratings:17,fuel:780,port:270e3,mk:1.55,scale:1,ldt:12500},
   kamsar:{seg:'bulk',nama:'Kamsarmax',size:'82,000 DWT',value:136e6,other:400e3,ratings:18,fuel:900,port:300e3,mk:1.55,scale:1,ldt:14000},
+  cape:{seg:'bulk',nama:'Capesize',size:'180,000 DWT',value:280e6,other:520e3,ratings:19,fuel:1300,port:420e3,mk:1.55,scale:1,ldt:23000,only:1},
+  chem:{seg:'tanker',nama:'Chemical Tanker (IMO II)',size:'20,000 DWT',value:115e6,other:420e3,ratings:16,fuel:520,port:230e3,mk:1.55,scale:1,ldt:7000},
   mr:{seg:'tanker',nama:'MR Product Tanker',size:'50,000 DWT',value:127.5e6,other:480e3,ratings:19,fuel:800,port:298e3,mk:1.55,scale:1,ldt:11000},
   lr2:{seg:'tanker',nama:'LR2 Product Tanker',size:'115,000 DWT',value:250e6,other:650e3,ratings:20,fuel:1100,port:420e3,mk:1.55,scale:1,ldt:20000},
+  lr1:{seg:'tanker',nama:'LR1 Product Tanker',size:'75,000 DWT',value:190e6,other:560e3,ratings:19,fuel:950,port:340e3,mk:1.55,scale:1,ldt:15000},
+  afra:{seg:'tanker',nama:'Aframax Crude Tanker',size:'115,000 DWT',value:260e6,other:620e3,ratings:20,fuel:1150,port:420e3,mk:1.55,scale:1,ldt:19000,only:1},
+  vlcc:{seg:'tanker',nama:'VLCC Crude Tanker',size:'300,000 DWT',value:540e6,other:820e3,ratings:22,fuel:2100,port:650e3,mk:1.55,scale:1,ldt:42000,only:1},
+  bunks:{seg:'bunker',nama:'Bunker Barge',size:'3,000 DWT',value:16e6,other:120e3,ratings:6,fuel:70,port:40e3,mk:1.66,scale:0.55,ldt:1100},
   bunk:{seg:'bunker',nama:'Bunker Tanker',size:'6,500 DWT',value:34e6,other:190e3,ratings:8,fuel:120,port:64e3,mk:1.66,scale:0.6,ldt:2200},
+  lngb:{seg:'bunker',nama:'LNG Bunkering Vessel',size:'7,500 cbm',value:190e6,other:380e3,ratings:10,fuel:160,port:80e3,mk:1.7,scale:0.75,ldt:6000,only:1,cseg:'lng'},
+  lpgs:{seg:'gas',nama:'Small LPG Carrier (pressurised)',size:'5,000 cbm',value:70e6,other:260e3,ratings:12,fuel:240,port:110e3,mk:1.6,scale:0.8,ldt:3000,only:1},
   lpg:{seg:'gas',nama:'LPG Carrier (MGC)',size:'38,000 cbm',value:210e6,other:620e3,ratings:20,fuel:950,port:350e3,mk:1.55,scale:1,ldt:12000},
+  vlgc:{seg:'gas',nama:'Very Large Gas Carrier (VLGC)',size:'84,000 cbm',value:380e6,other:760e3,ratings:21,fuel:1250,port:450e3,mk:1.55,scale:1,ldt:18000},
+  sslng:{seg:'lng',nama:'Small-scale LNG Carrier',size:'30,000 cbm',value:300e6,other:600e3,ratings:18,fuel:700,port:250e3,mk:1.55,scale:1,ldt:10000},
+  lngc:{seg:'lng',nama:'LNG Carrier',size:'174,000 cbm',value:1.05e9,other:1.1e6,ratings:22,fuel:2400,port:600e3,mk:1.55,scale:1,ldt:32000},
+  fcb:{seg:'offshore',nama:'Fast Crew Boat',size:'60 passengers',value:14e6,other:110e3,ratings:6,fuel:120,port:15e3,mk:1.62,scale:0.7,ldt:250},
   psv:{seg:'offshore',nama:'Platform Supply Vessel',size:'4,000 DWT',value:48e6,other:240e3,ratings:12,fuel:250,port:30e3,mk:1.62,scale:0.85,ldt:2500},
-  ahts:{seg:'offshore',nama:'Anchor Handling Tug (AHTS)',size:'80 t bollard pull',value:70e6,other:320e3,ratings:14,fuel:350,port:35e3,mk:1.62,scale:0.9,ldt:3200}
+  ahts:{seg:'offshore',nama:'Anchor Handling Tug (AHTS)',size:'80 t bollard pull',value:70e6,other:320e3,ratings:14,fuel:350,port:35e3,mk:1.62,scale:0.9,ldt:3200},
+  ocv:{seg:'offshore',nama:'Offshore Construction Vessel',size:'250 t crane',value:260e6,other:650e3,ratings:20,fuel:600,port:60e3,mk:1.65,scale:1,ldt:9000}
 };
 const ROUTES={
-  container:[["Port Klang","Shanghai",1,"Electronics and furniture"],["Tanjung Pelepas","Jebel Ali",2,"Mixed containers",1],["Port Klang","Chennai",1,"Tyres and packed palm oil"],["Singapore","Ho Chi Minh City",1,"Factory raw materials"],["Penang","Hong Kong",1,"Semiconductors"]],
-  bulk:[["Kuantan","Qingdao",2,"Bauxite"],["Kalimantan","Port Klang",1,"Coal for power plants"],["Fremantle","Pasir Gudang",2,"Wheat"],["Port Hedland","Qingdao",2,"Iron ore"],["Bintulu","Manila",1,"Urea fertiliser"]],
-  tanker:[["Singapore","Brisbane",2,"Diesel and gasoline"],["Pengerang","Vung Tau",1,"RON95 gasoline"],["Ras Tanura","Singapore",2,"Naphtha",1],["Melaka","Bangkok",1,"Jet fuel"]],
-  bunker:[["Singapore","Eastern Anchorage",1,"VLSFO deliveries to client ships"],["Tanjung Pelepas","Port limits",1,"MGO deliveries to container ships"],["Singapore","Western Anchorage",1,"VLSFO and MGO deliveries"]],
-  gas:[["Ras Tanura","Pasir Gudang",2,"Propane and butane",1],["Houston","Map Ta Phut",3,"LPG for a petrochemical plant"],["Bintulu","Haiphong",1,"Butane"],["Yanbu","Pengerang",2,"Propane",1]],
+  container:[["Port Klang","Shanghai",1,"Electronics and furniture"],["Tanjung Pelepas","Jebel Ali",2,"Mixed containers",1],["Port Klang","Chennai",1,"Tyres and packed palm oil"],["Singapore","Ho Chi Minh City",1,"Factory raw materials"],["Penang","Hong Kong",1,"Semiconductors"],["Shanghai","Tanjung Pelepas",1,"Asia–Europe service, Asian leg",0,["ulcv","neo"]],["Qingdao","Port Klang",1,"Exports from northern China",0,["ulcv","neo","panamax"]],["Ningbo","Tanjung Pelepas",1,"Transhipment boxes for Europe",0,["ulcv","neo"]]],
+  bulk:[["Kuantan","Qingdao",2,"Bauxite"],["Kalimantan","Port Klang",1,"Coal for power plants"],["Fremantle","Pasir Gudang",2,"Wheat"],["Port Hedland","Qingdao",2,"Iron ore"],["Bintulu","Manila",1,"Urea fertiliser"],["Port Hedland","Qingdao",2,"Iron ore for a steel mill",0,["cape"]],["Kuantan","Qingdao",2,"Bauxite",0,["cape","kamsar"]],["Gladstone","Qingdao",2,"Coking coal",0,["cape","kamsar","ultra"]]],
+  tanker:[["Singapore","Brisbane",2,"Diesel and gasoline"],["Pengerang","Vung Tau",1,"RON95 gasoline"],["Ras Tanura","Singapore",2,"Naphtha",1],["Melaka","Bangkok",1,"Jet fuel"],["Singapore","Ulsan",1,"Chemicals for a Korean plant",0,["chem"]],["Pasir Gudang","Map Ta Phut",1,"Palm oil and methanol",0,["chem"]],["Ras Tanura","Ningbo",2,"Arab Light crude",1,["vlcc","afra"]],["Ras Tanura","Pengerang",2,"Crude for the Pengerang refinery",1,["vlcc","afra"]],["Darwin","Singapore",1,"Condensate",0,["afra","lr1"]]],
+  bunker:[["Singapore","Eastern Anchorage",1,"VLSFO deliveries to client ships"],["Tanjung Pelepas","Port limits",1,"MGO deliveries to container ships"],["Singapore","Western Anchorage",1,"VLSFO and MGO deliveries"],["Singapore","Eastern Anchorage",1,"LNG bunkering for dual-fuel ships",0,["lngb"]],["Singapore","Western Anchorage",1,"LNG bunkering for container ships",0,["lngb"]]],
+  gas:[["Ras Tanura","Pasir Gudang",2,"Propane and butane",1],["Houston","Map Ta Phut",3,"LPG for a petrochemical plant"],["Bintulu","Haiphong",1,"Butane"],["Yanbu","Pengerang",2,"Propane",1],["Pengerang","Bangkok",1,"LPG for cooking gas",0,["lpgs"]],["Bintulu","Labuan",1,"Coastal LPG for Sabah",0,["lpgs"]],["Map Ta Phut","Haiphong",1,"LPG for Vietnam",0,["lpgs","lpg"]]],
+  lng:[["Bintulu","Tokyo Bay",1,"LNG for a Japanese utility"],["Bintulu","Incheon",1,"LNG for Korean power plants"],["Ras Laffan","Pengerang",1,"LNG for the Pengerang regas terminal",1],["Gladstone","Tokyo Bay",1,"Australian LNG"],["Darwin","Shanghai",1,"LNG for eastern China"],["Bintulu","Dapeng",1,"LNG for southern China"]],
   offshore:[["Kemaman","Terengganu oil fields"],["Labuan","Sabah deepwater fields"],["Bintulu","Sarawak gas fields"]]
 };
-const WHO={container:["Nusantara Line","Straits Express","Orient Feeder Co."],bulk:["Pacific Agri Trading","Borneo Minerals","Eastern Grain Sdn Bhd"],tanker:["Straits Energy","Andaman Petroleum","Gulf Products Ltd"],bunker:["Harbour Fuels","Marina Bunkering","Lion City Marine"],gas:["Asia Petrochem","Gulf Gas Trading","Siam LPG"],offshore:["East Coast Oil Operator","Sabah Deepwater Ltd","Sarawak Gas Fields"]};
+const WHO={container:["Nusantara Line","Straits Express","Orient Feeder Co."],bulk:["Pacific Agri Trading","Borneo Minerals","Eastern Grain Sdn Bhd"],tanker:["Straits Energy","Andaman Petroleum","Gulf Products Ltd"],bunker:["Harbour Fuels","Marina Bunkering","Lion City Marine"],gas:["Asia Petrochem","Gulf Gas Trading","Siam LPG"],offshore:["East Coast Oil Operator","Sabah Deepwater Ltd","Sarawak Gas Fields"],lng:["Sarawak LNG Sales","Kanto Power & Gas","Han River Energy"]};
 const SHIPNAMES=["FX Harmony","FX Kenanga","FX Seri Melaka","FX Puteri","FX Bayu","FX Pelangi","FX Cahaya","FX Mutiara","FX Lautan","FX Bintang","FX Angsana","FX Tasik","FX Gelombang","FX Kayangan","FX Labuan","FX Merbok","FX Teratai","FX Rimba","FX Cempaka","FX Melati","FX Delima","FX Kasturi","FX Nilam","FX Zamrud","FX Permata","FX Intan","FX Seroja","FX Dahlia","FX Kemboja","FX Tioman","FX Langkawi","FX Redang","FX Pangkor","FX Sipadan","FX Kinabalu","FX Rajang","FX Muar","FX Johor","FX Perak","FX Pahang"];
 const RANKS={master:{t:'Master',mk:42000},co:{t:'Chief Officer',mk:30000},ce:{t:'Chief Engineer',mk:42000},se:{t:'2nd Engineer',mk:28000}};
 const RK=['master','co','ce','se'];
@@ -351,21 +368,21 @@ const OBEN=[
   {k:'team',t:'Team building and annual dinner',d:'Per staff per month, averaged over the year.',lv:['None','RM 150'],val:[0,150],pts:[-2,3],def:0}
 ];
 const OFFICES={
-  sg:{n:'Singapore',cost:2e6,mo:180e3,boost:{bunker:.06,tanker:.04,gas:.03},d:'Close to the world\'s largest bunkering port and tanker traders.'},
+  sg:{n:'Singapore',cost:2e6,mo:180e3,boost:{bunker:.06,tanker:.04,gas:.03,lng:.03},d:'Close to the world\'s largest bunkering port and tanker traders.'},
   sh:{n:'Shanghai',cost:2e6,mo:160e3,boost:{container:.06,bulk:.05},d:'Direct access to Chinese cargo owners and steel mills.'},
-  db:{n:'Dubai',cost:2.5e6,mo:200e3,boost:{tanker:.05,gas:.06},d:'Middle East energy exporters and Gulf cargo.'},
+  db:{n:'Dubai',cost:2.5e6,mo:200e3,boost:{tanker:.05,gas:.06,lng:.05},d:'Middle East energy exporters and Gulf cargo.'},
   jk:{n:'Jakarta',cost:1.2e6,mo:100e3,boost:{offshore:.05,bulk:.03,container:.02},d:'Indonesian coal, nickel and offshore projects.'},
-  ld:{n:'London',cost:3e6,mo:250e3,boost:{container:.03,bulk:.03,tanker:.03,bunker:.03,gas:.03,offshore:.03},d:'Shipbroking, insurance and finance network.'}
+  ld:{n:'London',cost:3e6,mo:250e3,boost:{container:.03,bulk:.03,tanker:.03,bunker:.03,gas:.03,lng:.03,offshore:.03},d:'Shipbroking, insurance and finance network.'}
 };
 const TIERS=[{n:'Start-up owner',ships:0,divs:1,nw:0},{n:'Regional operator',ships:5,divs:2,nw:200e6},{n:'Established group',ships:10,divs:3,nw:400e6},{n:'Major shipping group',ships:18,divs:4,nw:800e6},{n:'Asian shipping giant',ships:30,divs:5,nw:1.5e9}];
 const ALLOW=[
   {k:'ot',t:'Fixed overtime',d:'Guaranteed overtime paid as a share of basic wage.',lv:['None','25%','35%'],val:[0,0.25,0.35],pts:[-10,0,4],def:1},
   {k:'leave',t:'Leave pay',d:'Paid leave days earned for each month on board.',lv:['4 days','7 days','9 days'],val:[4,7,9],pts:[-5,0,3],def:1},
   {k:'food',t:'Victualling allowance',d:'Food budget per crew per day. Required under MLC 2006.',lv:['RM 25','RM 35','RM 45'],val:[25,35,45],pts:[-7,0,4],def:1},
-  {k:'tank',t:'Tank cleaning allowance',d:'Per crew member each time cargo tanks are cleaned between grades.',lv:['Off','RM 600'],val:[0,600],seg:['tanker','bunker','gas'],def:1},
+  {k:'tank',t:'Tank cleaning allowance',d:'Per crew member each time cargo tanks are cleaned between grades.',lv:['Off','RM 600'],val:[0,600],seg:['tanker','bunker','gas','lng'],def:1},
   {k:'hold',t:'Hold cleaning allowance',d:'Per crew member for washing cargo holds after each bulk cargo.',lv:['Off','RM 500'],val:[0,500],seg:['bulk'],def:1},
   {k:'lash',t:'Lashing allowance',d:'Per crew member per month at sea for securing container lashings.',lv:['Off','RM 400'],val:[0,400],seg:['container'],def:1},
-  {k:'dg',t:'Dangerous cargo allowance',d:'Per crew member per month at sea when carrying flammable petroleum or gas cargo.',lv:['Off','RM 300'],val:[0,300],seg:['tanker','bunker','gas'],def:1},
+  {k:'dg',t:'Dangerous cargo allowance',d:'Per crew member per month at sea when carrying flammable petroleum or gas cargo.',lv:['Off','RM 300'],val:[0,300],seg:['tanker','bunker','gas','lng'],def:1},
   {k:'dp',t:'DP and offshore allowance',d:'Per crew member per month for dynamic positioning and anchor handling work.',lv:['Off','RM 500'],val:[0,500],seg:['offshore'],def:1},
   {k:'hra',t:'High risk area bonus',d:'Extra pay inside IBF high-risk zones such as the Gulf. Without it, crew may refuse to sail there.',lv:['Off','100% basic'],val:[0,1],pts:[0,2],def:0},
   {k:'fest',t:'Festive bonus',d:'Half a month of basic wage every March for Hari Raya, Chinese New Year, Deepavali or Christmas.',lv:['Off','On'],val:[0,0.5],pts:[-2,4],def:1},
@@ -381,9 +398,9 @@ const PLANS={
   c:{nama:'Start Small',desc:'One old Handysize and one bunker tanker, with plenty of cash to expand.',ships:[['handy',15],['bunk',10]],cash:42.5e6}
 };
 /* ---------- shipyard: custom newbuild specs ---------- */
-const LOA={feeder:[150,172,190],panamax:[240,260,294],neo:[280,300,366],handy:[160,180,190],supra:[180,190,200],kamsar:[215,229,229],mr:[170,183,190],lr2:[228,250,256],bunk:[85,100,110],lpg:[160,180,190],psv:[70,85,95],ahts:[60,75,90]};
-const CAP={feeder:[1700,'TEU',50],panamax:[4250,'TEU',50],neo:[8500,'TEU',100],handy:[35000,'DWT',500],supra:[58000,'DWT',500],kamsar:[82000,'DWT',500],mr:[50000,'DWT',500],lr2:[115000,'DWT',1000],bunk:[6500,'DWT',100],lpg:[38000,'cbm',500],psv:[4000,'DWT',100],ahts:[80,'t bollard pull',1]};
-const LOANOTE={panamax:'294 m is the limit for the old Panama Canal locks.',neo:'366 m is the limit for the new Panama Canal locks.',kamsar:'Kamsarmax ships are capped at 229 m by the bauxite port of Kamsar, Guinea, so they can only be shorter.',bunk:'Bunker tankers serving Singapore anchorages are usually under 110 m.',supra:'Supramax bulkers are usually 190 to 200 m.',lr2:'LR2 tankers are usually 228 to 250 m.'};
+const LOA={ulcv:[366,400,400],cape:[280,292,300],ultra:[195,200,200],chem:[140,150,160],lr1:[220,228,230],afra:[240,250,250],vlcc:[320,330,333],bunks:[60,70,80],lngb:[95,105,120],lpgs:[95,105,115],vlgc:[225,230,230],sslng:[160,175,185],lngc:[285,295,300],fcb:[35,40,50],ocv:[110,130,150],feeder:[150,172,190],panamax:[240,260,294],neo:[280,300,366],handy:[160,180,190],supra:[180,190,200],kamsar:[215,229,229],mr:[170,183,190],lr2:[228,250,256],bunk:[85,100,110],lpg:[160,180,190],psv:[70,85,95],ahts:[60,75,90]};
+const CAP={ulcv:[24000,'TEU',100],cape:[180000,'DWT',1000],ultra:[64000,'DWT',500],chem:[20000,'DWT',500],lr1:[75000,'DWT',500],afra:[115000,'DWT',1000],vlcc:[300000,'DWT',1000],bunks:[3000,'DWT',100],lngb:[7500,'cbm',100],lpgs:[5000,'cbm',100],vlgc:[84000,'cbm',500],sslng:[30000,'cbm',500],lngc:[174000,'cbm',1000],fcb:[60,'passengers',2],ocv:[250,'t crane',10],feeder:[1700,'TEU',50],panamax:[4250,'TEU',50],neo:[8500,'TEU',100],handy:[35000,'DWT',500],supra:[58000,'DWT',500],kamsar:[82000,'DWT',500],mr:[50000,'DWT',500],lr2:[115000,'DWT',1000],bunk:[6500,'DWT',100],lpg:[38000,'cbm',500],psv:[4000,'DWT',100],ahts:[80,'t bollard pull',1]};
+const LOANOTE={ulcv:'400 m is about the longest any port can handle today.',ultra:'Ultramax bulkers are built to 200 m to fit most bulk ports.',afra:'Aframax tankers are usually about 245 to 250 m.',vlcc:'VLCCs are around 330 m, close to the limit for most crude terminals.',vlgc:'VLGCs are about 230 m, sized for most LPG terminals.',lngc:'Most LNG terminals accept ships up to about 300 m.',panamax:'294 m is the limit for the old Panama Canal locks.',neo:'366 m is the limit for the new Panama Canal locks.',kamsar:'Kamsarmax ships are capped at 229 m by the bauxite port of Kamsar, Guinea, so they can only be shorter.',bunk:'Bunker tankers serving Singapore anchorages are usually under 110 m.',supra:'Supramax bulkers are usually 190 to 200 m.',lr2:'LR2 tankers are usually 228 to 250 m.'};
 const ENG={conv:{t:'Conventional diesel',d:'Burns VLSFO. Cheapest to build.',c:0,fm:1},eco:{t:'Eco electronic engine',d:'Electronically controlled fuel injection. About 10% less fuel.',c:0.03,fm:0.9},lng:{t:'Dual-fuel LNG',d:'Runs on LNG. About 22% lower fuel cost, and clients pay a little more for a low-carbon ship.',c:0.12,fm:0.78}};
 const EQ={
   scrub:{g:'eco',t:'Exhaust gas scrubber',d:'Lets the ship burn cheaper high-sulphur fuel legally. About 8% lower fuel cost. Not needed with LNG.',c:0.025,fm:0.92,no:'lng'},
@@ -394,7 +411,7 @@ const EQ={
   geared:{g:'cargo',segs:['bulk'],t:'Own cranes and grabs (geared)',d:'Loads at small ports without shore cranes. Freight about 7% higher.',c:0.04,em:1.07},
   coatTank:{g:'cargo',segs:['tanker'],t:'Epoxy coated cargo tanks',d:'Carries more product grades and cleans faster. Rates about 6% higher.',c:0.03,em:1.06},
   mfm:{g:'cargo',segs:['bunker'],t:'Mass flow meter (MPA approved)',d:'Singapore requires one on every bunker tanker. Clients pay about 12% more with it.',c:0.015,em:1.12,def:1},
-  reliq:{g:'cargo',segs:['gas'],t:'Reliquefaction plant',d:'Keeps cargo cold with no boil-off loss. Rates about 6% higher.',c:0.03,em:1.06},
+  reliq:{g:'cargo',segs:['gas','lng'],t:'Reliquefaction plant',d:'Keeps cargo cold with no boil-off loss. Rates about 6% higher.',c:0.03,em:1.06},
   dp2:{g:'cargo',segs:['offshore'],t:'DP2 dynamic positioning',d:'Back-up for every system, so one failure does not lose position. Oil majors pay about 12% more.',c:0.06,em:1.12,saf:0.05},
   fifi:{g:'cargo',segs:['offshore'],t:'Fi-Fi 1 firefighting',d:'Can fight fires on oil platforms. Rates about 4% higher.',c:0.02,em:1.04,saf:0.03},
   freefall:{g:'safety',t:'Free-fall lifeboat',d:'Launches in seconds, even when the ship is listing.',c:0.004,min:5e5,saf:0.08},
@@ -416,7 +433,7 @@ const YARDS={
 const FLAGS={
   my:{n:'Malaysia',fee:60e3,d:'Malaysian cabotage: offshore work in Malaysian waters goes to Malaysian ships first.',em:{offshore:1.08},psc:0},
   sg:{n:'Singapore',fee:80e3,d:'MPA bunker licences need Singapore ships. Very good Port State Control record.',em:{bunker:1.08},psc:-4},
-  mh:{n:'Marshall Islands',fee:50e3,d:'Popular with oil majors and banks. Good Port State Control record.',em:{tanker:1.03,gas:1.03},psc:-2},
+  mh:{n:'Marshall Islands',fee:50e3,d:'Popular with oil majors and banks. Good Port State Control record.',em:{tanker:1.03,gas:1.03,lng:1.03},psc:-2},
   pa:{n:'Panama',fee:30e3,d:'Cheapest registry, but PSC inspectors target these ships more often.',em:{},psc:5}
 };
 const STAGES=[['Contract signed',0,0.2],['Steel cutting',0.25,0.1],['Keel laying',0.5,0.1],['Launching',0.8,0.1],['Delivery',1,0.5]];
@@ -441,9 +458,10 @@ const stars=n=>'<span class="stars" aria-label="'+n+' of 5 stars">'+'★'.repeat
 /* ---------- helpers ---------- */
 const segOf=cls=>CLS[cls].seg;
 const av=k=>{const a=ALLOW.find(x=>x.k===k);return a.val[st.allow[k]]};
-const isTank=cls=>['tanker','bunker','gas'].includes(segOf(cls));
-function segCerts(seg,rank){if(seg==='tanker'||seg==='bunker')return['OTB','OTA'];if(seg==='gas')return['LGB','LGA'];if(seg==='offshore'&&(rank==='master'||rank==='co'))return['DP'];return[]}
-const reqFor=(rank,cls)=>REQ[rank].concat(cls?segCerts(segOf(cls),rank):[]);
+const isTank=cls=>['tanker','bunker','gas','lng'].includes(segOf(cls));
+const cseg=cls=>CLS[cls].cseg||CLS[cls].seg;
+function segCerts(seg,rank){if(seg==='tanker'||seg==='bunker')return['OTB','OTA'];if(seg==='gas'||seg==='lng')return['LGB','LGA'];if(seg==='offshore'&&(rank==='master'||rank==='co'))return['DP'];return[]}
+const reqFor=(rank,cls)=>REQ[rank].concat(cls?segCerts(cseg(cls),rank):[]);
 const gapsOf=(p,cls)=>reqFor(p.rank,cls).filter(c=>!p.certs.includes(c));
 const filled=sh=>RK.filter(r=>sh.crew[r]);
 const manned=sh=>RK.every(r=>sh.crew[r]);
@@ -496,7 +514,7 @@ function buildSpec(cls,o){
   return {loa,k,eng:o.eng||'conv',eq:[...(o.eq||[])],yard:o.yard||null,flag:o.flag||null,fe:fmul,fm:fmul*k**0.75,ee:em,em:em*k**0.9,om:0.5+0.5*k,pm:0.6+0.4*k,
     vm:hf*(1+eqc/(c.value*hf)*0.6),saf:Math.min(0.6,saf),dm:yd?yd.dm:1,bd,hull:r10k(hull),eqc:r10k(eqc),fee,price:r10k(hull+eqc+fee),months:yd?yd.mo+(k>1.06?1:0):12,cond:yd?yd.cond:100};
 }
-function emOf(sh){const s=sp(sh),seg=segOf(sh.cls);let m=s.em*((FLAGS[s.flag]&&FLAGS[s.flag].em[seg])||1);if(seg==='tanker'||seg==='gas')m*=1+s.saf*0.08;return m}
+function emOf(sh){const s=sp(sh),seg=segOf(sh.cls);let m=s.em*((FLAGS[s.flag]&&FLAGS[s.flag].em[seg])||1);if(['tanker','gas','lng'].includes(seg))m*=1+s.saf*0.08;return m}
 function fitFor(o,sh){const m=emOf(sh);if(Math.abs(m-1)<0.001)return o;return {...o,rev:r10k(o.rev*m),hire:o.hire?r10k(o.hire*m):o.hire}}
 const hasEq=(sh,k)=>sp(sh).eq.includes(k);
 const scrapVal=sh=>r10k(CLS[sh.cls].ldt*sp(sh).k*st.scrap);
@@ -512,7 +530,7 @@ function shipBasic(sh){const c=CLS[sh.cls];return (filled(sh).reduce((a,r)=>a+Ma
 function scaleBasic(cls){const c=CLS[cls];return (RK.reduce((a,r)=>a+st.wages[r],0)+c.ratings*st.wages.rating)*c.scale}
 function crewCost(cls,basic,heads,atSea,hra){
   const seg=segOf(cls);const wages=basic*(1+av('ot')+av('leave')/30),food=heads*av('food')*30;let allow=av('wifi');
-  if(atSea){if(seg==='container')allow+=heads*av('lash');if(['tanker','bunker','gas'].includes(seg))allow+=heads*av('dg');if(seg==='offshore')allow+=heads*av('dp');if(hra&&av('hra'))allow+=basic*0.5}
+  if(atSea){if(seg==='container')allow+=heads*av('lash');if(['tanker','bunker','gas','lng'].includes(seg))allow+=heads*av('dg');if(seg==='offshore')allow+=heads*av('dp');if(hra&&av('hra'))allow+=basic*0.5}
   return {wages,food,allow,heads,basic};
 }
 function packagePts(){const segs=new Set(st.ships.map(s=>segOf(s.cls)));let p=0;ALLOW.forEach(a=>{const lv=st.allow[a.k];if(a.pts)p+=a.pts[lv];else if(a.seg&&a.seg.some(x=>segs.has(x)))p+=lv?2:-5});return p}
@@ -557,14 +575,14 @@ function genHead(d,mean){
 function newShip(cls,age,crewed,name){
   if(name)st.used.push(name);
   const sh={id:st.nid++,name:name||shipName(),totR:0,totC:0,lastNet:0,since:st.m,dockDue:age<1?5:Math.round((age+rnd(0.5,5))*12)/12,cls,age,cond:Math.round(clamp(94-age*1.4+rnd(-4,4),58,95)),status:'idle',left:0,c:null,crew:{master:null,co:null,ce:null,se:null}};
-  if(crewed)RK.forEach(r=>{const p=genSeafarer(r,{mean:68,boost:0.3,seg:segOf(cls)});p.left=Math.round(rnd(2,8));sh.crew[r]=p});
+  if(crewed)RK.forEach(r=>{const p=genSeafarer(r,{mean:68,boost:0.3,seg:cseg(cls)});p.left=Math.round(rnd(2,8));sh.crew[r]=p});
   return sh;
 }
 function genOffer(cls){
-  const c=CLS[cls],seg=c.seg,r=pick(ROUTES[seg]),base=earnBase(cls);
+  const c=CLS[cls],seg=c.seg,rs=ROUTES[seg].filter(r=>r[5]?r[5].includes(cls):!c.only),r=pick(rs.length?rs:ROUTES[seg]),base=earnBase(cls);
   let f=(0.9+st.rep/500)*(0.95+0.1*eff('chartering'))*(1+boostFor(seg))*[1.02,1,0.98][st.pol.credit??1]*(st.slow>0?0.98:1);
-  if(seg==='tanker'||seg==='gas')f*=0.93+0.1*eff('marine');
-  if(seg==='offshore'||Math.random()<0.32){
+  if(['tanker','gas','lng'].includes(seg))f*=0.93+0.1*eff('marine');
+  if(seg==='offshore'||Math.random()<(seg==='lng'?0.6:0.32)){
     const months=seg==='offshore'?pick([6,9,12,18,24]):pick([4,6,9,12]);
     const hire=r10k((base-c.fuel*2635-c.port)*st.idx[seg]*rnd(0.95,1.1)*f);
     return {id:st.nid++,cls,type:'TC',months,hire,rev:hire*months,who:pick(WHO[seg]),from:r[0],to:seg==='offshore'?r[1]:null,cargo:seg==='offshore'?'Field support for '+r[1]:'Charterer pays fuel and port charges',hra:false};
@@ -605,13 +623,14 @@ function upgrade(o){
   if(o.oShock==null)o.oShock=0;o.ramp=o.ramp||{};o.recv=o.recv||[];o.oLeft=o.oLeft||[];o.ltvPen=o.ltvPen||0;
   if(o.pol.credit==null)o.pol.credit=1;if(o.pol.hire==null)o.pol.hire=1;
   (o.ships||[]).forEach(sh=>{if(sh.totR==null){sh.totR=0;sh.totC=0;sh.lastNet=0;sh.since=o.m}if(sh.dockDue==null)sh.dockDue=Math.round((sh.age+(sh.status==='dock'?5:1.5+Math.random()*3.5))*12)/12});if(o.pol.autoDock==null)o.pol.autoDock=1;
+  if(o.idx&&o.idx.lng==null)o.idx.lng=1.05;
   if(o.culture==null)o.culture=50;o.fixes=o.fixes||{};o.invs=o.invs||[];o.voice=o.voice||[];o.nmLog=o.nmLog||[];o.incLog=o.incLog||[];if(o.press==null)o.press=0;if(o.slow==null)o.slow=0;if(o.pol.contract==null)o.pol.contract=1;
   (o.ships||[]).forEach(sh=>RK.forEach(r=>{if(sh.crew[r])humanize(sh.crew[r])}));(o.pool||[]).forEach(humanize);
   o.v=4;return o;
 }
 function fresh(company,plan){
   st={v:4,company,m:0,cash:0,loan:0,rate:0.065,rep:50,morale:65,board:70,empRep:55,maint:1,hseq:false,fuelEff:1,
-      bunker:2615,prevBunker:2615,scrap:2000,idx:{container:1,bulk:0.95,tanker:1.05,bunker:1,gas:1,offshore:0.95},bunkerHist:[2615],
+      bunker:2615,prevBunker:2615,scrap:2000,idx:{container:1,bulk:0.95,tanker:1.05,bunker:1,gas:1,lng:1.05,offshore:0.95},bunkerHist:[2615],
       wages:{master:42000,co:30000,ce:42000,se:28000,rating:7500},allow:{},
       pol:{autoCharter:1,mode:1,minRep:0,needStcw:1,premium:1,autoTrain:1,dockAt:2,autoDock:1,credit:1,hire:1,contract:1},
       heads:{},staff:{},headPool:{},divs:[],offices:[],
@@ -640,7 +659,7 @@ function autoCrew(note){
   const ce=eff('crewing'),mean=36+st.empRep*0.3+ce*24;
   st.ships.forEach(sh=>RK.forEach(r=>{
     const cur=sh.crew[r];if(cur&&!cur.flag)return;
-    const seg=segOf(sh.cls);let cands=[0,1,2,3].map(()=>genSeafarer(r,{mean,seg,boost:ce*0.15})).concat(st.pool.filter(p=>p.rank===r));
+    const seg=cseg(sh.cls);let cands=[0,1,2,3].map(()=>genSeafarer(r,{mean,seg,boost:ce*0.15})).concat(st.pool.filter(p=>p.rank===r));
     cands=cands.filter(p=>p.rep>=MINREP[st.pol.minRep]);
     if(st.pol.needStcw&&!st.pol.autoTrain)cands=cands.filter(p=>!gapsOf(p,sh.cls).length);
     if(cur)cands=cands.filter(p=>p.comp>cur.comp+4);
@@ -689,7 +708,7 @@ const EVENTS={
     make:sh=>({ship:sh.id,title:'PSC detention: safety deficiencies',body:`PSC officers inspected ${sh.name} and found defects in the firefighting system and maintenance records. The ship cannot sail until they are fixed.`}),
     choices:[['Repair immediately','RM 450k. Ship released within days.',(s,sh)=>{spend('repair',450000);s.rep-=1;sh.cond=Math.min(100,sh.cond+6);return ['Defects fixed and the ship was released.','']}],
              ['Appeal and wait','RM 120k, ship held a month, reputation drops.',(s,sh)=>{spend('penalty',120000);s.rep-=4;if(sh.status==='voyage')sh.left+=1;return ['Appeal failed. Ship held for a month.','bad']}]]},
-  vetting:{elig:s=>s.ships.filter(x=>['tanker','gas'].includes(segOf(x.cls))&&x.status!=='delivery'),
+  vetting:{elig:s=>s.ships.filter(x=>['tanker','gas','lng'].includes(segOf(x.cls))&&x.status!=='delivery'),
     make:sh=>({ship:sh.id,title:'Oil major vetting inspection',body:`A SIRE vetting inspector boarded ${sh.name} and recorded 9 observations, mostly on cargo procedures and mooring equipment. Oil majors may stop chartering the ship until they are closed.`}),
     choices:[['Fix every observation','RM 600k. Ship condition improves and clients stay confident.',(s,sh)=>{spend('repair',600000);sh.cond=Math.min(100,sh.cond+5);s.rep+=2;return ['All observations closed out. The ship is approved again.','good']}],
              ['Close only the urgent items','RM 150k. Reputation with oil majors drops.',(s)=>{spend('repair',150000);s.rep-=5;return ['Some oil majors have put the ship on hold.','bad']}]]},
@@ -736,7 +755,7 @@ const EVENTS={
              ['Settle with the client','RM 380k, better client relationship.',s=>{spend('penalty',380000);s.rep+=4;return ['The client appreciated the quick settlement.','good']}]]},
   drop:{elig:s=>s.divs,make:seg=>({extra:{seg},title:SEG[seg]+' market slumps',body:'Too many new ships entered the '+SEG[seg].toLowerCase()+' market. Rates are expected to fall.'}),
     choices:[['Understood','This segment\'s index falls.',(s,sh,q)=>{const g=q.extra.seg;s.idx[g]=Math.max(0.6,s.idx[g]-0.2);return [SEG[g]+' index fell. Time charters are safer for now.','bad']}]]},
-  boom:{elig:s=>s.divs,make:seg=>({extra:{seg},title:SEG[seg]+' market boom',body:{container:'E-commerce demand from China is filling every container slot.',bulk:'Chinese steel mills are importing record iron ore and coal.',tanker:'Refinery outages in Europe are pulling Asian diesel west.',bunker:'Record ship calls at Singapore are lifting bunker demand.',gas:'Petrochemical plants in Asia are buying more LPG.',offshore:'New oil and gas field projects off Malaysia need support vessels.'}[seg]}),
+  boom:{elig:s=>s.divs,make:seg=>({extra:{seg},title:SEG[seg]+' market boom',body:{container:'E-commerce demand from China is filling every container slot.',bulk:'Chinese steel mills are importing record iron ore and coal.',tanker:'Refinery outages in Europe are pulling Asian diesel west.',bunker:'Record ship calls at Singapore are lifting bunker demand.',gas:'Petrochemical plants in Asia are buying more LPG.',offshore:'New oil and gas field projects off Malaysia need support vessels.',lng:'A cold winter in North Asia has utilities scrambling for LNG cargoes.'}[seg]}),
     choices:[['Understood','This segment\'s index rises.',(s,sh,q)=>{const g=q.extra.seg;s.idx[g]=Math.min(1.6,s.idx[g]+0.22);return [SEG[g]+' rates jumped.','good']}]]},
   oRaise:{elig:s=>s.omorale<52&&staffCount()>=3?[true]:[],make:()=>({title:'Office staff ask for a pay review',body:'A group of executives in Kuala Lumpur sent a letter to HR. They say salaries have fallen behind other shipping companies in KL and ask for a 10% rise.'}),
     choices:[['Raise office salary one level','Permanent cost increase. Morale jumps.',s=>{if(s.opay<3)s.opay++;s.oShock+=6;return ['Office salaries moved to '+OPAY[s.opay].l.toLowerCase()+'. Staff are relieved.','good']}],
@@ -833,7 +852,7 @@ const CAUSES={
 };
 const INC=[
   {k:'overflow',segs:['bunker','tanker'],dept:'deck',t:'Oil overflow during a fuel transfer',what:'About 2 m³ of fuel overflowed onto the deck and into the sea. The port authority is investigating.',cost:[350e3,900e3],rep:5},
-  {k:'contam',segs:['tanker','gas'],dept:'deck',t:'Cargo contamination',what:'A wrong valve line-up mixed two cargo grades. The receiver rejected part of the cargo.',cost:[600e3,1.5e6],rep:4},
+  {k:'contam',segs:['tanker','gas','lng'],dept:'deck',t:'Cargo contamination',what:'A wrong valve line-up mixed two cargo grades. The receiver rejected part of the cargo.',cost:[600e3,1.5e6],rep:4},
   {k:'lashing',segs:['container'],dept:'deck',t:'Containers lost overboard',what:'Six containers went overboard in heavy rolling. Lashings on one bay had not been checked.',cost:[700e3,1.4e6],rep:4},
   {k:'ballast',segs:['bulk'],dept:'deck',t:'Ballast water violation',what:'The ship discharged untreated ballast water inside port limits and was fined.',cost:[250e3,600e3],rep:3},
   {k:'dp',segs:['offshore'],dept:'deck',t:'DP drift-off near a platform',what:'The vessel drifted 30 m towards the platform during a DP operation. All work was stopped.',cost:[300e3,800e3],rep:5},
@@ -1670,14 +1689,14 @@ const landPath=()=>LANDPATH||(LANDPATH=LAND.map(p=>'M'+p.map(([a,b])=>mx(a).toFi
 const PORTS={'Port Klang':[101.35,3.0],'Penang':[100.35,5.42],'Melaka':[102.25,2.18],'Tanjung Pelepas':[103.55,1.36],'Singapore':[103.83,1.26],'Pasir Gudang':[103.92,1.44],'Pengerang':[104.13,1.37],'Eastern Anchorage':[103.93,1.235],'Western Anchorage':[103.72,1.215],'Port limits':[103.5,1.3],
   'Kuantan':[103.35,3.85],'Kemaman':[103.45,4.25],'Terengganu oil fields':[105.0,5.5],'Bintulu':[113.05,3.25],'Sarawak gas fields':[112.5,4.6],'Labuan':[115.2,5.3],'Sabah deepwater fields':[114.5,7.0],
   'Ho Chi Minh City':[106.9,10.45],'Vung Tau':[107.08,10.33],'Bangkok':[100.6,13.4],'Map Ta Phut':[101.15,12.65],'Haiphong':[106.75,20.8],'Hong Kong':[114.2,22.25],'Shanghai':[122.05,30.6],'Qingdao':[120.4,36.0],'Manila':[120.6,14.45],
-  'Kalimantan':[114.6,-3.4],'Fremantle':[115.75,-32.05],'Port Hedland':[118.6,-20.3],'Brisbane':[153.2,-27.4],'Chennai':[80.3,13.1],'Jebel Ali':[55.05,25.0],'Ras Tanura':[50.17,26.65],'Yanbu':[38.1,24.1],'Houston':[161,19]};
+  'Kalimantan':[114.6,-3.4],'Fremantle':[115.75,-32.05],'Port Hedland':[118.6,-20.3],'Brisbane':[153.2,-27.4],'Chennai':[80.3,13.1],'Jebel Ali':[55.05,25.0],'Ras Tanura':[50.17,26.65],'Yanbu':[38.1,24.1],'Houston':[161,19],'Ningbo':[122.15,29.85],'Ulsan':[129.4,35.45],'Incheon':[126.55,37.4],'Tokyo Bay':[139.8,34.95],'Dapeng':[114.55,22.55],'Ras Laffan':[51.55,25.95],'Gladstone':[151.3,-23.85],'Darwin':[130.85,-12.45]};
 const YARDLOC={cn:[121.4,31.4],kr:[129.38,35.5],jp:[129.85,32.75],my:[111.85,2.3]};
 const DOCKLOC=[103.82,1.45];
 const WP={mal_n:[97,6.2],mal_c:[100.6,3.0],mal_s:[102.6,1.6],sgs:[103.8,1.17],sge:[104.5,1.28],scs_s:[105.5,3],scs_w:[107,7],scs_m:[111.5,11],scs_n:[114.5,18.5],lz:[121.2,20.8],pac:[161,19],tw:[119.6,24.2],ecs:[123,29.5],ys:[123.5,34.5],gt:[102.3,8.5],gtn:[100.6,12.0],tonk:[107.2,19],hai_s:[109,17.2],bor:[113,5.5],sab:[114.6,6.3],mnl_w:[119.6,14.4],
   kar:[107.2,-1.0],jav_w:[107,-5.0],jav_m:[110.5,-5.3],jav_e:[114.5,-6.3],sunda:[105.6,-6.25],io_w:[104,-9.5],lom_n:[115.85,-8.0],lombok:[115.8,-8.6],io_e:[115,-13],flores:[120,-7.3],banda:[127,-6.5],arafura:[134,-9.6],torres:[142,-10.0],coral:[145,-11.5],coral2:[151,-18],coral3:[154.5,-24.5],wa_n:[112.5,-21],wa_w:[113,-29],
-  sl:[80.8,5.3],lk_e:[82.5,8.0],arab:[65,13],oman:[60.8,21.8],hormuz:[56.5,26.55],gulf_m:[52.5,26.6],aden:[50,13],bab:[43.35,12.55],red_s:[41.2,15.5],red_m:[38.8,20]};
-const SEAEDGES='mal_n-mal_c mal_c-mal_s mal_s-sgs sgs-sge sge-scs_s scs_s-scs_w scs_s-bor scs_s-gt gt-gtn gt-scs_w scs_w-scs_m scs_m-scs_n scs_m-sab bor-sab scs_m-mnl_w mnl_w-scs_n scs_n-lz lz-pac scs_n-tw tw-ecs ecs-ys scs_n-hai_s scs_m-hai_s hai_s-tonk sge-kar kar-jav_w jav_w-jav_m jav_m-jav_e jav_w-sunda sunda-io_w io_w-io_e jav_e-lom_n lom_n-lombok lombok-io_e lom_n-flores flores-banda banda-arafura arafura-torres torres-coral coral-coral2 coral2-coral3 io_e-wa_n wa_n-wa_w mal_n-sl sl-lk_e sl-arab arab-oman oman-hormuz hormuz-gulf_m arab-aden aden-bab bab-red_s red_s-red_m io_w-sl';
-const PORTLINK={'Port Klang':['mal_c'],'Penang':['mal_c','mal_n'],'Melaka':['mal_s'],'Tanjung Pelepas':['sgs'],'Singapore':['sgs'],'Pasir Gudang':['sge'],'Pengerang':['sge'],'Eastern Anchorage':['sgs','sge'],'Western Anchorage':['sgs'],'Port limits':['sgs'],'Kuantan':['scs_s'],'Kemaman':['scs_s'],'Terengganu oil fields':['scs_s'],'Bintulu':['bor'],'Sarawak gas fields':['bor'],'Labuan':['sab'],'Sabah deepwater fields':['sab'],'Ho Chi Minh City':['scs_w'],'Vung Tau':['scs_w'],'Bangkok':['gtn'],'Map Ta Phut':['gtn'],'Haiphong':['tonk'],'Hong Kong':['scs_n'],'Shanghai':['ecs'],'Qingdao':['ys'],'Manila':['mnl_w'],'Kalimantan':['jav_m','jav_e'],'Fremantle':['wa_w'],'Port Hedland':['io_e'],'Brisbane':['coral3'],'Chennai':['lk_e'],'Jebel Ali':['hormuz'],'Ras Tanura':['gulf_m'],'Yanbu':['red_m'],'Houston':['pac']};
+  sl:[80.8,5.3],lk_e:[82.5,8.0],arab:[65,13],oman:[60.8,21.8],hormuz:[56.5,26.55],gulf_m:[52.5,26.6],aden:[50,13],bab:[43.35,12.55],red_s:[41.2,15.5],red_m:[38.8,20],ps:[130,27],jp_s:[134.5,32.3],jp_e:[139.8,34.3],kor_s:[129.2,34.3],kor_w:[125.5,36.5],ne_ng:[153,-8],bism:[148,-2],ps_s:[135,5]};
+const SEAEDGES='mal_n-mal_c mal_c-mal_s mal_s-sgs sgs-sge sge-scs_s scs_s-scs_w scs_s-bor scs_s-gt gt-gtn gt-scs_w scs_w-scs_m scs_m-scs_n scs_m-sab bor-sab scs_m-mnl_w mnl_w-scs_n scs_n-lz lz-pac scs_n-tw tw-ecs ecs-ys scs_n-hai_s scs_m-hai_s hai_s-tonk sge-kar kar-jav_w jav_w-jav_m jav_m-jav_e jav_w-sunda sunda-io_w io_w-io_e jav_e-lom_n lom_n-lombok lombok-io_e lom_n-flores flores-banda banda-arafura arafura-torres torres-coral coral-coral2 coral2-coral3 io_e-wa_n wa_n-wa_w mal_n-sl sl-lk_e sl-arab arab-oman oman-hormuz hormuz-gulf_m arab-aden aden-bab bab-red_s red_s-red_m io_w-sl lz-ps ps-jp_s jp_s-jp_e ps-ecs ecs-kor_s ys-kor_s ys-kor_w coral2-ne_ng ne_ng-bism bism-ps_s ps_s-ps ps_s-lz';
+const PORTLINK={'Port Klang':['mal_c'],'Penang':['mal_c','mal_n'],'Melaka':['mal_s'],'Tanjung Pelepas':['sgs'],'Singapore':['sgs'],'Pasir Gudang':['sge'],'Pengerang':['sge'],'Eastern Anchorage':['sgs','sge'],'Western Anchorage':['sgs'],'Port limits':['sgs'],'Kuantan':['scs_s'],'Kemaman':['scs_s'],'Terengganu oil fields':['scs_s'],'Bintulu':['bor'],'Sarawak gas fields':['bor'],'Labuan':['sab'],'Sabah deepwater fields':['sab'],'Ho Chi Minh City':['scs_w'],'Vung Tau':['scs_w'],'Bangkok':['gtn'],'Map Ta Phut':['gtn'],'Haiphong':['tonk'],'Hong Kong':['scs_n'],'Shanghai':['ecs'],'Qingdao':['ys'],'Manila':['mnl_w'],'Kalimantan':['jav_m','jav_e'],'Fremantle':['wa_w'],'Port Hedland':['io_e'],'Brisbane':['coral3'],'Chennai':['lk_e'],'Jebel Ali':['hormuz'],'Ras Tanura':['gulf_m'],'Yanbu':['red_m'],'Houston':['pac'],'Ningbo':['ecs'],'Ulsan':['kor_s'],'Incheon':['kor_w'],'Tokyo Bay':['jp_e'],'Dapeng':['scs_n'],'Ras Laffan':['gulf_m'],'Gladstone':['coral3','coral2'],'Darwin':['arafura']};
 const MAPREG={all:{n:'All Asia',b:[30,162,-36,41]},sea:{n:'Southeast Asia',b:[93,127,-10,23]},sg:{n:'Singapore Strait',b:[103.3,104.5,0.85,1.62]},me:{n:'Gulf & India',b:[34,92,2,32]},ea:{n:'East Asia',b:[104,143,14,41]},aus:{n:'Australia',b:[104,158,-36,-2]}};
 let GRAPH=null;const PATHC={};
 const ll=k=>PORTS[k]||WP[k];
@@ -1696,7 +1715,7 @@ function along(pts,t){
   if(!tot)return {p:pts[0],ang:0,i:0};let want=clamp(t,0,1)*tot;
   for(let i=0;i<seg.length;i++){if(want<=seg[i]||i===seg.length-1){const f=seg[i]?Math.min(1,want/seg[i]):0,a=pts[i],b=pts[i+1];return {p:[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f],ang:Math.atan2(-(b[1]-a[1]),b[0]-a[0])*180/Math.PI,i}}want-=seg[i]}
 }
-const HOMEPORT={container:'Port Klang',bulk:'Kuantan',tanker:'Singapore',bunker:'Eastern Anchorage',gas:'Pengerang',offshore:'Kemaman'};
+const HOMEPORT={container:'Port Klang',bulk:'Kuantan',tanker:'Singapore',bunker:'Eastern Anchorage',gas:'Pengerang',lng:'Bintulu',offshore:'Kemaman'};
 function shipPos(sh){
   const seg=segOf(sh.cls),port=sh.port&&PORTS[sh.port]?sh.port:HOMEPORT[seg];
   if(sh.status==='voyage'&&sh.c){
