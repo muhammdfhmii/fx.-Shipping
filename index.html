@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B2545">
+<meta name="theme-color" content="#0A0A0A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -61,16 +61,17 @@ button{cursor:pointer}
 .cashpill small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--hdr-muted)}
 .cashpill b{font-family:var(--f-num);font-size:16px}
 .cashpill b.neg{color:#FF9B90}
-.btn-end{background:#FFFFFF;color:#0B2545;border:0;border-radius:999px;padding:9px 16px;font-weight:700;white-space:nowrap}
+.btn-end{background:#FFFFFF;color:#000;border:0;border-radius:999px;padding:9px 16px;font-weight:700;white-space:nowrap}
 .btn-end:disabled{opacity:.5;cursor:default}
 .tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:0}
 .tabs::-webkit-scrollbar{display:none}
 .tab{background:none;border:0;color:var(--hdr-muted);padding:9px 12px 11px;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap}
-.tab[aria-selected="true"]{color:#FFFFFF;border-bottom-color:#7FB2FF}
+.tab[aria-selected="true"]{color:#FFFFFF;border-bottom-color:#FFFFFF}
 
 main{padding-block:18px 48px;display:grid;gap:16px}
-h2{font-family:var(--f-display);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:6px 0 -6px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+h2{font-family:var(--f-display);font-weight:700;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);margin:10px 0 -6px;display:flex;align-items:center;gap:10px}
+h2::after{content:"";flex:1;height:1px;background:var(--line)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}
 .muted{color:var(--muted)}
 .small{font-size:13px}
 
@@ -129,7 +130,7 @@ h2{font-family:var(--f-display);font-weight:700;font-size:13px;letter-spacing:.1
 .btn:disabled{opacity:.45;cursor:default}
 
 /* offers */
-.chip{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--soft);padding:3px 8px;border-radius:6px}
+.chip{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:transparent;border:1px solid var(--ink);padding:2px 7px;border-radius:3px}
 .route{font-family:var(--f-display);font-weight:700;font-size:18px;margin-top:8px;line-height:1.25}
 .money{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
 .money div{background:var(--bg);border-radius:10px;padding:8px 10px}
@@ -138,8 +139,8 @@ h2{font-family:var(--f-display);font-weight:700;font-size:13px;letter-spacing:.1
 @media (max-width:420px){.money{grid-template-columns:1fr 1fr}}
 .assign{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .assign select{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 10px}
-.help{background:var(--soft);border-radius:14px;padding:14px 16px;font-size:14px}
-.help b{color:var(--accent)}
+.help{background:var(--surface);border:1px dashed var(--coast);border-radius:8px;padding:14px 16px;font-size:14px}
+.help b{color:var(--ink)}
 
 /* manage */
 .seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px;margin-top:10px}
@@ -178,9 +179,9 @@ main>*{min-width:0}
 
 /* start */
 .start{padding-block:32px 48px;display:grid;gap:18px}
-.hero{background:var(--hdr);color:#FFFFFF;border-radius:18px;padding:26px 22px;position:relative;overflow:hidden}
+.hero{background:var(--hdr);color:#FFFFFF;border-radius:10px;padding:26px 22px;position:relative;overflow:hidden}
 .hero h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,7vw,40px);line-height:1.05;margin:0 0 10px;text-wrap:balance}
-.hero p{margin:0;color:#C3D4EC;max-width:52ch}
+.hero p{margin:0;color:#BDBDB8;max-width:52ch}
 .hero svg{position:absolute;right:-10px;bottom:-6px;width:220px;opacity:.18}
 label.field{display:grid;gap:6px;font-weight:600}
 label.field input{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:11px 12px;font-weight:500}
@@ -257,6 +258,24 @@ button.cert{cursor:pointer} button.cert:hover{outline:1px solid var(--bad)}
 input[type=range]{width:100%;margin:12px 0 4px;accent-color:var(--accent)}
 .range-ends{display:flex;justify-content:space-between;gap:8px}
 #designer{scroll-margin-top:120px}
+.mapcard{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+svg.map{display:block;width:100%;height:auto;max-height:68vh;background:var(--sea);touch-action:manipulation}
+.map .sea{fill:var(--sea)}.map .land{fill:var(--land);stroke:var(--coast);stroke-width:.8;stroke-linejoin:round}
+.map .grid line{stroke:var(--grid);stroke-width:1;vector-effect:non-scaling-stroke}
+.map .rt{fill:none;stroke:var(--muted);stroke-width:1.1;stroke-dasharray:3 4;opacity:.55}.map .rt.on{stroke:var(--ink);stroke-width:2;opacity:1;stroke-dasharray:none}
+.map .port circle{fill:var(--surface);stroke:var(--coast);stroke-width:1;vector-effect:non-scaling-stroke}.map .port text{fill:var(--muted);font-family:var(--f-body);font-weight:500;paint-order:stroke;stroke:var(--sea);stroke-width:calc(var(--hz)*1px);stroke-linejoin:round}
+.map .shipm{cursor:pointer}.map .sl{fill:var(--ink);font-family:var(--f-display);font-weight:700;paint-order:stroke;stroke:var(--sea);stroke-width:calc(var(--hz)*1px);stroke-linejoin:round}
+.map .m-sea{fill:var(--ink);stroke:var(--sea);stroke-width:1}.map .m-tc{fill:var(--ink);stroke:var(--sea);stroke-width:1.5}
+.map .m-idle{fill:var(--surface);stroke:var(--ink);stroke-width:2}.map .m-dock{fill:var(--surface);stroke:var(--ink);stroke-width:2}
+.map .ring{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-dasharray:2 2}
+.map .yardm path{fill:var(--surface);stroke:var(--ink);stroke-width:1.5;stroke-dasharray:2 1.5}.map .yardm text{fill:var(--muted);font-family:var(--f-body);font-style:italic;paint-order:stroke;stroke:var(--sea);stroke-width:calc(var(--hz)*1px)}
+.mlegend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.mk{display:inline-block;width:11px;height:11px;margin-right:6px;vertical-align:-1px;flex:none}
+.mk-sea{background:var(--ink);clip-path:polygon(0 0,100% 50%,0 100%,30% 50%)}.mk-tc{background:var(--ink);border-radius:50%}.mk-idle{border:2px solid var(--ink);border-radius:50%}.mk-dock{border:2px solid var(--ink)}.mk-yard{border:1.5px dashed var(--ink);transform:rotate(45deg) scale(.8)}
+.maplist{display:grid}
+.mrow{display:flex;align-items:center;gap:10px;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:11px 2px}
+.mrow:first-child{border-top:0}.mrow.on{background:var(--soft);margin:0 -8px;padding-inline:10px;border-radius:6px}
+.mrow .mn{flex:1;min-width:0;display:grid}.mrow .mn small{color:var(--muted);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .warnbox{margin-top:12px;background:var(--bad-soft);color:var(--bad);border-radius:10px;padding:10px 12px;font-size:13.5px;font-weight:600}
 </style>
 </head>
@@ -400,8 +419,8 @@ const FLAGS={
 const STAGES=[['Contract signed',0,0.2],['Steel cutting',0.25,0.1],['Keel laying',0.5,0.1],['Launching',0.8,0.1],['Delivery',1,0.5]];
 const NOSPEC={k:1,fm:1,em:1,om:1,pm:1,vm:1,saf:0,dm:1,bd:1,eq:[],eng:'conv',loa:null,flag:null,yard:null};
 
-let drafts={};let st=null,tab='overview',confirmKey=null,startPlan='a',showPool=null,fleetTab='all',renaming=null,nameMsg=null,spTab='all',spMode='buy',design=null;
-const TABS=[['overview','Overview'],['fleet','Fleet'],['contracts','Contracts'],['depts','Departments'],['hr','HR & Office'],['crewing','Crewing'],['safety','Safety'],['payroll','Crew Pay'],['sp','Buy & Sell'],['finance','Finance'],['company','Company']];
+let drafts={};let st=null,tab='overview',confirmKey=null,startPlan='a',showPool=null,fleetTab='all',renaming=null,nameMsg=null,spTab='all',spMode='buy',design=null,mapReg='all',mapSel=null,mapFocus=null;
+const TABS=[['overview','Overview'],['fleet','Fleet'],['map','Map'],['contracts','Contracts'],['depts','Departments'],['hr','HR & Office'],['crewing','Crewing'],['safety','Safety'],['payroll','Crew Pay'],['sp','Buy & Sell'],['finance','Finance'],['company','Company']];
 const OPS=['chartering','crewing','marine','technical','finance'];
 const DNAME={chartering:'Chartering',crewing:'Crewing',marine:'Marine',technical:'Technical',finance:'Finance',hr:'HR & Admin'};
 const rnd=(a,b)=>a+Math.random()*(b-a);
@@ -1046,7 +1065,7 @@ function endMonth(){
         if(isTank(sh.cls)&&av('tank'))S('allow',cc.heads*av('tank'));
         if(c.seg==='bulk'&&av('hold'))S('allow',cc.heads*av('hold'))}
       else note(sh.name+' finished its time charter with '+k.who+'.','good');
-      s.rep+=1.5;sh.status='idle';sh.c=null;
+      sh.port=k.type==='VC'?k.to:k.from;s.rep+=1.5;sh.status='idle';sh.c=null;
     }
   });
   s.ships.forEach(sh=>{sh.lastNet=(sh._r||0)-(sh._c||0);sh.totR+=sh._r||0;sh.totC+=sh._c||0;delete sh._r;delete sh._c});
@@ -1122,7 +1141,7 @@ function act(a,v){
     const sh=shipById(+v);if(!sh||sh.status!=='idle')return;const p=bidFor(sh);capIn(p);spend('commission',p*0.01);filled(sh).forEach(r=>sendHome(sh.crew[r]));st.ships=st.ships.filter(x=>x!==sh);addLog(sh.name+' sold for '+fm(p)+'.','')}
   if(a==='scrap'){const key='scrap'+v;if(confirmKey!==key){confirmKey=key;render();return}
     const sh=shipById(+v);if(!sh||sh.status!=='idle')return;const p=scrapVal(sh);capIn(p);filled(sh).forEach(r=>sendHome(sh.crew[r]));st.ships=st.ships.filter(x=>x!==sh);addLog(sh.name+' sold for demolition at '+fm(p)+'.','')}
-  if(a==='buy'){const m=st.market.find(x=>x.id===+v);if(!m||st.cash<m.price*1.01)return;const cn=checkName(inputVal('nm-m'+m.id));if(!cn.ok){nameMsg={k:'m'+m.id,t:cn.e};render();return}nameMsg=null;delete drafts['nm-m'+m.id];capOut(m.price);spend('commission',m.price*0.01);const sh=newShip(m.cls,m.age,false,cn.n);sh.spec=m.spec||null;sh.cond=m.cond;sh.status='delivery';sh.left=1;st.ships.push(sh);st.market=st.market.filter(x=>x!==m);addLog('Bought '+sh.name+' ('+CLS[m.cls].nama+') for '+fm(m.price)+'. Crewing will man it on delivery.','good')}
+  if(a==='buy'){const m=st.market.find(x=>x.id===+v);if(!m||st.cash<m.price*1.01)return;const cn=checkName(inputVal('nm-m'+m.id));if(!cn.ok){nameMsg={k:'m'+m.id,t:cn.e};render();return}nameMsg=null;delete drafts['nm-m'+m.id];capOut(m.price);spend('commission',m.price*0.01);const sh=newShip(m.cls,m.age,false,cn.n);sh.spec=m.spec||null;sh.port='Singapore';sh.cond=m.cond;sh.status='delivery';sh.left=1;st.ships.push(sh);st.market=st.market.filter(x=>x!==m);addLog('Bought '+sh.name+' ('+CLS[m.cls].nama+') for '+fm(m.price)+'. Crewing will man it on delivery.','good')}
   if(a==='sptab'){spTab=v;design=null;nameMsg=null;render();return}
   if(a==='spmode'){spMode=v;nameMsg=null;render();return}
   if(a==='gosell'){const sh=shipById(+v);tab='sp';spMode='sell';spTab=sh?segOf(sh.cls):'all';design=null;render();window.scrollTo(0,0);return}
@@ -1139,6 +1158,9 @@ function act(a,v){
   if(a==='renameCancel'){renaming=null;nameMsg=null;render();return}
   if(a==='rename'){const sh=shipById(+v);if(!sh)return;const raw=inputVal('rn-'+v);if(raw.trim().toLowerCase()===sh.name.toLowerCase()){renaming=null;render();return}const cn=checkName(raw);if(!cn.ok||!cn.n){nameMsg={k:'r'+v,t:cn.e||'Type a name first.'};render();return}const old=sh.name;sh.name=cn.n;st.used.push(cn.n);renaming=null;nameMsg=null;addLog(old+' renamed '+cn.n+'. Flag registry fee RM 15k.','');spend('port',15000)}
   if(a==='ftab'){fleetTab=v;render();return}
+  if(a==='mapreg'){mapReg=v;mapFocus=null;render();return}
+  if(a==='mapsel'){mapSel=+v;const sh=shipById(+v);if(sh){const p=shipPos(sh).ll,b=regBox();if(mapFocus&&mapFocus!==+v||p[0]<b[0]||p[0]>b[1]||p[1]<b[2]||p[1]>b[3])mapFocus=+v}render();if(tab==='map')document.querySelector('.mapcard')?.scrollIntoView({block:'start',behavior:'smooth'});return}
+  if(a==='mapfocus'){mapFocus=mapFocus===+v?null:+v;mapSel=+v;render();return}
   if(a==='budget'){const [d,l]=v.split(':');st.budget[d]=+l}
   if(a==='opay')st.opay=+v;
   if(a==='oben'){const [k,l]=v.split(':');st.oben[k]=+l}
@@ -1607,6 +1629,125 @@ function vCompany(){
   <div><button type="button" class="btn ${confirmKey==='reset'?'danger':''}" data-a="reset">${confirmKey==='reset'?'Tap again to start over':'Start a new game'}</button></div>`;
 }
 
+/* ---------- fleet map ---------- */
+const MK=10,MLON0=30,MLAT0=41;
+const mx=lon=>(lon-MLON0)*MK,my=lat=>(MLAT0-lat)*MK;
+const LAND=[
+ // Africa + Middle East + South & East Asia mainland
+ [[30,41],[30,36.8],[36,36.6],[35.9,35.4],[35.5,34],[34.9,32.8],[34.4,31.5],[32.3,31.3],[30,31.0],[30,-31.2],[32.6,-26],[35.5,-24],[35.3,-21],[34.8,-19.8],[37,-17.5],[40.5,-15],[40.5,-11],[39.3,-7],[39.7,-4],[41.5,-1.5],[44,1.5],[47.5,5],[49.5,8],[51.2,11.8],[49,11.2],[45,10.4],[43.3,11.6],[43.2,12.4],[41.5,14.5],[39.5,15.6],[38.5,18],[37.3,21],[36.9,22.5],[35.6,23.9],[34.5,26],[33.6,27.5],[32.6,29.9],[34.6,28.0],[35,29.5],[35.2,28],[36.6,25.7],[38.1,24.1],[39.1,21.5],[40.5,19],[42.5,16.4],[42.8,14.5],[43.6,12.75],[45,12.8],[48.5,14],[52,15.6],[55,17],[56.8,18.7],[58.5,20.4],[59.8,22.5],[58.6,23.6],[57,24],[56.4,25.2],[56.35,26.35],[56,25.7],[55.1,25.0],[54.4,24.4],[52,24],[51.6,24.6],[51.2,26.1],[50.8,24.9],[50.2,25.9],[50.2,26.6],[49.6,27.2],[48.4,28.5],[48,29.9],[48.8,30],[50.3,30],[51.5,27.9],[54.5,26.6],[56.3,27.1],[57.3,25.8],[61.5,25.1],[66.5,25.4],[67,24.8],[68.5,23.6],[70,22.9],[72.6,21.5],[72.8,19],[73.5,16],[74.8,12.9],[76.2,9.9],[77.5,8.1],[78.2,9],[79.8,10.3],[80.3,13.1],[80.2,15.6],[82.3,16.6],[84.9,19.3],[86.9,21.4],[88.5,21.8],[90.5,22.4],[91.8,22.3],[92.3,20.7],[94.2,18.5],[94.4,16],[95.5,15.8],[97.6,16.5],[97.8,14],[98.6,10],[98.3,8.2],[99.6,6.5],[100.3,5.4],[100.6,4],[101.3,3],[102.2,2.2],[103.4,1.45],[103.55,1.38],[103.63,1.45],[103.75,1.47],[103.9,1.46],[104.1,1.47],[104.27,1.37],[104.25,1.6],[103.9,2.4],[103.5,3.0],[103.4,4.2],[103.1,5.3],[102.3,6.2],[101.5,6.9],[100.6,7.2],[99.9,9.2],[99.2,10.5],[99.6,12.7],[100.1,13.4],[100.6,13.5],[100.9,12.7],[101.15,12.65],[102.3,12.2],[103,11],[104.5,10.4],[104.8,8.6],[106.4,9.5],[107.1,10.3],[108.9,11.3],[109.4,12.8],[108.8,15.4],[107.6,16.6],[106.5,18.0],[105.7,19.0],[106.6,20.5],[106.75,20.85],[108,21.5],[109.6,21.6],[110,20.3],[110.5,21.2],[112,21.8],[113.8,22.4],[114.3,22.5],[116.5,22.9],[117.9,24.4],[119.5,25.5],[119.7,26.6],[120.9,28],[121.9,29.9],[121.9,30.9],[120.9,32.5],[120.3,34.4],[119.5,35.2],[120.4,36.0],[121,36.6],[122.5,37.4],[121,37.8],[119,37.2],[118,38.4],[117.7,39],[119.8,39.9],[121.6,40.9],[122.3,40.4],[121.2,38.8],[123.5,39.8],[124.4,40],[125.2,39.5],[125.1,38],[126.6,37.5],[126.3,36],[126.4,34.5],[127.5,34.6],[129.0,35.1],[129.4,35.5],[129.6,36.5],[128.6,38.2],[129.7,41]],
+ [[129.7,33.2],[130.2,31.3],[131.1,31.4],[131.9,33.2],[131,33.9],[130,33.6]],
+ [[132.3,33.0],[133,32.8],[134.6,33.8],[134.2,34.3],[132.9,34.0],[132.4,33.5]],
+ [[130.9,34.0],[132,34.3],[133.5,34.5],[135.2,34.6],[135.1,33.6],[136,33.5],[136.9,34.3],[138.8,34.6],[139.8,35],[140.8,35.7],[140.6,36.9],[141,38.3],[141.9,39.4],[141.5,40.5],[141.3,41],[140.0,41],[140,40],[139.7,38.9],[138.5,37.4],[136.8,37.3],[136,35.7],[133,35.6],[131.5,34.6]],
+ [[120.1,23],[120.7,22],[121.0,22.6],[121.9,25],[121.5,25.3],[120.2,23.9]],
+ [[108.6,19.2],[109.5,18.2],[110.5,18.7],[111,19.7],[110.3,20.1],[109.2,19.9]],
+ [[120.6,18.5],[122.2,18.5],[122.0,16.3],[121.6,15.6],[121.9,14.2],[124,13.8],[124.1,12.6],[123.3,13],[122.6,13.3],[121.7,13.9],[120.6,13.8],[120.9,14.3],[120.95,14.6],[120.55,14.8],[120.0,14.8],[119.8,16.2],[120.3,16.6]],
+ [[121.9,7],[122.2,6.9],[123.5,7.8],[124.2,6.2],[125.4,5.6],[126.6,7.3],[126.2,9.2],[125.4,9.8],[124.1,8.2],[123.0,8.6],[122.1,7.9]],
+ [[123.0,10.5],[124.4,10.0],[125.7,11.0],[125.2,12.6],[124.0,12.5],[123.0,11.7],[122.0,11.8],[121.9,10.5],[122.6,9.4],[123.2,9.4]],
+ [[117.2,8.4],[117.9,8.5],[119.5,10.4],[119.8,11.4],[119.4,11.2],[118.0,9.8]],
+ [[109.0,1.5],[109.7,2.0],[111.4,2.4],[113,3.2],[114,4.6],[115.2,5.0],[115.6,5.6],[116.8,7.0],[117.7,6.4],[119.2,5.2],[118.2,4.4],[117.6,3.6],[118.0,1.0],[117.5,0.0],[117.2,-1.2],[116.4,-2.6],[116.0,-3.9],[114.6,-3.6],[113,-3.2],[111.7,-3.0],[110.2,-2.9],[110.0,-1.4],[109.0,0.0]],
+ [[95.3,5.6],[97.5,5.2],[98.7,3.7],[100.3,2.0],[101.4,1.7],[103.4,0.8],[103.7,-0.9],[104.4,-1.8],[106.0,-3.0],[105.9,-5.8],[104.6,-5.9],[102.3,-4.0],[101,-2.5],[100.3,-0.9],[99,1.3],[97.7,2.3],[96.3,4.2],[95.2,5.2]],
+ [[105.2,-6.8],[106.1,-6.0],[108.3,-6.2],[110.4,-6.9],[112.6,-6.9],[114.4,-7.7],[114.4,-8.6],[112,-8.3],[110,-8.1],[106.5,-7.4]],
+ [[115.0,-8.1],[115.7,-8.4],[115.2,-8.8]],
+ [[115.9,-8.4],[119,-8.3],[122.8,-8.4],[123.0,-8.8],[119,-8.9],[116.0,-8.9]],
+ [[123.5,-10.3],[125.2,-9.2],[127.3,-8.4],[126.0,-9.0],[124.4,-10.2]],
+ [[118.8,-3.0],[119.5,0.0],[120.5,0.5],[123,0.9],[125.2,1.6],[124.3,0.4],[121.0,-0.8],[123.3,-0.9],[122.8,-4.5],[121.5,-4.5],[121.0,-2.8],[120.4,-2.8],[120.4,-5.5],[119.4,-5.4]],
+ [[128,-3],[130.8,-3.4],[130,-3.9],[128.2,-3.6]],
+ [[127.9,1.9],[128.7,1.2],[128.2,0.3],[128.6,-0.6],[127.8,-0.6],[127.4,1.0]],
+ [[131,-1.3],[134.2,-0.9],[137,-1.6],[141,-2.6],[145.8,-5],[147.5,-6.5],[150.0,-10.4],[147,-10.1],[144.5,-7.6],[142.5,-9.2],[141,-9.1],[138.8,-8.3],[137.6,-5.1],[134.5,-4],[132.1,-2.9]],
+ [[113.4,-22],[114.2,-21.8],[116.7,-20.6],[118.6,-20.3],[121.2,-19.5],[122.2,-17],[123.5,-16.4],[125.2,-14.5],[126.9,-13.7],[128.2,-15],[129.7,-14.8],[130.2,-12.9],[131,-12.2],[132.6,-11.5],[135.8,-12.2],[136.8,-12.2],[136.0,-13.5],[135.4,-15],[136.7,-15.9],[139.2,-17.3],[140.8,-17.4],[141.6,-15],[141.5,-12.6],[142.5,-10.7],[143.5,-12.5],[143.8,-14.2],[145.3,-14.9],[145.5,-16.9],[146.3,-19],[148.8,-20.4],[150.8,-22.6],[152.9,-25.3],[153.2,-27.4],[153.6,-28.6],[153.0,-31.5],[151.3,-33.9],[150.2,-36],[137.6,-36],[136.0,-35.0],[135.5,-34.8],[134.2,-32.8],[131.2,-31.5],[126,-32.3],[123.5,-33.9],[119.9,-34],[117.9,-35.1],[115.0,-34.3],[115.7,-33.3],[115.75,-32.05],[115.0,-29.5],[114.0,-26.5],[113.6,-24.5]],
+ [[79.9,6.0],[80.6,5.9],[81.9,7.4],[81.3,8.6],[80.2,9.8],[79.8,8.0]],
+ [[49.3,-12],[50.5,-15.5],[49.5,-17.5],[47.1,-25],[45,-25.5],[43.7,-22.5],[44.3,-20],[44,-17],[46.5,-15.7],[48,-13.5]],
+ [[103.62,1.32],[103.7,1.42],[103.88,1.43],[104.03,1.40],[104.0,1.32],[103.85,1.27],[103.75,1.26],[103.65,1.28]],
+ [[103.9,1.05],[104.1,1.18],[104.15,1.0],[103.95,0.95]],
+ [[104.3,1.15],[104.65,1.1],[104.6,0.85],[104.35,0.85]],
+ [[103.3,0.95],[103.5,1.1],[103.6,0.9],[103.4,0.75]]
+];
+let LANDPATH=null;
+const landPath=()=>LANDPATH||(LANDPATH=LAND.map(p=>'M'+p.map(([a,b])=>mx(a).toFixed(1)+' '+my(b).toFixed(1)).join('L')+'Z').join(''));
+const PORTS={'Port Klang':[101.35,3.0],'Penang':[100.35,5.42],'Melaka':[102.25,2.18],'Tanjung Pelepas':[103.55,1.36],'Singapore':[103.83,1.26],'Pasir Gudang':[103.92,1.44],'Pengerang':[104.13,1.37],'Eastern Anchorage':[103.93,1.235],'Western Anchorage':[103.72,1.215],'Port limits':[103.5,1.3],
+  'Kuantan':[103.35,3.85],'Kemaman':[103.45,4.25],'Terengganu oil fields':[105.0,5.5],'Bintulu':[113.05,3.25],'Sarawak gas fields':[112.5,4.6],'Labuan':[115.2,5.3],'Sabah deepwater fields':[114.5,7.0],
+  'Ho Chi Minh City':[106.9,10.45],'Vung Tau':[107.08,10.33],'Bangkok':[100.6,13.4],'Map Ta Phut':[101.15,12.65],'Haiphong':[106.75,20.8],'Hong Kong':[114.2,22.25],'Shanghai':[122.05,30.6],'Qingdao':[120.4,36.0],'Manila':[120.6,14.45],
+  'Kalimantan':[114.6,-3.4],'Fremantle':[115.75,-32.05],'Port Hedland':[118.6,-20.3],'Brisbane':[153.2,-27.4],'Chennai':[80.3,13.1],'Jebel Ali':[55.05,25.0],'Ras Tanura':[50.17,26.65],'Yanbu':[38.1,24.1],'Houston':[161,19]};
+const YARDLOC={cn:[121.4,31.4],kr:[129.38,35.5],jp:[129.85,32.75],my:[111.85,2.3]};
+const DOCKLOC=[103.82,1.45];
+const WP={mal_n:[97,6.2],mal_c:[100.6,3.0],mal_s:[102.6,1.6],sgs:[103.8,1.17],sge:[104.5,1.28],scs_s:[105.5,3],scs_w:[107,7],scs_m:[111.5,11],scs_n:[114.5,18.5],lz:[121.2,20.8],pac:[161,19],tw:[119.6,24.2],ecs:[123,29.5],ys:[123.5,34.5],gt:[102.3,8.5],gtn:[100.6,12.0],tonk:[107.2,19],hai_s:[109,17.2],bor:[113,5.5],sab:[114.6,6.3],mnl_w:[119.6,14.4],
+  kar:[107.2,-1.0],jav_w:[107,-5.0],jav_m:[110.5,-5.3],jav_e:[114.5,-6.3],sunda:[105.6,-6.25],io_w:[104,-9.5],lom_n:[115.85,-8.0],lombok:[115.8,-8.6],io_e:[115,-13],flores:[120,-7.3],banda:[127,-6.5],arafura:[134,-9.6],torres:[142,-10.0],coral:[145,-11.5],coral2:[151,-18],coral3:[154.5,-24.5],wa_n:[112.5,-21],wa_w:[113,-29],
+  sl:[80.8,5.3],lk_e:[82.5,8.0],arab:[65,13],oman:[60.8,21.8],hormuz:[56.5,26.55],gulf_m:[52.5,26.6],aden:[50,13],bab:[43.35,12.55],red_s:[41.2,15.5],red_m:[38.8,20]};
+const SEAEDGES='mal_n-mal_c mal_c-mal_s mal_s-sgs sgs-sge sge-scs_s scs_s-scs_w scs_s-bor scs_s-gt gt-gtn gt-scs_w scs_w-scs_m scs_m-scs_n scs_m-sab bor-sab scs_m-mnl_w mnl_w-scs_n scs_n-lz lz-pac scs_n-tw tw-ecs ecs-ys scs_n-hai_s scs_m-hai_s hai_s-tonk sge-kar kar-jav_w jav_w-jav_m jav_m-jav_e jav_w-sunda sunda-io_w io_w-io_e jav_e-lom_n lom_n-lombok lombok-io_e lom_n-flores flores-banda banda-arafura arafura-torres torres-coral coral-coral2 coral2-coral3 io_e-wa_n wa_n-wa_w mal_n-sl sl-lk_e sl-arab arab-oman oman-hormuz hormuz-gulf_m arab-aden aden-bab bab-red_s red_s-red_m io_w-sl';
+const PORTLINK={'Port Klang':['mal_c'],'Penang':['mal_c','mal_n'],'Melaka':['mal_s'],'Tanjung Pelepas':['sgs'],'Singapore':['sgs'],'Pasir Gudang':['sge'],'Pengerang':['sge'],'Eastern Anchorage':['sgs','sge'],'Western Anchorage':['sgs'],'Port limits':['sgs'],'Kuantan':['scs_s'],'Kemaman':['scs_s'],'Terengganu oil fields':['scs_s'],'Bintulu':['bor'],'Sarawak gas fields':['bor'],'Labuan':['sab'],'Sabah deepwater fields':['sab'],'Ho Chi Minh City':['scs_w'],'Vung Tau':['scs_w'],'Bangkok':['gtn'],'Map Ta Phut':['gtn'],'Haiphong':['tonk'],'Hong Kong':['scs_n'],'Shanghai':['ecs'],'Qingdao':['ys'],'Manila':['mnl_w'],'Kalimantan':['jav_m','jav_e'],'Fremantle':['wa_w'],'Port Hedland':['io_e'],'Brisbane':['coral3'],'Chennai':['lk_e'],'Jebel Ali':['hormuz'],'Ras Tanura':['gulf_m'],'Yanbu':['red_m'],'Houston':['pac']};
+const MAPREG={all:{n:'All Asia',b:[30,162,-36,41]},sea:{n:'Southeast Asia',b:[93,127,-10,23]},sg:{n:'Singapore Strait',b:[103.3,104.5,0.85,1.62]},me:{n:'Gulf & India',b:[34,92,2,32]},ea:{n:'East Asia',b:[104,143,14,41]},aus:{n:'Australia',b:[104,158,-36,-2]}};
+let GRAPH=null;const PATHC={};
+const ll=k=>PORTS[k]||WP[k];
+const dist=(a,b)=>{const p=ll(a),q=ll(b),c=Math.cos((p[1]+q[1])/2*Math.PI/180);return Math.hypot((p[0]-q[0])*c,p[1]-q[1])};
+function graph(){if(GRAPH)return GRAPH;const g={};const add=(a,b)=>{(g[a]=g[a]||[]).push(b);(g[b]=g[b]||[]).push(a)};
+  SEAEDGES.split(' ').forEach(e=>{const [a,b]=e.split('-');add(a,b)});Object.entries(PORTLINK).forEach(([p,ws])=>ws.forEach(w=>add(p,w)));return GRAPH=g}
+function seaPath(a,b){
+  const key=a+'>'+b;if(PATHC[key])return PATHC[key];if(!PORTS[a]||!PORTS[b])return null;if(a===b)return [PORTS[a]];
+  const g=graph(),D={},prev={},Q=new Set(Object.keys(g));Object.keys(g).forEach(k=>D[k]=Infinity);D[a]=0;
+  while(Q.size){let u=null;Q.forEach(k=>{if(u===null||D[k]<D[u])u=k});if(D[u]===Infinity||u===b)break;Q.delete(u);(g[u]||[]).forEach(v=>{if(!Q.has(v))return;const d=D[u]+dist(u,v);if(d<D[v]){D[v]=d;prev[v]=u}})}
+  if(D[b]===Infinity)return PATHC[key]=[PORTS[a],PORTS[b]];
+  const out=[];let c=b;while(c){out.unshift(ll(c));c=prev[c]}return PATHC[key]=out;
+}
+function along(pts,t){
+  const seg=[];let tot=0;for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);seg.push(d);tot+=d}
+  if(!tot)return {p:pts[0],ang:0,i:0};let want=clamp(t,0,1)*tot;
+  for(let i=0;i<seg.length;i++){if(want<=seg[i]||i===seg.length-1){const f=seg[i]?Math.min(1,want/seg[i]):0,a=pts[i],b=pts[i+1];return {p:[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f],ang:Math.atan2(-(b[1]-a[1]),b[0]-a[0])*180/Math.PI,i}}want-=seg[i]}
+}
+const HOMEPORT={container:'Port Klang',bulk:'Kuantan',tanker:'Singapore',bunker:'Eastern Anchorage',gas:'Pengerang',offshore:'Kemaman'};
+function shipPos(sh){
+  const seg=segOf(sh.cls),port=sh.port&&PORTS[sh.port]?sh.port:HOMEPORT[seg];
+  if(sh.status==='voyage'&&sh.c){
+    const k=sh.c;
+    if(k.type==='VC'&&PORTS[k.from]&&PORTS[k.to]){const pts=seaPath(k.from,k.to),t=clamp((k.months-sh.left+0.5)/k.months,0.03,0.97),a=along(pts,t);return {ll:a.p,ang:a.ang,route:pts,t,kind:'sea',where:'At sea, '+k.from+' to '+k.to,stat:'Voyage charter · '+Math.round(t*100)+'% of the way'}}
+    const at=seg==='offshore'&&k.to&&PORTS[k.to]?k.to:(PORTS[k.from]?k.from:port);
+    return {ll:PORTS[at],ang:0,kind:'tc',where:seg==='offshore'?'Working at '+at:'Trading out of '+at,stat:'Time charter with '+k.who+' · '+sh.left+' mo left'};
+  }
+  if(sh.status==='dock')return {ll:DOCKLOC,kind:'dock',where:'Dry dock, Singapore shipyard',stat:(sh.emDock?'Emergency repairs':'Special survey')+' · '+sh.left+' mo left'};
+  if(sh.status==='delivery')return {ll:PORTS.Singapore,kind:'idle',where:'Delivery at Singapore',stat:'Joining the fleet this month'};
+  return {ll:PORTS[port],kind:'idle',where:(manned(sh)?'Waiting at ':'Undermanned at ')+port,stat:canTrade(sh)?'Idle, ready for a charter':'Idle, cannot trade yet'};
+}
+function regBox(){
+  if(mapFocus){const s=shipById(mapFocus);if(s){const p=shipPos(s).ll,inSg=p[0]>103.3&&p[0]<104.5&&p[1]>0.85&&p[1]<1.62,w=inSg?1.2:18,h=inSg?0.77:11;return [p[0]-w/2,p[0]+w/2,p[1]-h/2,p[1]+h/2]}}
+  return MAPREG[mapReg].b;
+}
+function vMap(){
+  const b=regBox(),x0=mx(b[0]),y0=my(b[3]),W=mx(b[1])-x0,H=my(b[2])-y0,z=W/620;
+  const items=st.ships.map(sh=>({sh,...shipPos(sh)}));
+  const groups={};items.forEach(it=>{const k=it.ll.join(',');(groups[k]=groups[k]||[]).push(it)});
+  Object.values(groups).forEach(g=>{if(g.length<2)return;g.forEach((it,i)=>{const a=i/g.length*Math.PI*2;it.off=[Math.cos(a)*7*z,Math.sin(a)*7*z]})});
+  const sel=mapSel&&items.find(i=>i.sh.id===mapSel);
+  let grid='';for(let lo=40;lo<=160;lo+=10)grid+=`<line x1="${mx(lo)}" x2="${mx(lo)}" y1="0" y2="${my(-36)}"/>`;for(let la=-30;la<=40;la+=10)grid+=`<line x1="0" x2="${mx(162)}" y1="${my(la)}" y2="${my(la)}"/>`;
+  const routes=items.filter(i=>i.route).map(i=>{const pts=i.route.map(([a,c])=>mx(a).toFixed(1)+','+my(c).toFixed(1)).join(' '),on=sel&&sel.sh.id===i.sh.id;
+    return `<polyline points="${pts}" class="rt${on?' on':''}" vector-effect="non-scaling-stroke"/>`}).join('');
+  const usedPorts=new Set();items.forEach(i=>{if(i.sh.c){usedPorts.add(i.sh.c.from);if(i.sh.c.to)usedPorts.add(i.sh.c.to)}if(i.sh.port)usedPorts.add(i.sh.port)});
+  const showAllPorts=mapReg!=='all'||mapFocus;
+  const ports=Object.entries(PORTS).filter(([n,p])=>p[0]>=b[0]&&p[0]<=b[1]&&p[1]>=b[2]&&p[1]<=b[3]&&(showAllPorts||usedPorts.has(n))).map(([n,p])=>`<g class="port"><circle cx="${mx(p[0])}" cy="${my(p[1])}" r="${2.2*z}"/><text x="${mx(p[0])+4*z}" y="${my(p[1])-4*z}" font-size="${9.5*z}">${esc(n)}</text></g>`).join('');
+  const yards=st.orders.map((o,i)=>{const l=YARDLOC[o.yardKey||'cn'],x=mx(l[0])+i*5*z,y=my(l[1]),s=5*z;return `<g class="yardm"><path d="M${x} ${y-s}L${x+s} ${y}L${x} ${y+s}L${x-s} ${y}Z" vector-effect="non-scaling-stroke"/>${showAllPorts?`<text x="${x+7*z}" y="${y+3*z}" font-size="${9.5*z}">${esc(o.name||'Newbuilding')}</text>`:''}</g>`}).join('');
+  const marks=items.map(it=>{const x=mx(it.ll[0])+(it.off?it.off[0]:0),y=my(it.ll[1])+(it.off?it.off[1]:0),s=6*z,on=sel&&sel.sh.id===it.sh.id;
+    let shape;if(it.kind==='sea')shape=`<path d="M${s*1.3} 0L${-s} ${-s*0.75}L${-s*0.5} 0L${-s} ${s*0.75}Z" transform="translate(${x} ${y}) rotate(${-it.ang})" class="m-sea" vector-effect="non-scaling-stroke"/>`;
+    else if(it.kind==='dock')shape=`<rect x="${x-s*0.8}" y="${y-s*0.8}" width="${s*1.6}" height="${s*1.6}" class="m-dock" vector-effect="non-scaling-stroke"/>`;
+    else if(it.kind==='tc')shape=`<circle cx="${x}" cy="${y}" r="${s*0.85}" class="m-tc" vector-effect="non-scaling-stroke"/>`;
+    else shape=`<circle cx="${x}" cy="${y}" r="${s*0.8}" class="m-idle" vector-effect="non-scaling-stroke"/>`;
+    const lbl=on||showAllPorts;
+    return `<g class="shipm${on?' on':''}" data-a="mapsel" data-v="${it.sh.id}" role="button" aria-label="${esc(it.sh.name)}">${on?`<circle cx="${x}" cy="${y}" r="${s*2}" class="ring" vector-effect="non-scaling-stroke"/>`:''}<circle cx="${x}" cy="${y}" r="${s*2.2}" fill="transparent"/>${shape}${lbl?`<text x="${x+s*1.6}" y="${y+s*0.4}" font-size="${10.5*z}" class="sl">${esc(it.sh.name)}</text>`:''}</g>`}).join('');
+  const regs=Object.entries(MAPREG).map(([k,r])=>`<button type="button" data-a="mapreg" data-v="${k}" aria-pressed="${!mapFocus&&mapReg===k}">${r.n}</button>`).join('');
+  const atSea=items.filter(i=>i.kind==='sea').length,tc=items.filter(i=>i.kind==='tc').length,idle=items.filter(i=>i.kind==='idle').length,dock=items.filter(i=>i.kind==='dock').length;
+  const card=sel?`<section class="card"><div class="ship-head"><div style="min-width:0"><div class="ship-name">${esc(sel.sh.name)}</div><div class="facts"><span>${CLS[sel.sh.cls].nama}</span><span>Condition <b>${Math.round(sel.sh.cond)}%</b></span><span>Officers <b>${filled(sel.sh).length}/4</b></span></div></div>${statusPill(sel.sh)}</div>
+      <div class="voyage"><b>${esc(sel.where)}</b><br><span class="muted">${esc(sel.stat)}</span>${sel.sh.c&&sel.sh.c.type==='VC'?`<br><span class="muted">${esc(sel.sh.c.cargo)} for ${esc(sel.sh.c.who)}. Arrives ${mlabel(st.m+sel.sh.left)}, freight ${fm(sel.sh.c.rev)}.</span>`:''}</div>
+      ${sel.t!=null?`<div class="bar"><i style="width:${Math.round(sel.t*100)}%"></i></div>`:''}
+      <div class="actions"><button type="button" class="btn" data-a="mapfocus" data-v="${sel.sh.id}">${mapFocus===sel.sh.id?'Zoom out':'Zoom to ship'}</button><button type="button" class="btn" data-a="tab" data-v="fleet">Open in Fleet</button></div></section>`
+    :`<section class="help">Tap a ship on the map to see where it is going.</section>`;
+  const list=st.ships.length?`<section class="card"><div class="maplist">${items.map(it=>`<button type="button" class="mrow${sel&&sel.sh.id===it.sh.id?' on':''}" data-a="mapsel" data-v="${it.sh.id}"><span class="mk mk-${it.kind}"></span><span class="mn"><b>${esc(it.sh.name)}</b><small>${esc(it.where)}</small></span><span class="muted small">${SEG[segOf(it.sh.cls)]}</span></button>`).join('')}</div></section>`:'<section class="help">You have no ships yet.</section>';
+  return `<nav class="subtabs" aria-label="Map area">${regs}</nav>
+  <section class="mapcard"><svg class="map" viewBox="${x0.toFixed(1)} ${y0.toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}" style="--hz:${(3*z).toFixed(3)}" role="img" aria-label="Map of your fleet">
+    <rect x="${x0}" y="${y0}" width="${W}" height="${H}" class="sea"/><g class="grid" vector-effect="non-scaling-stroke">${grid}</g>
+    <path d="${landPath()}" class="land" vector-effect="non-scaling-stroke"/>${routes}${ports}${yards}${marks}</svg>
+    <div class="mlegend"><span><i class="mk mk-sea"></i>At sea ${atSea}</span><span><i class="mk mk-tc"></i>On charter ${tc}</span><span><i class="mk mk-idle"></i>In port ${idle}</span><span><i class="mk mk-dock"></i>Dry dock ${dock}</span>${st.orders.length?`<span><i class="mk mk-yard"></i>Being built ${st.orders.length}</span>`:''}</div></section>
+  ${card}
+  <h2>Where every ship is</h2>${list}
+  <p class="muted small">Positions update when you end the month. Ships follow the main sea lanes: the Strait of Malacca, the Sunda and Lombok straits, the Strait of Hormuz and the Red Sea. Houston cargoes come in from the Pacific, off the right edge of the map.</p>`;
+}
+
 function vStart(){
   return `<div class="wrap start">
     <section class="hero"><svg viewBox="0 0 200 90" aria-hidden="true"><path d="M10 60 L190 60 L170 82 L28 82 Z" fill="#fff"/><rect x="40" y="36" width="22" height="22" fill="#fff"/><rect x="66" y="36" width="22" height="22" fill="#fff"/><rect x="92" y="36" width="22" height="22" fill="#fff"/><rect x="118" y="36" width="22" height="22" fill="#fff"/><rect x="150" y="18" width="20" height="40" fill="#fff"/></svg>
@@ -1623,7 +1764,7 @@ function render(){
   if(!st){app.innerHTML=vStart();renderModal();return}
   if(!TABS.some(t=>t[0]===tab))tab='overview';
   const vac=st.ships.reduce((a,s)=>a+RK.filter(r=>!s.crew[r]).length,0),noHead=OPS.filter(d=>!st.heads[d]).length;
-  const body={overview:vOverview,fleet:vFleet,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,safety:vSafety,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
+  const body={overview:vOverview,fleet:vFleet,map:vMap,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,safety:vSafety,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
   app.innerHTML=`<header class="top"><div class="wrap">
     <div class="top-row"><div class="brand"><div class="co">${esc(st.company)}</div><div class="when">${st.over?'Game over':'Month '+(st.m+1)+' · '+mlabel(st.m)}</div></div>
       <div class="cashpill"><small>Cash</small><b class="${st.cash<0?'neg':''}">${fm(st.cash)}</b></div>
@@ -1670,8 +1811,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
 document.addEventListener('input',e=>{const t=e.target;if(t.id==='d-loa'&&design){design.loa=+t.value;const S=buildSpec(design.cls,design),o=document.getElementById('d-loa-out'),m=document.getElementById('d-sum');if(o)o.innerHTML=loaRead(S,design.cls);if(m)m.innerHTML=designSum(S);return}if(t.id&&(t.id.startsWith('nm-')||t.id==='co-name'))drafts[t.id]=t.value});
 document.addEventListener('change',e=>{if(e.target.id==='d-loa'&&design)render()});
 document.addEventListener('keydown',e=>{const t=e.target;if(e.key!=='Enter'||!t.dataset||!t.dataset.enter)return;e.preventDefault();const [a,,v]=t.dataset.enter.split('|');act(a,v)});
-function start(data){const d=data&&data.st&&(data.st.v===3||data.st.v===4)?data.st:null;const o=d||load();if(o)adopt(o);else st=null;if(data&&data.tab)tab=data.tab;if(data&&data.fleetTab)fleetTab=data.fleetTab;if(data&&data.spTab)spTab=data.spTab;if(data&&data.spMode)spMode=data.spMode;if(data&&data.design)design=data.design;render()}
-window.claude?.hot?.snapshot?.(()=>({st,tab,fleetTab,spTab,spMode,design}));
+function start(data){const d=data&&data.st&&(data.st.v===3||data.st.v===4)?data.st:null;const o=d||load();if(o)adopt(o);else st=null;if(data&&data.tab)tab=data.tab;if(data&&data.fleetTab)fleetTab=data.fleetTab;if(data&&data.spTab)spTab=data.spTab;if(data&&data.spMode)spMode=data.spMode;if(data&&data.design)design=data.design;if(data&&data.mapReg)mapReg=data.mapReg;if(data&&data.mapSel)mapSel=data.mapSel;render()}
+window.claude?.hot?.snapshot?.(()=>({st,tab,fleetTab,spTab,spMode,design,mapReg,mapSel}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 </script>
 
