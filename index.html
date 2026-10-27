@@ -155,6 +155,8 @@ dl.gloss dt{font-weight:700} dl.gloss dd{margin:0;color:var(--muted)}
 @media (max-width:460px){.dept li,dl.gloss{grid-template-columns:1fr}.dept li{gap:0}dl.gloss dd{margin-bottom:6px}}
 
 /* fleet tabs, naming, memos */
+.memo li.q-bad{border-left-color:var(--bad)}.memo li.q-good{border-left-color:var(--good)}
+.cond.fat .bar>i{background:var(--accent)}.cond.fat.ok .bar>i{background:var(--bad)}.cond.fat.mid .bar>i{background:var(--warn)}.cond.fat.low .bar>i{background:var(--accent)}
 main>*{min-width:0}
 .wage-row+.setting{border-top:1px solid var(--line);margin-top:16px;padding-top:16px}
 .subtabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px}
@@ -343,7 +345,7 @@ const PLANS={
 };
 
 let drafts={};let st=null,tab='overview',confirmKey=null,startPlan='a',showPool=null,fleetTab='all',renaming=null,nameMsg=null;
-const TABS=[['overview','Overview'],['fleet','Fleet'],['contracts','Contracts'],['depts','Departments'],['hr','HR & Office'],['crewing','Crewing'],['payroll','Crew Pay'],['sp','Buy & Sell'],['finance','Finance'],['company','Company']];
+const TABS=[['overview','Overview'],['fleet','Fleet'],['contracts','Contracts'],['depts','Departments'],['hr','HR & Office'],['crewing','Crewing'],['safety','Safety'],['payroll','Crew Pay'],['sp','Buy & Sell'],['finance','Finance'],['company','Company']];
 const OPS=['chartering','crewing','marine','technical','finance'];
 const DNAME={chartering:'Chartering',crewing:'Crewing',marine:'Marine',technical:'Technical',finance:'Finance',hr:'HR & Admin'};
 const rnd=(a,b)=>a+Math.random()*(b-a);
@@ -378,7 +380,7 @@ const shoreCap=sh=>Math.round(clamp(90-((sh.age-((sh.dockDue??(sh.age+5))-5)))*3
 const shoreCost=sh=>r10k(CLS[sh.cls].value*0.005*(1.15-0.25*Math.min(1,eff('technical'))));
 const canShore=sh=>['idle','voyage'].includes(sh.status)&&sh.cond<shoreCap(sh)-3;
 function crewScore(sh){const f=filled(sh);if(!f.length)return 0;return Math.round(f.reduce((a,r)=>a+sh.crew[r].comp,0)/f.length)}
-function crewMult(sh){const f=filled(sh);let m=1.6-(f.length?crewScore(sh):40)/100;m+=Math.min(0.6,shipGaps(sh)*0.08);if(f.length<4)m+=0.3;return Math.max(0.5,m)}
+function crewMult(sh){const f=filled(sh);let m=1.6-(f.length?crewScore(sh):40)/100;m+=Math.min(0.6,shipGaps(sh)*0.08);if(f.length<4)m+=0.3;if(f.length){const af=f.reduce((a,r)=>a+(sh.crew[r].fat||0),0)/f.length;m+=Math.max(0,(af-55)/100)}return Math.max(0.5,m)}
 const DK=()=>Object.keys(DEPTS);
 const staffCount=()=>DK().reduce((a,d)=>a+st.staff[d],0);
 const officeHeads=()=>DK().reduce((a,d)=>a+(st.heads[d]?1:0)+st.staff[d],0);
@@ -421,7 +423,7 @@ function crewCost(cls,basic,heads,atSea,hra){
 }
 function packagePts(){const segs=new Set(st.ships.map(s=>segOf(s.cls)));let p=0;ALLOW.forEach(a=>{const lv=st.allow[a.k];if(a.pts)p+=a.pts[lv];else if(a.seg&&a.seg.some(x=>segs.has(x)))p+=lv?2:-5});return p}
 function wageRatio(){const yours=RK.reduce((a,r)=>a+st.wages[r],0)+st.wages.rating*4;const mk=RK.reduce((a,r)=>a+RANKS[r].mk,0)+RATING_MK*4;return yours/mk}
-function moraleTarget(){return clamp(62+(wageRatio()-1)*160+packagePts(),10,97)}
+function moraleTarget(){return clamp(62+(wageRatio()-1)*160+packagePts()+[3,0,-5][st.pol.contract??1]+(st.press>0?-4:0)+((st.culture??50)-50)/10,10,97)}
 function acceptChance(p,offer){return clamp(0.5+(offer/p.expect-1)*2.5+(st.empRep-50)/120+(p.ex?0.2:0),0.05,0.97)}
 function boostFor(seg){return st.offices.reduce((a,k)=>a+(OFFICES[k].boost[seg]||0),0)}
 function tierIdx(){const nw=netWorth(),n=st.ships.length+st.orders.length,d=st.divs.length;let t=0;TIERS.forEach((x,i)=>{if(n>=x.ships&&d>=x.divs&&nw>=x.nw)t=i});return t}
@@ -449,9 +451,9 @@ function genSeafarer(rank,o={}){
   const sc=o.seg?segCerts(o.seg,rank):[];
   if(sc.length){if(Math.random()<0.5+comp/250+(o.boost||0))certs.push(...sc);else if(Math.random()<0.5)certs.push(sc[0])}
   const nat=pick(Object.keys(PEOPLE));
-  return {id:st.nid++,name:pick(PEOPLE[nat]),nat,rank,age:exp+Math.round(rnd(22,27)),exp,comp,rep,certs,
+  return humanize({id:st.nid++,name:pick(PEOPLE[nat]),nat,rank,age:exp+Math.round(rnd(22,27)),exp,comp,rep,certs,
     expect:Math.round(RANKS[rank].mk*(0.8+comp/500+exp/300)/500)*500,left:0,ex:false,exAge:0,flag:false,wage:0,
-    remark:pick(REMARKS[rep>=4.3?'hi':rep>=3.4?'mid':'lo'])};
+    remark:pick(REMARKS[rep>=4.3?'hi':rep>=3.4?'mid':'lo'])});
 }
 function genHead(d,mean){
   const skill=clamp(Math.round((mean??3)+gauss()*0.9),1,5),P=DEPTS[d].pay;
@@ -466,7 +468,7 @@ function newShip(cls,age,crewed,name){
 }
 function genOffer(cls){
   const c=CLS[cls],seg=c.seg,r=pick(ROUTES[seg]),base=earnBase(cls);
-  let f=(0.9+st.rep/500)*(0.95+0.1*eff('chartering'))*(1+boostFor(seg))*[1.02,1,0.98][st.pol.credit??1];
+  let f=(0.9+st.rep/500)*(0.95+0.1*eff('chartering'))*(1+boostFor(seg))*[1.02,1,0.98][st.pol.credit??1]*(st.slow>0?0.98:1);
   if(seg==='tanker'||seg==='gas')f*=0.93+0.1*eff('marine');
   if(seg==='offshore'||Math.random()<0.32){
     const months=seg==='offshore'?pick([6,9,12,18,24]):pick([4,6,9,12]);
@@ -496,13 +498,15 @@ function upgrade(o){
   if(o.oShock==null)o.oShock=0;o.ramp=o.ramp||{};o.recv=o.recv||[];o.oLeft=o.oLeft||[];o.ltvPen=o.ltvPen||0;
   if(o.pol.credit==null)o.pol.credit=1;if(o.pol.hire==null)o.pol.hire=1;
   (o.ships||[]).forEach(sh=>{if(sh.totR==null){sh.totR=0;sh.totC=0;sh.lastNet=0;sh.since=o.m}if(sh.dockDue==null)sh.dockDue=Math.round((sh.age+(sh.status==='dock'?5:1.5+Math.random()*3.5))*12)/12});if(o.pol.autoDock==null)o.pol.autoDock=1;
+  if(o.culture==null)o.culture=50;o.fixes=o.fixes||{};o.invs=o.invs||[];o.voice=o.voice||[];o.nmLog=o.nmLog||[];o.incLog=o.incLog||[];if(o.press==null)o.press=0;if(o.slow==null)o.slow=0;if(o.pol.contract==null)o.pol.contract=1;
+  (o.ships||[]).forEach(sh=>RK.forEach(r=>{if(sh.crew[r])humanize(sh.crew[r])}));(o.pool||[]).forEach(humanize);
   o.v=4;return o;
 }
 function fresh(company,plan){
   st={v:4,company,m:0,cash:0,loan:0,rate:0.065,rep:50,morale:65,board:70,empRep:55,maint:1,hseq:false,fuelEff:1,
       bunker:2615,prevBunker:2615,scrap:2000,idx:{container:1,bulk:0.95,tanker:1.05,bunker:1,gas:1,offshore:0.95},bunkerHist:[2615],
       wages:{master:42000,co:30000,ce:42000,se:28000,rating:7500},allow:{},
-      pol:{autoCharter:1,mode:1,minRep:0,needStcw:1,premium:1,autoTrain:1,dockAt:2,autoDock:1,credit:1,hire:1},
+      pol:{autoCharter:1,mode:1,minRep:0,needStcw:1,premium:1,autoTrain:1,dockAt:2,autoDock:1,credit:1,hire:1,contract:1},
       heads:{},staff:{},headPool:{},divs:[],offices:[],
       ships:[],offers:[],market:[],pool:[],bids:{},orders:[],log:[],hist:[],cur:null,neg:0,queue:[],over:null,nid:1,flags:{},used:[],tierMax:0};
   ALLOW.forEach(a=>st.allow[a.k]=a.def);st.cur=newLedger();
@@ -521,7 +525,7 @@ function fresh(company,plan){
 /* ---------- department automation ---------- */
 function place(sh,r,p,note){
   const cur=sh.crew[r];if(cur)sendHome(cur);
-  spend('recruit',p.ex?3500:7500);p.ex=false;p.flag=false;p.left=Math.round(rnd(6,9));sh.crew[r]=p;st.pool=st.pool.filter(x=>x!==p);
+  spend('recruit',p.ex?3500:7500);p.seen=p.seen||p.ex;p.ex=false;p.flag=false;p.left=CONTRACT[st.pol.contract??1];p.onb=0;p.fat=Math.round(rnd(0,12));sh.crew[r]=p;st.pool=st.pool.filter(x=>x!==p);
   if(st.pol.autoTrain)gapsOf(p,sh.cls).forEach(c=>{spend('train',CERTS[c][2]);p.certs.push(c)});
   note&&note(`Crewing hired ${p.name} as ${RANKS[r].t} on ${sh.name}${cur?', replacing '+cur.name:''}.`,'good');
 }
@@ -650,6 +654,40 @@ const EVENTS={
   bigBreak:{elig:()=>[],
     choices:[['Emergency dry dock','About 60% more than a planned dock. Two months out of service. Condition back to 96% and the 5-year clock restarts.',(s,sh)=>{if(!sh)return ['The ship is no longer in the fleet.',''];const c=emDockCost(sh);if(sh.c&&sh.c.type==='VC'){s.recv.push({id:s.nid++,amt:sh.c.rev*0.6,who:sh.c.who,ship:sh.name,age:0})}sh.c=null;enterDock(sh,c,2,true);s.rep-=1;return ['Tugs towed '+sh.name+' to the yard. Emergency dock '+fm(c)+'. The charterer will settle part of the freight later.','bad']}],
              ['Tow to port and patch with shore technicians','Cheaper and quicker, but condition stays low and it may fail again.',(s,sh)=>{if(!sh)return ['The ship is no longer in the fleet.',''];const c=r10k(shoreCost(sh)*2.5);spend('repair',c);sh.totC+=c;sh.cond=Math.min(shoreCap(sh),sh.cond+10);return ['Shore technicians patched '+sh.name+' for '+fm(c)+'. Condition now '+Math.round(sh.cond)+'%.','']}]]},
+  incident:{elig:()=>[],choices:q=>incidentChoices(q)},
+  survey:{elig:()=>[],choices:q=>{const sc=surveyScores(),low=[...q.extra.sc].sort((a,b)=>a.v-b.v)[0];
+    return sc.map(x=>[x.l+' ('+x.t+' '+q.extra.sc.find(y=>y.k===x.k).v+')',x.d,(s)=>{x.f(s);const v=q.extra.sc.find(y=>y.k===x.k).v;s.morale+=Math.max(1,(80-v)/4);s.empRep+=Math.max(0,(70-v)/6);
+      if(x.k===low.k)return ['You fixed the crew\'s biggest problem. Morale and your employer rating rise clearly.','good'];
+      return [`Crew appreciate it, but their biggest problem was ${sc.find(y=>y.k===low.k).t.toLowerCase()} (score ${low.v}). The effect is smaller.`,v>60?'bad':'']}])}},
+  yearEnd:{elig:()=>[],choices:[
+    ['Skip it this year','No cost. Crew and office staff notice.',s=>{s.morale-=4;s.omorale-=5;s.oShock-=5;return ['No event this year. People are disappointed.','bad']}],
+    ['Dinner for office staff only','About RM 400 per person.',(s,sh,q)=>{spend('oben',q.extra.off*400);s.oShock+=5;s.morale-=3;return ['The office had a good night. Crew at sea feel forgotten: "Office party again, we are just numbers."','']}],
+    ['Family day for crew families, with a live video link to every ship','RM 120k plus RM 5k per ship. Includes Seafarer of the Year.',s=>{spend('oben',120000+5000*s.ships.length);s.morale+=6;s.empRep+=6;s.oShock+=3;const a=awardEvent();if(a)s.queue.splice(1,0,a);return ['Families met the office team and talked to their sailors live. Crew loved it.','good']}],
+    ['Gala dinner at a KL hotel with clients and awards','RM 350k. Includes Seafarer of the Year.',(s,sh,q)=>{spend('oben',350000);s.oShock+=7;s.morale+=3;s.rep+=2;const a=awardEvent();if(a)s.queue.splice(1,0,a);if(q.extra.prof<0){s.board-=6;return ['A great night, but the board asks why you held a gala in a loss-making year.','bad']}return ['Clients and staff enjoyed the gala. Crew at sea watched the awards online.','good']}]]},
+  award:{elig:()=>[],choices:q=>q.extra.noms.map(n=>['Award '+n.name,n.inc?'Has '+n.inc+' incident'+(n.inc>1?'s':'')+' on record.':'Clean record.',(s)=>{spend('allow',10000);const best=q.extra.noms.find(x=>x.id===q.extra.best);
+    if(n.id===q.extra.best){s.culture+=5;s.morale+=3;return [n.name+' wins. The message to the fleet: safe, honest work gets rewarded.','good']}
+    if(n.inc>0){s.culture-=4;return [n.name+' wins, but crew know about the incidents. The message: results matter more than safety. '+best.name+' had the strongest record.','bad']}
+    s.culture+=1;return [n.name+' wins. A fair choice, but '+best.name+' had the strongest safety and teamwork record.','']}])},
+  squeeze:{elig:s=>voyaging(s).filter(x=>manned(x)&&x.c),make:sh=>{const b=r10k(rnd(150e3,400e3)),mf=Math.max(...filled(sh).map(r=>sh.crew[r].fat));return {ship:sh.id,extra:{b},title:'Charterer wants a shortcut',body:`The charterer of ${sh.name} offers a ${fm(b)} bonus if the ship skips its planned rest stop and keeps working. The Master refuses: the officers are tired (highest fatigue ${mf}). Chartering says this client is important and wants you to overrule him.`}},
+    choices:[['Back the Master','Lose the bonus. The crew trust you more.',s=>{s.culture+=4;s.morale+=2;s.rep-=1;return ['The ship rested as planned. The charterer is a bit unhappy, but the crew noticed you backed them.','good']}],
+      ['Overrule the Master and take the bonus','Earn the bonus. Fatigue rises and the whole fleet hears about it.',(s,sh,q)=>{earn('freight',q.extra.b);if(sh)filled(sh).forEach(r=>sh.crew[r].fat=Math.min(100,sh.crew[r].fat+18));s.press=4;s.culture-=6;return ['Bonus earned. Officers on board are worn out, and Masters across the fleet now feel pressure to say yes.','bad']}]]},
+  whistle:{elig:s=>s.ships.filter(x=>manned(x)&&Math.max(...filled(x).map(r=>x.crew[r].fat))>=68),make:sh=>({ship:sh.id,title:'Anonymous email from '+sh.name,body:`A crew member on ${sh.name} writes: "We are told to write fake rest hours. Real working days are 14 to 16 hours. Please do not tell the Master I wrote this."`}),
+    choices:[['Independent rest-hour audit and relieve the tired officers','RM 80k. Protects the sender.',(s,sh)=>{spend('hseq',80000);if(sh)filled(sh).forEach(r=>sh.crew[r].fat=Math.max(0,sh.crew[r].fat-40));s.fixes.fatigue=Math.max(s.fixes.fatigue||0,6);s.culture+=6;return ['The audit confirmed the problem. Officers were relieved and the Master was retrained on rest-hour rules.','good']}],
+      ['Ask the Master to explain','No cost.',s=>{s.culture-=3;return ['The Master replies that everything is fine. Nothing changes, and the crew suspect the email was shared.','bad']}],
+      ['Find out who sent it','No cost.',s=>{s.culture-=15;s.empRep-=8;s.morale-=6;return ['Word spread fast. Crew across the fleet now believe reporting problems gets you in trouble.','bad']}]]},
+  conflict:{elig:s=>aboard(s,(p,sh)=>p.trait==='hothead'&&filled(sh).length>=2),make:x=>{const {sh,r,p}=x,pr=deptOf(r)==='deck'?'ce':'master',or=sh.crew[pr]?pr:filled(sh).find(k=>k!==r),o=sh.crew[or];p.seen=1;
+      const mk=st.heads.marine?`Marine Superintendent: "${p.name} had similar complaints on two earlier ships. ${o.name} has a clean record."`:'Nobody in the office has checked their records. You have no Marine Superintendent.';
+      return {ship:sh.id,extra:{a:{r,id:p.id,name:p.name},b:{r:or,id:o.id,name:o.name},flip:Math.random()<0.5},title:'Senior officers in conflict on '+sh.name,
+        body:`The ${RANKS[r].t} and ${RANKS[or].t} on ${sh.name} have stopped talking. ${p.name} says the other is "useless". ${o.name} says ${p.name} shouts at the crew. Two ratings have asked for a transfer.`,facts:[mk]}},
+    choices:q=>{const swap=(s,sh,who)=>{if(sh&&sh.crew[who.r]&&sh.crew[who.r].id===who.id){sh.crew[who.r]=null;spend('recruit',10000)}};
+      const A=['Replace '+q.extra.a.name,'Sign off and replace at month end.',(s,sh)=>{swap(s,sh,q.extra.a);s.morale+=2;return ['Calm returned on board. You removed the source of the problem.','good']}],
+        B=['Replace '+q.extra.b.name,'Sign off and replace at month end.',(s,sh)=>{swap(s,sh,q.extra.b);s.culture-=3;if(sh)sh.tension=4;return ['The new officer is already clashing with '+q.extra.a.name+'. The problem was never the person you removed.','bad']}];
+      return [...(q.extra.flip?[A,B]:[B,A]),
+        ['Send the Marine Superintendent to mediate','RM 25k. Works only if both are willing.',(s,sh)=>{spend('hseq',25000);if(Math.random()<0.4)return ['They agreed to work together, for now.',''];if(sh)sh.tension=4;return ['Mediation failed. The tension continues and mistakes become more likely.','bad']}],
+        ['Let them sort it out','No cost.',(s,sh)=>{s.morale-=4;if(sh)sh.tension=5;return ['Nothing changes. The crew are caught in the middle, and mistakes become more likely.','bad']}]]}},
+  rescue:{elig:s=>voyaging(s).filter(x=>segOf(x.cls)!=='bunker'),make:sh=>({ship:sh.id,title:'Crew rescue fishermen',body:`${sh.name} picked up five fishermen from a sinking boat at night. The Master went off course for six hours to do it.`}),
+    choices:[['Publicly reward the crew','RM 30k bonus pool and a press release.',s=>{spend('allow',30000);s.rep+=3;s.morale+=4;s.empRep+=3;s.culture+=2;return ['The story was in the news. Crew across the fleet are proud.','good']}],
+      ['Send a thank-you letter','No cost.',s=>{s.morale+=1;return ['The crew appreciated the letter.','']}]]},
   refi:{elig:s=>s.loan>0&&s.rate>0.055?[true]:[],make:()=>({title:'Bank offers refinancing',body:'Your bank offers to cut the loan rate by 0.75% a year for a RM 120k fee.'}),
     choices:[['Accept','Pay RM 120k, lower interest.',s=>{spend('interest',120000);s.rate=Math.max(0.05,s.rate-0.0075);return ['Rate now '+(s.rate*100).toFixed(2)+'% a year.','good']}],['Decline','Keep the current rate.',()=>['No change.','']]]}
 };
@@ -670,9 +708,196 @@ function rollEvent(){
   st.queue.push({kind:'event',id,ship:ev.ship??null,extra:ev.extra||null,title:ev.title,body:ev.body});
 }
 
+/* ---------- human factor ---------- */
+const TRAITS={steady:{t:'Steady',d:'Reliable, no surprises.',nm:1,w:30},byBook:{t:'By the book',d:'Follows every checklist. A bit slow in port, rarely makes mistakes.',nm:1.5,w:18},mentor:{t:'Mentor',d:'Coaches junior crew. The whole ship works better around them.',nm:1.3,w:12},cutter:{t:'Cuts corners',d:'Fast and commercial, but skips checks when busy.',nm:0.5,w:15},quiet:{t:'Quiet',d:'Keeps problems to themselves and rarely reports near misses.',nm:0.3,w:15},hothead:{t:'Short temper',d:'Good technically but clashes with other officers.',nm:0.8,w:10}};
+function pickTrait(){let r=Math.random()*100;for(const k in TRAITS){r-=TRAITS[k].w;if(r<=0)return k}return 'steady'}
+function humanize(p){if(p.fat==null)p.fat=Math.round(rnd(0,15));if(!p.trait)p.trait=pickTrait();if(p.onb==null)p.onb=0;if(p.inc==null)p.inc=0;if(p.nm==null)p.nm=0;return p}
+const known=p=>p.onb>=2||p.ex||p.seen;
+const traitTxt=p=>known(p)?TRAITS[p.trait].t:'Not appraised yet';
+const fatLbl=f=>f<40?'Fresh':f<65?'Tired':f<80?'Very tired':'Exhausted';
+const CONTRACT=[4,6,9];
+const CAUSES={
+  fatigue:{t:'Fatigue',why:'Tired people make mistakes however skilled they are. Long contracts, busy port schedules and pressure to work through rest hours build fatigue.'},
+  training:{t:'Training and familiarisation',why:'The officer did not know the job or the equipment well enough. Proper handovers and familiarisation prevent this.'},
+  pressure:{t:'Commercial pressure',why:'Pressure from the office or the charterer to go faster made the crew skip steps. The fix is backing the Master, not blaming the crew.'},
+  equipment:{t:'Faulty equipment',why:'A known defect was never fixed, so the crew had no warning when things went wrong.'},
+  procedure:{t:'Unclear procedure',why:'The written procedure did not match reality, so every crew did the job their own way.'},
+  attitude:{t:'Individual behaviour',why:'This person knowingly broke the rules, more than once. Here, disciplinary action is fair and the crew expect it.'}
+};
+const INC=[
+  {k:'overflow',segs:['bunker','tanker'],dept:'deck',t:'Oil overflow during a fuel transfer',what:'About 2 m³ of fuel overflowed onto the deck and into the sea. The port authority is investigating.',cost:[350e3,900e3],rep:5},
+  {k:'contam',segs:['tanker','gas'],dept:'deck',t:'Cargo contamination',what:'A wrong valve line-up mixed two cargo grades. The receiver rejected part of the cargo.',cost:[600e3,1.5e6],rep:4},
+  {k:'lashing',segs:['container'],dept:'deck',t:'Containers lost overboard',what:'Six containers went overboard in heavy rolling. Lashings on one bay had not been checked.',cost:[700e3,1.4e6],rep:4},
+  {k:'ballast',segs:['bulk'],dept:'deck',t:'Ballast water violation',what:'The ship discharged untreated ballast water inside port limits and was fined.',cost:[250e3,600e3],rep:3},
+  {k:'dp',segs:['offshore'],dept:'deck',t:'DP drift-off near a platform',what:'The vessel drifted 30 m towards the platform during a DP operation. All work was stopped.',cost:[300e3,800e3],rep:5},
+  {k:'blackout',segs:null,dept:'engine',t:'Blackout in the traffic lane',what:'The ship lost all power for 25 minutes in the Singapore Strait after a generator tripped during a fuel changeover.',cost:[250e3,700e3],rep:4},
+  {k:'enclosed',segs:null,dept:'engine',t:'Enclosed space incident',what:'A crew member collapsed inside a tank. He was rescued and is recovering. No entry permit had been issued.',cost:[200e3,500e3],rep:4},
+  {k:'mooring',segs:null,dept:'deck',t:'Mooring line snap-back',what:'A mooring line parted during berthing and injured an AB on the poop deck.',cost:[180e3,450e3],rep:3},
+  {k:'close',segs:null,dept:'deck',t:'Near collision at night',what:'The ship passed 0.2 miles from a crossing tanker at night. VTS reported the ship to the authorities.',cost:[80e3,250e3],rep:4}
+];
+const STRONG={
+  fatigue:x=>`${x.who} had slept about four hours in the 24 hours before the incident. The rest-hour sheets for that week look perfect, which the auditor finds suspicious.`,
+  training:x=>`In the interview, ${x.who} could not explain the correct steps for the job. There was no handover from the previous officer.`,
+  pressure:x=>`Emails show the charterer asked for a faster turnaround and the office told the Master to "make it happen". The job was done in half the usual time.`,
+  equipment:x=>`The alarm that should have warned the crew was reported faulty ${x.wk} weeks earlier. The spare part was never ordered.`,
+  procedure:x=>`The company procedure for this job dates from 2016 and does not match the equipment now on board. Crew on two other ships admit they "do it their own way" too.`,
+  attitude:x=>`Two crew members say ${x.who} told them to skip the checklist "to save time". The same complaint came up on a previous contract.`
+};
+const HERR={
+  fatigue:()=>`The crew held a small birthday party on board three nights before the incident.`,
+  training:x=>`${x.who} studied at a different maritime academy from the other officers.`,
+  pressure:()=>`This charterer has complained about late arrivals on other ships in the past.`,
+  equipment:()=>`There is some rust on deck near the area. It is already in the maintenance plan.`,
+  procedure:()=>`The company safety management manual is more than 800 pages long.`,
+  attitude:x=>`${x.who} is strict and not very popular with the crew.`
+};
+const ACT={
+  fatigue:{l:'Audit rest hours fleet-wide and shorten contracts',d:'RM 120k. Contracts capped at 6 months. Tired officers on this ship are relieved.',f:(s,sh)=>{spend('hseq',120000);if(s.pol.contract===2)s.pol.contract=1;if(sh)filled(sh).forEach(r=>sh.crew[r].fat=Math.max(0,sh.crew[r].fat-35))}},
+  training:{l:'Retrain the officer and start proper handovers for new joiners',d:'RM 90k. Every new joiner gets ship familiarisation.',f:(s,sh,q)=>{spend('train',90000);const p=findPerson(q.extra.pid);if(p)p.comp=Math.min(98,p.comp+8)}},
+  pressure:{l:'Back the Master in writing: safety before speed',d:'No direct cost. Chartering earns a little less on rush jobs for 6 months.',f:s=>{s.press=0;s.slow=6}},
+  equipment:{l:'Fix the defect fleet-wide and tighten defect reporting',d:'About RM 60k per ship.',f:s=>{spend('repair',60000*s.ships.length);s.ships.forEach(x=>x.cond=Math.min(100,x.cond+4))}},
+  procedure:{l:'Rewrite the procedure with the crew and brief every ship',d:'RM 150k. Crew help write it, so they actually use it.',f:()=>spend('hseq',150000)},
+  attitude:{l:'Dismiss the officer',d:'Sign off and replace. Crewing finds a relief at month end.',f:(s,sh,q)=>{if(sh&&sh.crew[q.extra.r]&&sh.crew[q.extra.r].id===q.extra.pid){sh.crew[q.extra.r]=null;spend('recruit',12000)}}}
+};
+function causeWeights(sh){
+  const offs=filled(sh).map(r=>sh.crew[r]);if(!offs.length)return null;
+  const F=st.fixes,m=k=>(F[k]>0?0.25:1),maxF=Math.max(...offs.map(p=>p.fat)),minC=Math.min(...offs.map(p=>p.comp));
+  const w={
+    fatigue:Math.max(0,(maxF-45)/22)*m('fatigue'),
+    training:(Math.max(0,(66-minC)/18)+shipGaps(sh)*0.25+offs.filter(p=>p.onb<=1).length*0.2)*m('training'),
+    pressure:((st.press>0?1.3:0)+(st.pol.mode===0?0.25:0))*m('pressure'),
+    equipment:Math.max(0,(66-sh.cond)/14)*m('equipment'),
+    procedure:((st.budget.marine<=1?0.6:0.15)+(st.hseq?0:0.35)+(st.heads.marine?0:0.4))*m('procedure'),
+    attitude:offs.reduce((a,p)=>a+(p.trait==='cutter'?0.9:p.trait==='hothead'?0.35:0),0)+(sh.tension>0?0.5:0)
+  };
+  return {w,offs,tot:Object.values(w).reduce((a,b)=>a+b,0)};
+}
+const deptOf=r=>(r==='master'||r==='co')?'deck':'engine';
+function makeIncident(sh,cw){
+  const {w,offs}=cw;let cause='procedure',best=-1;
+  Object.keys(w).forEach(k=>{const v=w[k]*rnd(0.85,1.15);if(v>best){best=v;cause=k}});
+  let rank;
+  if(cause==='fatigue')rank=filled(sh).sort((a,b)=>sh.crew[b].fat-sh.crew[a].fat)[0];
+  else if(cause==='training')rank=filled(sh).sort((a,b)=>sh.crew[a].comp-sh.crew[b].comp)[0];
+  else if(cause==='attitude')rank=filled(sh).find(r=>sh.crew[r].trait==='cutter')||filled(sh).find(r=>sh.crew[r].trait==='hothead')||pick(filled(sh));
+  const seg=segOf(sh.cls),dept=rank?deptOf(rank):null;
+  let types=INC.filter(t=>(!t.segs||t.segs.includes(seg))&&(!dept||t.dept===dept));if(!types.length)types=INC.filter(t=>!t.segs);
+  const ty=pick(types);
+  if(!rank){const rs=filled(sh).filter(r=>deptOf(r)===ty.dept);rank=rs.length?pick(rs):pick(filled(sh))}
+  const p=sh.crew[rank],who=RANKS[rank].t+' '+p.name,x={who,wk:Math.round(rnd(3,9))};
+  const cost=r10k(rnd(ty.cost[0],ty.cost[1]));spend('penalty',cost);sh.totC+=cost;st.rep-=ty.rep;p.inc++;p.seen=1;st.incLog.push({m:st.m,ship:sh.name});
+  const others=Object.keys(CAUSES).filter(k=>k!==cause).sort(()=>Math.random()-0.5).slice(0,2);
+  const facts=[STRONG[cause](x),...others.map(k=>HERR[k](x))].sort(()=>Math.random()-0.5);
+  const data=`On file: ${who}, fatigue ${p.fat} (${fatLbl(p.fat).toLowerCase()}), competence ${p.comp}, ${p.onb} month${p.onb===1?'':'s'} on this ship, personality "${TRAITS[p.trait].t}". Ship condition ${Math.round(sh.cond)}%.`;
+  const wrong=Object.keys(ACT).filter(k=>k!==cause&&k!=='attitude').sort(()=>Math.random()-0.5).slice(0,cause==='attitude'?3:2);
+  const opts=[cause,...wrong];if(cause!=='attitude')opts.push('attitude');opts.sort(()=>Math.random()-0.5);
+  if(st.heads.marine)opts.push('deep');
+  return {kind:'event',id:'incident',ship:sh.id,title:ty.t+' on '+sh.name,body:ty.what+' Immediate cost '+fm(cost)+'. The investigation found:',facts,data,
+    extra:{cause,pid:p.id,r:rank,who,opts,cost},ask:'What is the real root cause? Choose your corrective action.'};
+}
+function judge(s,sh,q,k){
+  const c=q.extra.cause,right=k===c;ACT[k].f(s,sh,q);if(k!=='attitude')s.fixes[k]=12;
+  let t,tone;
+  if(right){s.culture+=6;s.morale+=2;t='Good call. ';tone='good'}
+  else if(k==='attitude'){s.culture-=10;s.morale-=6;s.empRep-=5;t=`The crew feel ${q.extra.who} was blamed for a system problem. People will report less from now on. `;tone='bad'}
+  else{s.culture+=1;t='This helps a little, but it misses the main problem. ';tone='bad'}
+  s.invs.unshift({m:s.m,ship:sh?sh.name:'',t:q.title,cause:c,pick:k,right});s.invs=s.invs.slice(0,24);
+  return [t+'Root cause: '+CAUSES[c].t.toLowerCase()+'. '+CAUSES[c].why,tone];
+}
+function incidentChoices(q){
+  return q.extra.opts.map(k=>{
+    if(k==='deep')return ['Ask the Marine Superintendent to dig deeper first','RM 40k. You get his opinion, but it is only as good as he is.',(s,sh,q)=>{
+      spend('hseq',40000);const h=s.heads.marine,ok=h&&(h.skill>=4||Math.random()<0.45+h.skill*0.1),cs=Object.keys(CAUSES),g=ok?q.extra.cause:pick(cs.filter(x=>x!==q.extra.cause));
+      const n={...q,result:null,tone:null,facts:[...q.facts,`Marine Superintendent ${h?h.name:''}: "My view is that the main cause is ${CAUSES[g].t.toLowerCase()}."`],extra:{...q.extra,opts:q.extra.opts.filter(x=>x!=='deep')}};
+      s.queue.splice(1,0,n);return ['The Marine Superintendent visited the ship. His view is in the next report.','']}];
+    const a=ACT[k];return [k==='attitude'?'Dismiss '+q.extra.who:a.l,a.d,(s,sh,q)=>judge(s,sh,q,k)]});
+}
+function crewSafety(note,mStart){
+  const s=st;let nmTot=0,incDone=false;
+  ['fatigue','training','pressure','equipment','procedure'].forEach(k=>{if(s.fixes[k]>0)s.fixes[k]--});
+  if(s.press>0)s.press--;if(s.slow>0)s.slow--;
+  s.ships.forEach(sh=>{
+    if(sh.tension>0)sh.tension--;
+    const sea=sh.wasSea,seg=segOf(sh.cls);
+    filled(sh).forEach(r=>{const p=sh.crew[r];p.onb++;
+      if(sea){let g=7+(seg==='bunker'?5:seg==='offshore'?3:sh.c&&sh.c.type==='VC'?2:0)+(r==='master'||r==='ce'?1:0)-(av('wifi')?1.5:0)-(s.fixes.fatigue>0?3:0)+(s.press>0?3:0);p.fat=clamp(Math.round(p.fat+g*rnd(0.8,1.2)),0,100)}
+      else p.fat=Math.max(0,p.fat-12)});
+    if(!sea)return;
+    const cw=causeWeights(sh);if(!cw)return;
+    const nmF=cw.offs.reduce((a,p)=>a+TRAITS[p.trait].nm,0)/cw.offs.length;
+    const lam=(cw.tot+0.5)*1.3*(s.culture/100)*nmF,n=Math.floor(lam)+(Math.random()<lam%1?1:0);
+    for(let i=0;i<n;i++){const p=pick(cw.offs);if(Math.random()<TRAITS[p.trait].nm/1.5){p.nm++}}
+    nmTot+=n;sh.learn=Math.min(0.45,(sh.learn||0)*0.85+n*0.06);
+    const pr=clamp(0.034*(cw.tot+0.35)*(1.3-s.culture/100*0.6)*(1-sh.learn)*(s.budget.marine===0?1.2:1),0,0.35);
+    if(!incDone&&Math.random()<pr){incDone=true;s.queue.push(makeIncident(sh,cw))}
+  });
+  s.nmLog.push({m:mStart,n:nmTot});s.nmLog=s.nmLog.slice(-24);s.incLog=s.incLog.filter(x=>x.m>s.m-24);
+  if(nmTot)note(`Crew reported ${nmTot} near miss${nmTot>1?'es':''}. Marine reviewed them and shared the lessons.`,'good','safety');
+  const tgt=38+(s.hseq?12:0)+Math.min(1,eff('marine'))*14+(s.budget.marine-2)*3+(s.press>0?-8:0);
+  s.culture+=(tgt-s.culture)*0.06;
+  const ex=aboard(s,p=>p.fat>=80);if(ex.length)note(ex.length+' officer'+(ex.length>1?'s are':' is')+' exhausted: '+ex.slice(0,3).map(x=>x.p.name+' ('+x.sh.name+')').join(', ')+'.','bad','safety');
+  genVoice(mStart);
+}
+function genVoice(mStart){
+  const all=aboard(st);if(!all.length)return;
+  for(let i=0;i<2;i++){
+    const {sh,r,p}=pick(all),o=filled(sh).filter(x=>x!==r).map(x=>sh.crew[x]),c=[];
+    const recent=st.voice.slice(0,5).map(v=>v.t),add=(w,t,tag,tone)=>c.push({w:recent.includes(t)?w*0.15:w,t,tag,tone});
+    if(p.fat>65)add(3,'I have worked 14-hour days for weeks. Someone is going to get hurt.','Rest','bad');
+    if(wageRatio()<0.97)add(2,'A friend at a Singapore company earns more than me for the same job.','Pay','bad');
+    if(st.allow.food===0)add(2,'The food budget is too small. We eat the same thing every day.','Food','bad');
+    if(!av('wifi'))add(1.5,'No internet on board. I can only call my family from port.','Internet','bad');
+    if(st.pol.contract===2)add(2,'Nine months is too long. My kids barely know me.','Contract','bad');
+    if(st.press>0)add(2.5,'The office only cares about speed now. Safety comes second.','Safety','bad');
+    if(st.culture>65)add(1.5,'When we report a near miss, the office actually does something about it.','Safety','good');
+    if(st.culture<35)add(1.5,'Nobody reports anything here. If you speak up, you get blamed.','Safety','bad');
+    if(sh.cond<60)add(1.5,'Half the equipment on this ship is broken and spares never come.','Equipment','bad');
+    if(o.some(x=>x.trait==='hothead')||sh.tension>0)add(1.5,'The atmosphere on board is tense. The senior officers do not talk to each other.','Teamwork','bad');
+    if(o.some(x=>x.trait==='mentor'))add(1,'One of our senior officers takes time to teach the juniors. Best ship I have sailed on.','Teamwork','good');
+    if(st.morale>72)add(1,'Good company. I would sign on again.','General','good');
+    if(!c.length)add(1,'All fine on board. Nothing special to report.','General','');
+    let tw=c.reduce((a,x)=>a+x.w,0)*Math.random(),q=c[0];for(const x of c){tw-=x.w;if(tw<=0){q=x;break}}
+    st.voice.unshift({m:mStart,name:p.name,rank:RANKS[r].t,ship:sh.name,t:q.t,tag:q.tag,tone:q.tone});
+  }
+  st.voice=st.voice.slice(0,12);
+}
+/* survey, year-end, awards */
+function surveyScores(){
+  const all=aboard(st),af=all.length?all.reduce((a,x)=>a+x.p.fat,0)/all.length:20;
+  return [
+    {k:'pay',t:'Pay',v:clamp(55+(wageRatio()-1)*250,5,95),l:'Raise all crew wages by 5%',d:'Permanent. Adds about 5% to the crew wage bill.',f:s=>Object.keys(s.wages).forEach(k=>s.wages[k]=Math.round(s.wages[k]*1.05/100)*100)},
+    {k:'rest',t:'Rest and workload',v:clamp(100-af*1.1,5,95),l:'Fatigue programme: extra hands on busy port calls',d:'RM 250k this year.',f:s=>{spend('hseq',250000);s.fixes.fatigue=12;aboard(s).forEach(x=>x.p.fat=Math.max(0,x.p.fat-20))}},
+    {k:'food',t:'Food',v:[30,60,82][st.allow.food],l:'Raise the food budget to RM 45 a day',d:'Permanent. About RM 300 more per crew a month.',f:s=>{s.allow.food=2}},
+    {k:'net',t:'Internet and welfare',v:av('wifi')?80:25,l:'Install crew Wi-Fi on every ship',d:'RM 1,500 per ship a month.',f:s=>{s.allow.wifi=1}},
+    {k:'safety',t:'Safety culture',v:Math.round(st.culture),l:'Safety leadership visits to every ship',d:'RM 200k. Senior managers sail with the crew and listen.',f:s=>{spend('hseq',200000);s.culture+=8}},
+    {k:'contract',t:'Contract length',v:[82,58,30][st.pol.contract],l:'Shorten contracts by one step',d:'More crew changes, so travel costs go up.',f:s=>{s.pol.contract=Math.max(0,s.pol.contract-1)}},
+    {k:'office',t:'Office listens to us',v:clamp(st.culture*0.4+st.empRep*0.5+10,5,95),l:'Monthly video town hall with the CEO',d:'RM 60k. Crew questions answered within a week.',f:s=>{spend('hseq',60000);s.culture+=4;s.empRep+=4}}
+  ].map(x=>({...x,v:Math.round(x.v)}));
+}
+function surveyEvent(){
+  const sc=surveyScores(),n=aboard(st).length;
+  return {kind:'event',id:'survey',title:'Annual crew survey results',body:`${n} officers answered the survey this year. Scores are out of 100. You have budget to act on one area properly this year.`,
+    facts:sc.map(x=>`${x.t}: ${x.v}`),ask:'Which one will you fix?',extra:{sc:sc.map(x=>({k:x.k,v:x.v}))}};
+}
+function yearEndEvent(){
+  const y=yearOf(st.m),ytd=st.hist.filter(x=>yearOf(x.m)===y),prof=ytd.reduce((a,x)=>a+x.net,0),crew=aboard(st).length,off=staffCount()+DK().filter(d=>st.heads[d]).length;
+  return {kind:'event',id:'yearEnd',title:'Year-end company event',body:`HR asks how you want to close ${y}. Profit so far this year is ${fm(prof)}. You have ${crew} officers at sea and ${off} people in the office. Most crew are at sea in December.`,extra:{prof,off}};
+}
+function awardEvent(){
+  const all=aboard(st);if(all.length<3)return null;
+  const merit=p=>p.comp+p.nm*4-p.inc*15+(p.trait==='mentor'?8:0)-(p.trait==='cutter'?8:0);
+  const a=[...all].sort((x,y)=>merit(y.p)-merit(x.p))[0];
+  const rest=all.filter(x=>x!==a),b=[...rest].sort((x,y)=>y.p.rep-x.p.rep)[0];
+  const rest2=rest.filter(x=>x!==b),c=rest2.find(x=>x.r==='master'&&x.p.inc>0)||rest2.find(x=>x.p.inc>0)||pick(rest2);
+  const noms=[[a,'Their Chief Officer says they run the safest ship in the fleet.'],[b,'Charterers praise their fast turnarounds.'],[c,'Senior Masters say this officer is a natural leader.']].sort(()=>Math.random()-0.5);
+  return {kind:'event',id:'award',title:'Seafarer of the Year',body:'Three officers were nominated. The winner gets a trophy and RM 10k, and every crew member will hear who won and why.',
+    facts:noms.map(([x,why])=>`${x.p.name}, ${x.r==='master'?'Master':RANKS[x.r].t} on ${x.sh.name}: competence ${x.p.comp}, ${x.p.nm} near misses reported, ${x.p.inc} incident${x.p.inc===1?'':'s'}, personality "${traitTxt(x.p)}". ${why}`),
+    ask:'Who wins?',extra:{noms:noms.map(([x])=>({id:x.p.id,name:x.p.name,inc:x.p.inc,nm:x.p.nm})),best:a.p.id}};
+}
+
 /* ---------- crew ops ---------- */
 function signOff(sh,r,note){
-  const p=sh.crew[r];sh.crew[r]=null;if(av('comp'))spend('allow',3000);spend('recruit',3500);
+  const p=sh.crew[r];sh.crew[r]=null;p.fat=0;p.onb=0;p.seen=1;if(av('comp'))spend('allow',3000);spend('recruit',3500);
   const back=Math.random()<st.morale/100*0.8+(av('comp')?0.2:0);
   if(back){p.ex=true;p.exAge=0;p.left=0;p.flag=false;p.comp=Math.min(98,p.comp+1);st.pool.push(p)}
   note(`${RANKS[r].t} ${p.name} signed off ${sh.name}${back?' and wants to rejoin later':''}.`,'','crew');
@@ -715,7 +940,7 @@ function endMonth(){
   s.ships.forEach(sh=>{
     sh._r=0;sh._c=0;const S=(cat,x)=>{spend(cat,x);sh._c+=x},E=(cat,x)=>{earn(cat,x);sh._r+=x};
     const c=CLS[sh.cls],atSea=sh.status==='voyage',cc=crewCost(sh.cls,shipBasic(sh),filled(sh).length+c.ratings,atSea,atSea&&sh.c&&sh.c.hra);
-    S('wages',cc.wages);S('food',cc.food);S('allow',cc.allow);
+    sh.wasSea=atSea;S('wages',cc.wages);S('food',cc.food);S('allow',cc.allow);
     S('insur',c.other*0.35);S('stores',c.other*0.45*MAINT[s.maint].mult);S('mgmt',c.other*0.2);
     if(sh.status==='delivery'){sh.left--;if(sh.left<=0){sh.status='idle';note(sh.name+' delivered.','good')}return}
     if(sh.status==='dock'){sh.left--;if(sh.left<=0){sh.status='idle';sh.cond=96;note(sh.name+(sh.emDock?' left emergency dry dock':' passed its special survey')+'. Condition 96%, next dry dock '+dueLabel(sh)+'.','good','tech');sh.emDock=false}return}
@@ -737,6 +962,7 @@ function endMonth(){
   });
   s.ships.forEach(sh=>{sh.lastNet=(sh._r||0)-(sh._c||0);sh.totR+=sh._r||0;sh.totC+=sh._c||0;delete sh._r;delete sh._c});
   collectRecv(note);
+  crewSafety(note,mStart);
   s.ships.forEach(sh=>RK.forEach(r=>{const p=sh.crew[r];if(!p)return;p.left--;p.exp+=1/12;if(p.left<=0&&sh.status!=='voyage')signOff(sh,r,note)}));
   s.pool=s.pool.filter(p=>++p.exAge<=6);
   autoCrew(note);autoTrain();autoDock(note);
@@ -757,6 +983,7 @@ function endMonth(){
   autoCharter(note);
   s.queue.unshift({kind:'report',rev,exp,notes,m:mStart});
   if(Math.random()<0.75)rollEvent();if(Math.random()<0.2)rollEvent();
+  if(mStart%12===9&&aboard(s).length)s.queue.push(surveyEvent());if(mStart%12===11&&s.ships.length)s.queue.push(yearEndEvent());
   const t=tierIdx();if(t>s.tierMax){s.tierMax=t;s.board+=10;s.rep+=5;s.queue.push({kind:'tier',t});addLog(s.company+' is now a '+TIERS[t].n+'.','good')}
   fix();
   if(s.neg>=2)s.over={type:'fired',why:'The company ran out of cash two months in a row.'};
@@ -769,7 +996,7 @@ function boardReview(){
   const s=st,nw=netWorth(),prev=s.reviewNW,pct=(nw-prev)/Math.abs(prev)*100;let d,v;
   if(pct>=2.5){d=8;v='The board is very pleased with the company\'s growth.'}else if(pct>=0){d=3;v='The board is satisfied, but wants faster growth.'}
   else if(pct>-3){d=-5;v='The board is worried about the fall in company value.'}else{d=-12;v='The board is disappointed and wants a recovery plan.'}
-  if(s.rep<35){d-=5;v+=' Low client reputation was raised.'}if(s.empRep<35){d-=3;v+=' Poor crewing standards were raised.'}
+  if(s.rep<35){d-=5;v+=' Low client reputation was raised.'}if(s.empRep<35){d-=3;v+=' Poor crewing standards were raised.'}const ni=s.incLog.filter(x=>x.m>=s.m-3).length;if(ni>=3){d-=4;v+=' '+ni+' crew incidents this quarter worry the directors.'}
   s.board=clamp(s.board+d,0,100);s.reviewNW=nw;s.queue.push({kind:'board',prev,nw,pct,v,d,q:((s.m/3-1)%4)+1,y:yearOf(s.m-1)});
   if(s.board<20)s.over={type:'fired',why:'The board of directors lost confidence in your leadership.'};
 }
@@ -831,7 +1058,7 @@ function act(a,v){
   if(a==='flag'){const p=findPerson(+v);if(p)p.flag=!p.flag}
   if(a==='train'){const [pid,cert]=v.split(':');const p=findPerson(+pid);if(!p||p.certs.includes(cert))return;spend('train',CERTS[cert][2]);p.certs.push(cert);addLog(p.name+' completed '+CERTS[cert][0]+'.','good','crew')}
   if(a==='reset'){if(confirmKey!=='reset'){confirmKey='reset';render();return}st=null;confirmKey=null;try{localStorage.removeItem(KEY)}catch(e){}render();return}
-  if(a==='choose'){const q=st.queue[0],e=EVENTS[q.id],sh=q.ship!=null?shipById(q.ship):null;const [res,tone]=e.choices[+v][2](st,sh,q);q.result=res;q.tone=tone;fix();addLog(q.title+'. '+res,tone)}
+  if(a==='choose'){const q=st.queue[0],e=EVENTS[q.id],sh=q.ship!=null?shipById(q.ship):null;const ch=typeof e.choices==='function'?e.choices(q):e.choices;const [res,tone]=ch[+v][2](st,sh,q);q.result=res;q.tone=tone;fix();addLog(q.title+'. '+res,tone)}
   if(a==='next'){const q=st.queue.shift();if(q&&q.kind==='end')st.queue=[]}
   if(a==='again'){st=null;try{localStorage.removeItem(KEY)}catch(e){}tab='overview';render();return}
   if(!['sell','scrap','dismiss'].includes(a))confirmKey=null;
@@ -874,6 +1101,8 @@ function memos(){
   const rv=recvSum();if(rv)add('finance','Clients still owe us '+fm(rv)+'. We are chasing it.','');
   if(st.omorale<50)add('hr','Office morale is '+Math.round(st.omorale)+'. '+st.oLeft.reduce((a,x)=>a+x.n,0)+' staff left in the last year. Check pay and benefits.','bad');
   OPS.forEach(d=>{const c=coverage(d);if(st.ships.length&&c<0.7)add('hr',DNAME[d]+' is overloaded, covering only '+Math.round(c*100)+'% of the fleet. Approve more headcount.','bad')});
+  const exh=aboard(st,p=>p.fat>=75).length;if(exh)add('marine',exh+' officer'+(exh>1?'s are':' is')+' very tired or exhausted. Fatigue is the most common cause of accidents at sea.','bad');
+  if(st.culture<40)add('marine','Safety culture is weak ('+Math.round(st.culture)+'). Crew are not reporting near misses, so we only hear about problems after accidents.','bad');
   if(!st.hseq&&st.rep<45)add('marine','Client reputation is low. An HSEQ programme would cut incidents and PSC findings.','');
   return out.slice(0,6).map(m=>({...m,who:H(m.d)}));
 }
@@ -990,6 +1219,7 @@ function deptCard(d){
   if(d==='crewing')pol=`<div class="setting"><h3>Crewing standard</h3><div class="muted small">Minimum officer reputation</div>${polRow('minRep',['Any','3.5+','4.0+'])}
     <div class="muted small" style="margin-top:12px">Full STCW required before joining</div>${polRow('needStcw',['No','Yes'])}
     <div class="muted small" style="margin-top:12px">Train missing certificates automatically</div>${polRow('autoTrain',['No','Yes'])}
+    <div class="muted small" style="margin-top:12px">Contract length for officers. Shorter contracts mean less fatigue but more crew changes.</div>${polRow('contract',['4 months','6 months','9 months'])}
     <div class="muted small" style="margin-top:12px">Wage above scale Crewing may offer without asking you</div>${polRow('premium',['0%','5%','10%','15%'])}</div>`;
   if(d==='marine')pol=`<div class="setting"><h3>HSEQ safety programme</h3><div class="muted small">RM 190k a month. Cuts breakdowns 40%, lowers PSC risk and lifts your employer rating.</div><div class="seg"><button type="button" data-a="hseq" data-v="0" aria-pressed="${!st.hseq}">Off</button><button type="button" data-a="hseq" data-v="1" aria-pressed="${st.hseq}">On</button></div></div>`;
   if(d==='technical')pol=`<div class="setting"><h3>Maintenance level</h3>${segRow('maint',st.maint,MAINT.map(m=>m.label))}<div class="muted small" style="margin-top:12px">Call shore technicians automatically when condition falls below</div>${polRow('dockAt',['Manual','60%','65%','70%'])}<div class="muted small" style="margin-top:12px">Book the 5-year special survey dry dock automatically</div>${polRow('autoDock',['No','Yes'])}</div>`;
@@ -1057,12 +1287,17 @@ function vCrewing(){
     <div class="actions"><button type="button" class="btn" data-a="tab" data-v="depts">Change crewing policy</button></div>
   </section>
   ${vac.length?`<div class="warnbox">Vacant: ${vac.map(x=>esc(x.s.name)+' '+RANKS[x.r].t).join(' · ')}. Crewing fills these at the end of the month.</div>`:''}
+  <h2>Crew voice</h2>
+  <section class="card">${st.voice.length?`<ul class="memo">${st.voice.slice(0,8).map(v=>`<li class="${v.tone==='bad'?'q-bad':v.tone==='good'?'q-good':''}"><div class="rk">${esc(v.rank)} ${esc(v.name)} · ${esc(v.ship)} · ${mlabel(v.m)}</div><div>“${esc(v.t)}”</div></li>`).join('')}</ul>`:'<p class="muted" style="margin:0">Crew messages appear after your first month.</p>'}
+    <p class="muted small" style="margin:12px 0 0">Read these like a manager: one complaint is one person, the same complaint from several ships is a pattern.</p></section>
   <h2>Crewing activity</h2><section class="card">${memoLog('crew',8)}</section>
   <h2>Officers on board</h2>
   <p class="muted small" style="margin:-4px 0 0">Tap <b>Replace</b> to ask Crewing to find a better officer for that post.</p>
   <div class="ships">${st.ships.map(sh=>`<section class="card"><div class="ship-head"><div class="ship-name">${esc(sh.name)}</div><span class="muted small">${CLS[sh.cls].nama} · ${CLS[sh.cls].ratings} ratings via agency</span></div>
     ${RK.map(r=>{const p=sh.crew[r];if(!p)return `<div class="crew-row"><div class="rk">${RANKS[r].t}</div><div class="down" style="font-weight:700">Vacant, Crewing is searching</div></div>`;
-      return `<div class="crew-row"><div class="ship-head"><div><div class="rk">${RANKS[r].t}</div><div class="who">${esc(p.name)}</div></div><button type="button" class="btn ${p.flag?'danger':''}" data-a="flag" data-v="${p.id}">${p.flag?'Replacing…':'Replace'}</button></div><div class="facts"><span>${p.nat}</span><span>Competence <b>${p.comp}</b></span><span>Reputation <b>${p.rep.toFixed(1)}</b></span><span>Wage <b class="num">${fm(Math.max(st.wages[r],p.wage||0))}</b></span><span>${p.left>0?'<b>'+p.left+' mo</b> left':'<b>Due for relief</b>'}</span></div>${certChips(p,sh.cls,!st.pol.autoTrain)}</div>`}).join('')}
+      return `<div class="crew-row"><div class="ship-head"><div><div class="rk">${RANKS[r].t}</div><div class="who">${esc(p.name)}</div></div><button type="button" class="btn ${p.flag?'danger':''}" data-a="flag" data-v="${p.id}">${p.flag?'Replacing…':'Replace'}</button></div><div class="facts"><span>${p.nat}</span><span>Competence <b>${p.comp}</b></span><span>Reputation <b>${p.rep.toFixed(1)}</b></span><span>Wage <b class="num">${fm(Math.max(st.wages[r],p.wage||0))}</b></span><span>${p.left>0?'<b>'+p.left+' mo</b> left':'<b>Due for relief</b>'}</span></div>
+      <div class="facts"><span>Personality <b>${esc(traitTxt(p))}</b></span><span>Near misses reported <b>${p.nm}</b></span><span>Incidents <b class="${p.inc?'down':''}">${p.inc}</b></span></div>
+      ${condBar('Fatigue · '+fatLbl(p.fat),p.fat).replace('class="cond ','class="cond fat ')}${known(p)?`<p class="muted small remark" style="margin-top:6px">Appraisal: ${esc(TRAITS[p.trait].d)}</p>`:''}${certChips(p,sh.cls,!st.pol.autoTrain)}</div>`}).join('')}
   </section>`).join('')}</div>`;
 }
 
@@ -1142,6 +1377,21 @@ function vFinance(){
     <div class="actions"><button type="button" class="btn primary" data-a="borrow" ${cap<5e5?'disabled':''}>Borrow ${fm(Math.min(step,cap))}</button><button type="button" class="btn" data-a="repay" ${st.loan<=0||st.cash<=0?'disabled':''}>Repay ${fm(Math.min(step,st.loan,Math.max(0,st.cash)))}</button></div></section>`;
 }
 
+function vSafety(){
+  const all=aboard(st),af=all.length?Math.round(all.reduce((a,x)=>a+x.p.fat,0)/all.length):0,nm12=st.nmLog.filter(x=>x.m>=st.m-12).reduce((a,x)=>a+x.n,0),in12=st.incLog.filter(x=>x.m>=st.m-12).length;
+  const right=st.invs.filter(x=>x.right).length,last=st.incLog.length?st.m-st.incLog[st.incLog.length-1].m:null;
+  const fx=Object.entries(st.fixes).filter(x=>x[1]>0),tired=[...all].sort((a,b)=>b.p.fat-a.p.fat).slice(0,5);
+  return `<section class="card"><div class="kpis k3" style="margin-top:0">${kpi('Safety culture',Math.round(st.culture)+'/100',st.culture<40?'down':st.culture>=65?'up':'')}${kpi('Near misses (12 mo)',nm12)}${kpi('Incidents (12 mo)',in12,in12>=4?'down':'')}${kpi('Root causes found',st.invs.length?right+' of '+st.invs.length:'–',st.invs.length&&right/st.invs.length<0.5?'down':'')}${kpi('Avg officer fatigue',af,af>=60?'down':'')}${kpi('Since last incident',last==null?'–':last+' mo')}</div>
+    <p class="muted small" style="margin:12px 0 0">Safety culture rises when you find real root causes, back your Masters and reward honest reporting. It falls when you blame people for system problems or push crews to cut corners.</p></section>
+  <section class="help"><b>The safety pyramid.</b> For every serious accident there are many near misses that nobody got hurt from. A fleet that reports lots of near misses learns early and has fewer accidents. When an incident happens, the easy answer is to blame the person. A good CEO asks <b>why</b> that person made the mistake.</section>
+  <h2>Fatigue watch</h2>
+  <section class="card">${tired.length?tired.map(x=>`<div class="hbar"><span><b>${esc(x.p.name)}</b> · ${RANKS[x.r].t}, ${esc(x.sh.name)} · ${x.p.onb} mo on board</span><span class="v ${x.p.fat>=75?'down':''}">${x.p.fat}</span><div class="t"><i style="width:${x.p.fat}%;${x.p.fat>=75?'background:var(--bad)':''}"></i></div></div>`).join(''):'<p class="muted" style="margin:0">No officers on board.</p>'}
+    <p class="muted small" style="margin:8px 0 0">Fatigue builds every month at sea, fastest on bunker tankers. It drops when the ship is idle and resets when the officer goes home. Contract length is set in Departments, under Crewing.</p></section>
+  ${fx.length?`<h2>Active safety actions</h2><section class="card pl">${fx.map(([k,v])=>`<div><span>${CAUSES[k].t}</span><span class="muted">${v} months left</span></div>`).join('')}</section>`:''}
+  <h2>Your investigations</h2>
+  <section class="card">${st.invs.length?`<ul class="memo">${st.invs.slice(0,10).map(x=>`<li class="${x.right?'q-good':'q-bad'}"><div class="rk">${mlabel(x.m)} · ${x.right?'Root cause found':'Missed the root cause'}</div><div><b>${esc(x.t)}</b></div><div class="muted small">You chose: ${x.pick==='attitude'?'dismiss the officer':ACT[x.pick].l.toLowerCase()}. Real cause: ${CAUSES[x.cause].t.toLowerCase()}.</div></li>`).join('')}</ul>`:'<p class="muted" style="margin:0">No incidents yet. When one happens, you read the findings and decide the root cause.</p>'}</section>
+  <h2>Safety activity</h2><section class="card">${memoLog('safety',8)}</section>`;
+}
 function vCompany(){
   const t=tierIdx();
   return `<h2>Company status</h2>
@@ -1172,6 +1422,9 @@ function vCompany(){
     <dt>Off-hire</dt><dd>The ship cannot perform, so the charterer stops paying hire.</dd>
     <dt>Special survey</dt><dd>Class society inspection every 5 years. The ship must go into dry dock so the hull, propeller and tanks can be checked.</dd>
     <dt>Shore repair</dt><dd>Repairs done by technicians from shore while the ship is alongside or at anchor, without going into a dry dock.</dd>
+    <dt>Near miss</dt><dd>An event that could have caused harm but did not. Reporting them is how fleets prevent real accidents.</dd>
+    <dt>Root cause</dt><dd>The underlying reason a mistake happened, such as fatigue or a bad procedure, rather than just who made it.</dd>
+    <dt>Just culture</dt><dd>Crew are not punished for honest mistakes, but deliberate rule-breaking is not tolerated.</dd>
     <dt>LDT</dt><dd>Lightweight tonnage, the weight of the empty ship. Used to price demolition.</dd>
   </dl></section>
   <div><button type="button" class="btn ${confirmKey==='reset'?'danger':''}" data-a="reset">${confirmKey==='reset'?'Tap again to start over':'Start a new game'}</button></div>`;
@@ -1181,7 +1434,7 @@ function vStart(){
   return `<div class="wrap start">
     <section class="hero"><svg viewBox="0 0 200 90" aria-hidden="true"><path d="M10 60 L190 60 L170 82 L28 82 Z" fill="#fff"/><rect x="40" y="36" width="22" height="22" fill="#fff"/><rect x="66" y="36" width="22" height="22" fill="#fff"/><rect x="92" y="36" width="22" height="22" fill="#fff"/><rect x="118" y="36" width="22" height="22" fill="#fff"/><rect x="150" y="18" width="20" height="40" fill="#fff"/></svg>
       <h1>FX Shipping</h1>
-      <p>You are the new CEO. Hire department heads and office staff, decide how lean each department runs, set crew and office pay, buy and name your own ships, and open divisions from container lines to LPG and offshore. Grow from a small owner into an Asian shipping giant. Meet the board's yearly target or get fired.</p></section>
+      <p>You are the new CEO. Hire department heads and office staff, decide how lean each department runs, set crew and office pay, investigate crew mistakes, buy and name your own ships, and open divisions from container lines to LPG and offshore. Grow from a small owner into an Asian shipping giant. Meet the board's yearly target or get fired.</p></section>
     <label class="field">Company name<input id="co-name" maxlength="40" placeholder="FX Shipping Sdn Bhd" autocomplete="off" value="${esc(drafts['co-name']||'')}"></label>
     <div><div style="font-weight:600;margin-bottom:8px">Choose your starting fleet</div>
       <div class="plans">${Object.entries(PLANS).map(([k,p])=>`<button type="button" class="plan" data-a="plan" data-v="${k}" aria-pressed="${startPlan===k}"><b>${p.nama}</b><span>${p.desc} Cash ${fm(p.cash)}.</span></button>`).join('')}</div></div>
@@ -1193,12 +1446,12 @@ function render(){
   if(!st){app.innerHTML=vStart();renderModal();return}
   if(!TABS.some(t=>t[0]===tab))tab='overview';
   const vac=st.ships.reduce((a,s)=>a+RK.filter(r=>!s.crew[r]).length,0),noHead=OPS.filter(d=>!st.heads[d]).length;
-  const body={overview:vOverview,fleet:vFleet,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
+  const body={overview:vOverview,fleet:vFleet,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,safety:vSafety,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
   app.innerHTML=`<header class="top"><div class="wrap">
     <div class="top-row"><div class="brand"><div class="co">${esc(st.company)}</div><div class="when">${st.over?'Game over':'Month '+(st.m+1)+' · '+mlabel(st.m)}</div></div>
       <div class="cashpill"><small>Cash</small><b class="${st.cash<0?'neg':''}">${fm(st.cash)}</b></div>
       <button type="button" class="btn-end" data-a="end" ${st.over?'disabled':''}>End month</button></div>
-    <nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" class="tab" role="tab" data-a="tab" data-v="${k}" aria-selected="${tab===k}">${l}${k==='crewing'&&vac?' ('+vac+')':''}${k==='depts'&&noHead?' (!)':''}${k==='hr'&&st.omorale<45?' (!)':''}</button>`).join('')}</nav>
+    <nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" class="tab" role="tab" data-a="tab" data-v="${k}" aria-selected="${tab===k}">${l}${k==='crewing'&&vac?' ('+vac+')':''}${k==='depts'&&noHead?' (!)':''}${k==='hr'&&st.omorale<45?' (!)':''}${k==='safety'&&aboard(st,p=>p.fat>=80).length?' (!)':''}</button>`).join('')}</nav>
   </div></header><main class="wrap">${body}</main>`;
   renderModal();
 }
@@ -1214,8 +1467,8 @@ function renderModal(){
     ${st.cash<0&&!st.over?'<p class="down"><b>Warning:</b> cash is negative. Borrow or sell a ship before the end of next month.</p>':''}
     <button type="button" class="btn primary" data-a="next">Continue</button>`}
   else if(q.kind==='event'){const e=EVENTS[q.id];
-    h=`<div class="eyebrow">${q.id==='premium'?'Memo from Crewing':'CEO decision needed'}</div><h3>${esc(q.title)}</h3><p>${esc(q.body)}</p>`+(q.result?`<div class="result ${q.tone==='bad'?'down':q.tone==='good'?'up':''}">${esc(q.result)}</div><button type="button" class="btn primary" data-a="next">Continue</button>`
-      :`<div class="choices">${e.choices.map((c,i)=>`<button type="button" class="choice" data-a="choose" data-v="${i}"><b>${c[0]}</b><span>${c[1]}</span></button>`).join('')}</div>`)}
+    h=`<div class="eyebrow">${q.id==='premium'?'Memo from Crewing':q.id==='incident'?'Incident investigation':q.id==='survey'?'Crew survey':['yearEnd','award'].includes(q.id)?'Year-end':'CEO decision needed'}</div><h3>${esc(q.title)}</h3><p>${esc(q.body)}</p>${q.facts?`<ul class="notes">${q.facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`:''}${q.data?`<div class="voyage" style="margin:0 0 12px">${esc(q.data)}</div>`:''}${q.ask&&!q.result?`<p><b>${esc(q.ask)}</b></p>`:''}`+(q.result?`<div class="result ${q.tone==='bad'?'down':q.tone==='good'?'up':''}">${esc(q.result)}</div><button type="button" class="btn primary" data-a="next">Continue</button>`
+      :`<div class="choices">${(typeof e.choices==='function'?e.choices(q):e.choices).map((c,i)=>`<button type="button" class="choice" data-a="choose" data-v="${i}"><b>${c[0]}</b><span>${c[1]}</span></button>`).join('')}</div>`)}
   else if(q.kind==='board'){
     h=`<div class="eyebrow">Board meeting · Q${q.q} ${q.y}</div><h3>${esc(q.v)}</h3>
     <div class="pl" style="margin-bottom:14px"><div><span>Net worth last quarter</span><span class="num">${fm(q.prev)}</span></div><div><span>Net worth now</span><b class="num">${fm(q.nw)}</b></div><div><span>Change</span><span class="num ${q.pct<0?'down':'up'}">${q.pct>=0?'+':''}${q.pct.toFixed(1)}%</span></div><div><span>Year target</span><span class="num">${fm(st.target)}</span></div><div class="tot"><span>Board confidence</span><span class="num">${Math.round(st.board)}/100 (${q.d>=0?'+':''}${q.d})</span></div></div>
