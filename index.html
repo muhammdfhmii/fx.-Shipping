@@ -242,6 +242,21 @@ button.cert{cursor:pointer} button.cert:hover{outline:1px solid var(--bad)}
 .filters .seg{margin-top:0}
 .stars{color:var(--accent);font-size:16px;letter-spacing:1px;white-space:nowrap}
 .stars .off{color:var(--line)}
+.opt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.opt{position:relative;text-align:left;display:grid;gap:3px;align-content:start;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px}
+.opt b{font-size:14.5px;padding-right:24px;line-height:1.3}
+.opt span{font-size:12.5px;color:var(--muted);line-height:1.4}
+.opt em{font-style:normal;font-family:var(--f-num);font-size:12.5px;font-weight:600;color:var(--accent);margin-top:4px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt::after{content:"";position:absolute;top:11px;right:11px;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line)}
+.opt[aria-pressed="true"]::after{background:var(--accent);border-color:var(--accent);box-shadow:inset 0 0 0 3px var(--soft)}
+.opt:disabled{opacity:.45;cursor:default}
+.loa-read{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:8px}
+.loa-read b{font-family:var(--f-display);font-size:30px;font-weight:800}
+input[type=range]{width:100%;margin:12px 0 4px;accent-color:var(--accent)}
+.range-ends{display:flex;justify-content:space-between;gap:8px}
+#designer{scroll-margin-top:120px}
 .warnbox{margin-top:12px;background:var(--bad-soft);color:var(--bad);border-radius:10px;padding:10px 12px;font-size:13.5px;font-weight:600}
 </style>
 </head>
@@ -343,8 +358,49 @@ const PLANS={
   b:{nama:'Tanker & Bunker',desc:'One MR product tanker and two bunker tankers in Singapore. Older ships, less cash.',ships:[['mr',13],['bunk',8],['bunk',16]],cash:19e6},
   c:{nama:'Start Small',desc:'One old Handysize and one bunker tanker, with plenty of cash to expand.',ships:[['handy',15],['bunk',10]],cash:42.5e6}
 };
+/* ---------- shipyard: custom newbuild specs ---------- */
+const LOA={feeder:[150,172,190],panamax:[240,260,294],neo:[280,300,366],handy:[160,180,190],supra:[180,190,200],kamsar:[215,229,229],mr:[170,183,190],lr2:[228,250,256],bunk:[85,100,110],lpg:[160,180,190],psv:[70,85,95],ahts:[60,75,90]};
+const CAP={feeder:[1700,'TEU',50],panamax:[4250,'TEU',50],neo:[8500,'TEU',100],handy:[35000,'DWT',500],supra:[58000,'DWT',500],kamsar:[82000,'DWT',500],mr:[50000,'DWT',500],lr2:[115000,'DWT',1000],bunk:[6500,'DWT',100],lpg:[38000,'cbm',500],psv:[4000,'DWT',100],ahts:[80,'t bollard pull',1]};
+const LOANOTE={panamax:'294 m is the limit for the old Panama Canal locks.',neo:'366 m is the limit for the new Panama Canal locks.',kamsar:'Kamsarmax ships are capped at 229 m by the bauxite port of Kamsar, Guinea, so they can only be shorter.',bunk:'Bunker tankers serving Singapore anchorages are usually under 110 m.',supra:'Supramax bulkers are usually 190 to 200 m.',lr2:'LR2 tankers are usually 228 to 250 m.'};
+const ENG={conv:{t:'Conventional diesel',d:'Burns VLSFO. Cheapest to build.',c:0,fm:1},eco:{t:'Eco electronic engine',d:'Electronically controlled fuel injection. About 10% less fuel.',c:0.03,fm:0.9},lng:{t:'Dual-fuel LNG',d:'Runs on LNG. About 22% lower fuel cost, and clients pay a little more for a low-carbon ship.',c:0.12,fm:0.78}};
+const EQ={
+  scrub:{g:'eco',t:'Exhaust gas scrubber',d:'Lets the ship burn cheaper high-sulphur fuel legally. About 8% lower fuel cost. Not needed with LNG.',c:0.025,fm:0.92,no:'lng'},
+  coat:{g:'eco',t:'Silicone hull coating',d:'Smoother hull with less marine growth. About 4% less fuel.',c:0.006,fm:0.96},
+  esd:{g:'eco',t:'Propeller duct and energy-saving fins',d:'Better water flow into the propeller. About 5% less fuel.',c:0.01,fm:0.95},
+  shaft:{g:'eco',t:'Shaft generator',d:'Makes electricity from the main engine at sea. About 3% less fuel.',c:0.008,fm:0.97},
+  reefer:{g:'cargo',segs:['container'],t:'Extra reefer plugs',d:'More plugs for frozen and chilled cargo. Freight about 6% higher.',c:0.02,em:1.06},
+  geared:{g:'cargo',segs:['bulk'],t:'Own cranes and grabs (geared)',d:'Loads at small ports without shore cranes. Freight about 7% higher.',c:0.04,em:1.07},
+  coatTank:{g:'cargo',segs:['tanker'],t:'Epoxy coated cargo tanks',d:'Carries more product grades and cleans faster. Rates about 6% higher.',c:0.03,em:1.06},
+  mfm:{g:'cargo',segs:['bunker'],t:'Mass flow meter (MPA approved)',d:'Singapore requires one on every bunker tanker. Clients pay about 12% more with it.',c:0.015,em:1.12,def:1},
+  reliq:{g:'cargo',segs:['gas'],t:'Reliquefaction plant',d:'Keeps cargo cold with no boil-off loss. Rates about 6% higher.',c:0.03,em:1.06},
+  dp2:{g:'cargo',segs:['offshore'],t:'DP2 dynamic positioning',d:'Back-up for every system, so one failure does not lose position. Oil majors pay about 12% more.',c:0.06,em:1.12,saf:0.05},
+  fifi:{g:'cargo',segs:['offshore'],t:'Fi-Fi 1 firefighting',d:'Can fight fires on oil platforms. Rates about 4% higher.',c:0.02,em:1.04,saf:0.03},
+  freefall:{g:'safety',t:'Free-fall lifeboat',d:'Launches in seconds, even when the ship is listing.',c:0.004,min:5e5,saf:0.08},
+  mist:{g:'safety',t:'Water mist and extra fire detection',d:'Engine room fires are found and put out early.',c:0.005,min:4e5,saf:0.1},
+  ibs:{g:'safety',t:'Integrated bridge with collision alerts',d:'Radar, ECDIS and AIS on one screen with automatic warnings.',c:0.006,min:6e5,saf:0.1},
+  gasdet:{g:'safety',t:'Fixed gas detection and rescue kit',d:'Alarms before anyone enters a tank or enclosed space.',c:0.002,min:2e5,saf:0.07},
+  cms:{g:'safety',t:'Engine monitoring and CCTV',d:'Spots wear early. About 25% fewer breakdowns.',c:0.004,min:3e5,saf:0.04,bd:0.75},
+  citadel:{g:'safety',t:'Anti-piracy citadel and razor wire',d:'A safe room for the crew. Robbers find it hard to board.',c:0.002,min:2e5,saf:0.03},
+  cabins:{g:'crew',t:'Single cabins, gym and crew Wi-Fi',d:'Better rest on board. Officers tire more slowly.',c:0.006,min:3e5},
+  hosp:{g:'crew',t:'Ship hospital and telemedicine',d:'Injured crew are treated on board more often.',c:0.002,min:2e5,saf:0.02}
+};
+const EQG=[['eco','Fuel savers'],['cargo','Cargo equipment'],['safety','Safety equipment'],['crew','Crew comfort']];
+const YARDS={
+  cn:{n:'China yard',d:'Lowest price. Build quality is fine, but delays are common.',pm:1,mo:14,cond:96,dm:1.05,delay:0.35},
+  kr:{n:'Korea yard',d:'Fast and well built. About 8% more expensive.',pm:1.08,mo:12,cond:100,dm:0.95,delay:0.15},
+  jp:{n:'Japan yard',d:'Best build quality, so ships wear slowly. About 15% more expensive.',pm:1.15,mo:13,cond:100,dm:0.85,delay:0.08},
+  my:{n:'Malaysia yard',d:'Local yard for small ships. Cheaper and quick, but more delays.',pm:0.94,mo:10,cond:96,dm:1.05,delay:0.4,segs:['bunker','offshore']}
+};
+const FLAGS={
+  my:{n:'Malaysia',fee:60e3,d:'Malaysian cabotage: offshore work in Malaysian waters goes to Malaysian ships first.',em:{offshore:1.08},psc:0},
+  sg:{n:'Singapore',fee:80e3,d:'MPA bunker licences need Singapore ships. Very good Port State Control record.',em:{bunker:1.08},psc:-4},
+  mh:{n:'Marshall Islands',fee:50e3,d:'Popular with oil majors and banks. Good Port State Control record.',em:{tanker:1.03,gas:1.03},psc:-2},
+  pa:{n:'Panama',fee:30e3,d:'Cheapest registry, but PSC inspectors target these ships more often.',em:{},psc:5}
+};
+const STAGES=[['Contract signed',0,0.2],['Steel cutting',0.25,0.1],['Keel laying',0.5,0.1],['Launching',0.8,0.1],['Delivery',1,0.5]];
+const NOSPEC={k:1,fm:1,em:1,om:1,pm:1,vm:1,saf:0,dm:1,bd:1,eq:[],eng:'conv',loa:null,flag:null,yard:null};
 
-let drafts={};let st=null,tab='overview',confirmKey=null,startPlan='a',showPool=null,fleetTab='all',renaming=null,nameMsg=null;
+let drafts={};let st=null,tab='overview',confirmKey=null,startPlan='a',showPool=null,fleetTab='all',renaming=null,nameMsg=null,spTab='all',spMode='buy',design=null;
 const TABS=[['overview','Overview'],['fleet','Fleet'],['contracts','Contracts'],['depts','Departments'],['hr','HR & Office'],['crewing','Crewing'],['safety','Safety'],['payroll','Crew Pay'],['sp','Buy & Sell'],['finance','Finance'],['company','Company']];
 const OPS=['chartering','crewing','marine','technical','finance'];
 const DNAME={chartering:'Chartering',crewing:'Crewing',marine:'Marine',technical:'Technical',finance:'Finance',hr:'HR & Admin'};
@@ -377,7 +433,7 @@ const surveyOverdue=sh=>dueIn(sh)<=0;
 const canTrade=sh=>!tooOld(sh)&&!surveyOverdue(sh);
 const dueLabel=sh=>{const m=dueIn(sh);return mlabel(st.m+Math.max(0,m))};
 const shoreCap=sh=>Math.round(clamp(90-((sh.age-((sh.dockDue??(sh.age+5))-5)))*3,72,90));
-const shoreCost=sh=>r10k(CLS[sh.cls].value*0.005*(1.15-0.25*Math.min(1,eff('technical'))));
+const shoreCost=sh=>r10k(CLS[sh.cls].value*sp(sh).vm*0.005*(1.15-0.25*Math.min(1,eff('technical'))));
 const canShore=sh=>['idle','voyage'].includes(sh.status)&&sh.cond<shoreCap(sh)-3;
 function crewScore(sh){const f=filled(sh);if(!f.length)return 0;return Math.round(f.reduce((a,r)=>a+sh.crew[r].comp,0)/f.length)}
 function crewMult(sh){const f=filled(sh);let m=1.6-(f.length?crewScore(sh):40)/100;m+=Math.min(0.6,shipGaps(sh)*0.08);if(f.length<4)m+=0.3;if(f.length){const af=f.reduce((a,r)=>a+(sh.crew[r].fat||0),0)/f.length;m+=Math.max(0,(af-55)/100)}return Math.max(0.5,m)}
@@ -406,10 +462,26 @@ const effRate=()=>st.rate+0.012*(1-Math.min(1,eff('finance')))+(st.ltvPen?0.01:0
 const recvSum=()=>(st.recv||[]).reduce((a,r)=>a+r.amt,0);
 const ltv=()=>{const f=fleetValue();return f?st.loan/f:0};
 function earnBase(cls){const c=CLS[cls];const basic=(142000+c.ratings*RATING_MK)*c.scale;const crew=basic*(1.25+7/30)+(4+c.ratings)*35*30+1500;return (c.fuel*2635+crew+c.other+c.port)*c.mk}
-function valueOf(sh){const c=CLS[sh.cls];return c.value*Math.max(0.2,1-sh.age*0.022)*(0.85+0.15*st.idx[c.seg])}
+const sp=sh=>(sh&&sh.spec)||NOSPEC;
+const loaOf=sh=>sp(sh).loa||LOA[sh.cls][1];
+function capTxt(cls,k){const [n,u,r]=CAP[cls];return (Math.round(n*(k||1)/r)*r).toLocaleString('en-MY')+' '+u}
+function buildSpec(cls,o){
+  const c=CLS[cls],L=LOA[cls],loa=clamp(Math.round(o.loa??L[1]),L[0],L[2]),k=(loa/L[1])**2,hf=k**0.85,yd=YARDS[o.yard],fl=FLAGS[o.flag],E=ENG[o.eng]||ENG.conv;
+  let eqc=E.c*c.value*hf,fmul=E.fm,em=1,saf=0,bd=1;
+  (o.eq||[]).forEach(key=>{const e=EQ[key];if(!e)return;eqc+=Math.max(e.min||0,e.c*c.value*hf);fmul*=e.fm||1;em*=e.em||1;saf+=e.saf||0;bd*=e.bd||1});
+  if(o.eng==='lng')em*=1.02;
+  const hull=nbPrice(cls)*hf*(yd?yd.pm:1),fee=fl?fl.fee:0;
+  return {loa,k,eng:o.eng||'conv',eq:[...(o.eq||[])],yard:o.yard||null,flag:o.flag||null,fe:fmul,fm:fmul*k**0.75,ee:em,em:em*k**0.9,om:0.5+0.5*k,pm:0.6+0.4*k,
+    vm:hf*(1+eqc/(c.value*hf)*0.6),saf:Math.min(0.6,saf),dm:yd?yd.dm:1,bd,hull:r10k(hull),eqc:r10k(eqc),fee,price:r10k(hull+eqc+fee),months:yd?yd.mo+(k>1.06?1:0):12,cond:yd?yd.cond:100};
+}
+function emOf(sh){const s=sp(sh),seg=segOf(sh.cls);let m=s.em*((FLAGS[s.flag]&&FLAGS[s.flag].em[seg])||1);if(seg==='tanker'||seg==='gas')m*=1+s.saf*0.08;return m}
+function fitFor(o,sh){const m=emOf(sh);if(Math.abs(m-1)<0.001)return o;return {...o,rev:r10k(o.rev*m),hire:o.hire?r10k(o.hire*m):o.hire}}
+const hasEq=(sh,k)=>sp(sh).eq.includes(k);
+const scrapVal=sh=>r10k(CLS[sh.cls].ldt*sp(sh).k*st.scrap);
+function valueOf(sh){const c=CLS[sh.cls];return c.value*sp(sh).vm*Math.max(0.2,1-sh.age*0.022)*(0.85+0.15*st.idx[c.seg])}
 function fleetValue(){return st.ships.reduce((a,s)=>a+valueOf(s),0)}
 function netWorth(){return st.cash+fleetValue()-st.loan+st.orders.reduce((a,o)=>a+o.paid,0)+recvSum()}
-function dockCost(sh){return r10k(CLS[sh.cls].value*0.03*(1.1-0.2*eff('technical')))}
+function dockCost(sh){return r10k(CLS[sh.cls].value*sp(sh).vm*0.03*(1.1-0.2*eff('technical')))}
 const emDockCost=sh=>r10k(dockCost(sh)*1.6);
 function enterDock(sh,cost,months,emergency){spend('dock',cost);sh.totC+=cost;sh.status='dock';sh.left=months;sh.dockDue=Math.round((sh.age+months/12+5)*12)/12;sh.emDock=!!emergency}
 function shoreRepair(sh){const c=shoreCost(sh);spend('repair',c);sh.totC+=c;const before=sh.cond;sh.cond=Math.min(shoreCap(sh),sh.cond+16);return [c,Math.round(sh.cond-before)]}
@@ -483,13 +555,26 @@ function genOffers(){
   const open=Object.keys(CLS).filter(k=>st.divs.includes(segOf(k)));for(let i=0;i<extra;i++)out.push(genOffer(pick(open)));
   st.offers=out.slice(0,18);
 }
-function genListing(seg){const open=Object.keys(CLS).filter(k=>seg?segOf(k)===seg:st.divs.includes(segOf(k)));const cls=pick(open),age=Math.round(rnd(3,seg?14:18));return {id:st.nid++,cls,age,cond:Math.round(clamp(92-age*1.5+rnd(-6,6),50,95)),price:r10k(valueOf({cls,age})*rnd(0.95,1.1)),seller:pick(['Greek owner','Singapore fund','Japanese owner','Indonesian operator','Norwegian owner','Chinese leasing firm'])}}
+function genListing(seg){
+  const open=Object.keys(CLS).filter(k=>seg?segOf(k)===seg:st.divs.includes(segOf(k)));const cls=pick(open),age=Math.round(rnd(3,18)),sg=segOf(cls),L=LOA[cls];
+  const pool=Object.keys(EQ).filter(k=>EQ[k].g!=='crew'&&!EQ[k].def&&(!EQ[k].segs||EQ[k].segs.includes(sg))).sort(()=>Math.random()-0.5);
+  const eq=pool.slice(0,Math.floor(rnd(0,3.4)));if(sg==='bunker')eq.push('mfm');
+  const eng=age<9&&Math.random()<0.5?'eco':'conv';
+  const flag=sg==='bunker'?'sg':sg==='offshore'&&Math.random()<0.6?'my':pick(['mh','pa','sg','mh']);
+  const spec=buildSpec(cls,{loa:L[1]+Math.round(rnd(-0.3,0.3)*(L[2]-L[0])),eng,eq,flag});
+  return {id:st.nid++,cls,age,spec,cond:Math.round(clamp(92-age*1.5+rnd(-6,6),50,95)),price:r10k(valueOf({cls,age,spec})*rnd(0.95,1.1)),seller:pick(['Greek owner','Singapore fund','Japanese owner','Indonesian operator','Norwegian owner','Chinese leasing firm'])};
+}
+function refillMarket(drop){
+  if(drop)st.market=st.market.filter(()=>Math.random()>0.35);
+  st.divs.forEach(d=>{let n=st.market.filter(m=>segOf(m.cls)===d).length;while(n<2){st.market.push(genListing(d));n++}});
+  if(st.divs.length&&Math.random()<0.5&&st.market.length<16)st.market.push(genListing(pick(st.divs)));
+}
 function refreshBids(){st.bids={};st.ships.forEach(s=>st.bids[s.id]=r10k(valueOf(s)*rnd(0.9,1.03)))}
 function bidFor(sh){if(st.bids[sh.id]==null)st.bids[sh.id]=r10k(valueOf(sh)*rnd(0.9,1.03));return st.bids[sh.id]}
 function headPool(d){if(!st.headPool[d]||!st.headPool[d].length)st.headPool[d]=[genHead(d,2),genHead(d,3),genHead(d,4)];return st.headPool[d]}
 
-function estCost(o){const c=CLS[o.cls],cc=crewCost(o.cls,scaleBasic(o.cls),4+c.ratings,true,o.hra);const run=(cc.wages+cc.food+cc.allow+c.other*(0.55+0.45*MAINT[st.maint].mult))*o.months;return o.type==='VC'?o.months*(c.fuel*st.bunker*st.fuelEff+c.port)+run:run}
-const estProfit=o=>o.rev-estCost(o);
+function estCost(o,sh){const c=CLS[o.cls],X=sp(sh),cc=crewCost(o.cls,scaleBasic(o.cls),4+c.ratings,true,o.hra);const run=(cc.wages+cc.food+cc.allow+c.other*X.om*(0.55+0.45*MAINT[st.maint].mult))*o.months;return o.type==='VC'?o.months*(c.fuel*X.fm*st.bunker*st.fuelEff+c.port*X.pm)+run:run}
+const estProfit=(o,sh)=>(sh?fitFor(o,sh):o).rev-estCost(o,sh);
 
 function upgrade(o){
   o.budget=o.budget||{};o.hc=o.hc||{};o.staff=o.staff||{};o.heads=o.heads||{};
@@ -516,7 +601,7 @@ function fresh(company,plan){
   const P=PLANS[plan];P.ships.forEach(([c,a])=>{st.ships.push(newShip(c,a,true));if(!st.divs.includes(segOf(c)))st.divs.push(segOf(c))});st.cash=P.cash;
   st.morale=moraleTarget();st.omorale=oMoraleTarget();
   st.startNW=netWorth();st.yearNW=st.startNW;st.target=Math.round(st.startNW*1.08/1e6)*1e6;st.reviewNW=st.startNW;
-  genOffers();for(let i=0;i<5;i++)st.market.push(genListing());refreshBids();
+  genOffers();refillMarket(false);refreshBids();
   addLog('You have been appointed CEO of '+company+'. Board target for 2027: net worth of '+fm(st.target)+'.','');
   autoCharter((t,tn,c)=>addLog(t,tn,c));
   save();
@@ -561,8 +646,8 @@ function autoCharter(note){
   if(!st.pol.autoCharter)return;
   st.ships.filter(sh=>sh.status==='idle'&&manned(sh)&&canTrade(sh)).forEach(sh=>{
     let best=null,bs=0;
-    st.offers.filter(o=>o.cls===sh.cls&&!(o.hra&&!av('hra'))).forEach(o=>{const p=estProfit(o);if(p<=0)return;let s=p/o.months;if(st.pol.mode===0&&o.type==='VC')s*=1.15;if(st.pol.mode===2&&o.type==='TC')s*=1.25+o.months*0.01;if(s>bs){bs=s;best=o}});
-    if(best){sh.status='voyage';sh.left=best.months;sh.c=best;st.offers=st.offers.filter(x=>x!==best);note('Chartering fixed '+sh.name+(best.type==='VC'?' '+best.from+' → '+best.to:' on a '+best.months+'-month time charter')+' for '+best.who+'.','','charter')}
+    st.offers.filter(o=>o.cls===sh.cls&&!(o.hra&&!av('hra'))).forEach(o=>{const p=estProfit(o,sh);if(p<=0)return;let s=p/o.months;if(st.pol.mode===0&&o.type==='VC')s*=1.15;if(st.pol.mode===2&&o.type==='TC')s*=1.25+o.months*0.01;if(s>bs){bs=s;best=o}});
+    if(best){sh.status='voyage';sh.left=best.months;sh.c=fitFor(best,sh);st.offers=st.offers.filter(x=>x!==best);note('Chartering fixed '+sh.name+(best.type==='VC'?' '+best.from+' → '+best.to:' on a '+best.months+'-month time charter')+' for '+best.who+'.','','charter')}
     else note('Chartering found no profitable cargo for '+sh.name+' this month.','bad','charter');
   });
 }
@@ -578,7 +663,7 @@ const EVENTS={
     make:x=>{const cert=pick(gapsOf(x.p,x.sh.cls));return {extra:{pid:x.p.id,cert},ship:x.sh.id,title:'PSC detention: missing certificate',body:`During a Port State Control inspection in Singapore, ${RANKS[x.r].t} ${x.p.name} on ${x.sh.name} could not show a valid ${CERTS[cert][0]} certificate (${CERTS[cert][1]}). The ship is detained.`}},
     choices:[['Pay the fine and train the officer','RM 40k fine plus course fee. Ship released.',(s,sh,q)=>{const p=findPerson(q.extra.pid);spend('penalty',40000);spend('train',CERTS[q.extra.cert][2]);if(p&&!p.certs.includes(q.extra.cert))p.certs.push(q.extra.cert);s.rep-=1;return ['Officer completed the course and the ship was released.','']}],
              ['Appeal the detention','RM 20k legal cost. Ship held a month, reputation drops.',(s,sh)=>{spend('penalty',20000);s.rep-=4;if(sh&&sh.status==='voyage')sh.left+=1;return ['Appeal rejected. Ship held for a month.','bad']}]]},
-  psc:{elig:s=>s.ships.filter(x=>x.status!=='delivery'&&x.cond<(s.hseq?70:78)),
+  psc:{elig:s=>s.ships.filter(x=>x.status!=='delivery'&&x.cond<(s.hseq?70:78)+((FLAGS[sp(x).flag]||{}).psc||0)-sp(x).saf*15),
     make:sh=>({ship:sh.id,title:'PSC detention: safety deficiencies',body:`PSC officers inspected ${sh.name} and found defects in the firefighting system and maintenance records. The ship cannot sail until they are fixed.`}),
     choices:[['Repair immediately','RM 450k. Ship released within days.',(s,sh)=>{spend('repair',450000);s.rep-=1;sh.cond=Math.min(100,sh.cond+6);return ['Defects fixed and the ship was released.','']}],
              ['Appeal and wait','RM 120k, ship held a month, reputation drops.',(s,sh)=>{spend('penalty',120000);s.rep-=4;if(sh.status==='voyage')sh.left+=1;return ['Appeal failed. Ship held for a month.','bad']}]]},
@@ -619,9 +704,9 @@ const EVENTS={
   cii:{elig:s=>s.flags.cii?[]:[true],make:()=>({title:'IMO tightens carbon rules',body:'The IMO tightened Carbon Intensity Indicator (CII) ratings. Clients will avoid poorly rated ships.'}),
     choices:[['Install fuel-saving upgrades','RM 500k per ship. Fuel use down 10%.',s=>{s.flags.cii=1;spend('repair',500000*s.ships.length);s.fuelEff=0.9;s.rep+=3;return ['New propellers and hull coatings fitted. Fuel use down 10%.','good']}],
              ['Wait and see','No cost now, reputation drops.',s=>{s.flags.cii=1;s.rep-=5;return ['Clients are worried about your fleet\'s carbon rating.','bad']}]]},
-  robbery:{elig:s=>voyaging(s),make:sh=>({ship:sh.id,title:'Robbery in the Singapore Strait',body:`Robbers boarded ${sh.name} at night and stole engine spares. No crew were hurt.`}),
+  robbery:{elig:s=>voyaging(s).filter(x=>!hasEq(x,'citadel')),make:sh=>({ship:sh.id,title:'Robbery in the Singapore Strait',body:`Robbers boarded ${sh.name} at night and stole engine spares. No crew were hurt.`}),
     choices:[['Report to the authorities','RM 180k in spares, morale drops.',s=>{spend('repair',180000);s.morale-=6;return ['Report filed and security watches increased.','bad']}]]},
-  medevac:{elig:s=>voyaging(s).filter(x=>segOf(x.cls)!=='bunker'),make:sh=>({ship:sh.id,title:'Crew member injured',body:`An AB on ${sh.name} was badly hurt on deck. The remote doctor advises hospital treatment now.`}),
+  medevac:{elig:s=>voyaging(s).filter(x=>segOf(x.cls)!=='bunker'&&!hasEq(x,'hosp')),make:sh=>({ship:sh.id,title:'Crew member injured',body:`An AB on ${sh.name} was badly hurt on deck. The remote doctor advises hospital treatment now.`}),
     choices:[['Send a helicopter','RM 350k. Voyage unaffected.',s=>{spend('penalty',350000);s.morale+=5;s.empRep+=3;return ['The AB was flown to hospital and is stable.','good']}],
              ['Divert to the nearest port','RM 120k, voyage a month late.',(s,sh)=>{spend('port',120000);sh.left+=1;return ['Ship diverted and the AB reached hospital.','']}]]},
   claim:{elig:s=>voyaging(s).filter(x=>x.c&&x.c.type==='VC'),make:sh=>({ship:sh.id,title:'Cargo damage claim',body:`Seawater entered a hold on ${sh.name} and damaged cargo. The cargo owner is claiming compensation.`}),
@@ -648,9 +733,9 @@ const EVENTS={
     make:()=>{const open=Object.keys(CLS).filter(k=>st.divs.includes(segOf(k)));const cls=pick(open),age=Math.round(rnd(6,13)),price=r10k(valueOf({cls,age})*rnd(0.72,0.8));return {extra:{cls,age,price},title:'Distressed sale offer',body:`A bank is selling a repossessed ${CLS[cls].nama} (${CLS[cls].size}, ${age} years old) for ${fm(price)}, about 25% below market. The bank wants an answer this month.`}},
     choices:[['Buy the ship','Pay in full from cash. You can rename it in Fleet.',(s,sh,q)=>{const x=q.extra;if(s.cash<x.price*1.01+5e6)return ['Finance blocked it: buying would leave less than RM 5M cash. Another owner bought the ship.','bad'];capOut(x.price);spend('commission',x.price*0.01);const n=newShip(x.cls,x.age,false);n.cond=Math.round(rnd(58,70));n.status='delivery';n.left=1;s.ships.push(n);if(!s.divs.includes(segOf(x.cls)))s.divs.push(segOf(x.cls));return ['Bought '+n.name+'. Condition is poor, plan a dry dock soon.','good']}],
              ['Pass','Keep your cash.',()=>['Another owner bought it.','']]]},
-  yardDelay:{elig:s=>s.orders.filter(o=>o.left>2),make:o=>({extra:{oid:o.id},title:'Shipyard delay',body:`The shipyard says ${o.name||'your '+CLS[o.cls].nama} will be late because of an engine supplier problem.`}),
-    choices:[['Accept 3 months delay','Yard pays 2% of the price as compensation.',(s,sh,q)=>{const o=s.orders.find(x=>x.id===q.extra.oid);if(!o)return ['Order no longer active.',''];o.left+=3;const c=r10k(o.price*0.02);s.cash+=c;s.cur.cap.sell+=c;return ['Delivery pushed back 3 months. Compensation of '+fm(c)+' received.','']}],
-             ['Insist on the contract date','Lawyers cost RM 200k. 50% chance they deliver on time.',(s,sh,q)=>{const o=s.orders.find(x=>x.id===q.extra.oid);spend('penalty',200000);if(!o)return ['Order no longer active.',''];if(Math.random()<0.5)return ['The yard found another engine supplier. On schedule.','good'];o.left+=3;return ['The yard still delivered late.','bad']}]]},
+  yardDelay:{elig:s=>s.orders.filter(o=>o.left>2&&!o.yardKey),make:o=>({extra:{oid:o.id},title:'Shipyard delay',body:`The shipyard says ${o.name||'your '+CLS[o.cls].nama} will be late because of an engine supplier problem.`}),
+    choices:[['Accept 3 months delay','Yard pays 2% of the price as compensation.',(s,sh,q)=>{const o=s.orders.find(x=>x.id===q.extra.oid);if(!o)return ['Order no longer active.',''];o.left+=3;if(o.total)o.total+=3;const c=r10k(o.price*0.02);s.cash+=c;s.cur.cap.sell+=c;return ['Delivery pushed back 3 months. Compensation of '+fm(c)+' received.','']}],
+             ['Insist on the contract date','Lawyers cost RM 200k. 50% chance they deliver on time.',(s,sh,q)=>{const o=s.orders.find(x=>x.id===q.extra.oid);spend('penalty',200000);if(!o)return ['Order no longer active.',''];if(Math.random()<0.5)return ['The yard found another engine supplier. On schedule.','good'];o.left+=3;if(o.total)o.total+=3;return ['The yard still delivered late.','bad']}]]},
   bigBreak:{elig:()=>[],
     choices:[['Emergency dry dock','About 60% more than a planned dock. Two months out of service. Condition back to 96% and the 5-year clock restarts.',(s,sh)=>{if(!sh)return ['The ship is no longer in the fleet.',''];const c=emDockCost(sh);if(sh.c&&sh.c.type==='VC'){s.recv.push({id:s.nid++,amt:sh.c.rev*0.6,who:sh.c.who,ship:sh.name,age:0})}sh.c=null;enterDock(sh,c,2,true);s.rep-=1;return ['Tugs towed '+sh.name+' to the yard. Emergency dock '+fm(c)+'. The charterer will settle part of the freight later.','bad']}],
              ['Tow to port and patch with shore technicians','Cheaper and quicker, but condition stays low and it may fail again.',(s,sh)=>{if(!sh)return ['The ship is no longer in the fleet.',''];const c=r10k(shoreCost(sh)*2.5);spend('repair',c);sh.totC+=c;sh.cond=Math.min(shoreCap(sh),sh.cond+10);return ['Shore technicians patched '+sh.name+' for '+fm(c)+'. Condition now '+Math.round(sh.cond)+'%.','']}]]},
@@ -694,7 +779,7 @@ const EVENTS={
 function tenderWin(sh,p,mult){
   if(!sh||sh.status!=='idle')return ['The vessel was no longer available.',''];
   if(Math.random()>p)return ['A rival owner won the tender.','bad'];
-  const c=CLS[sh.cls],hire=r10k((earnBase(sh.cls)-c.fuel*2635-c.port)*st.idx.offshore*mult*(1+boostFor('offshore')));
+  const c=CLS[sh.cls],hire=r10k((earnBase(sh.cls)-c.fuel*2635-c.port)*st.idx.offshore*mult*(1+boostFor('offshore'))*emOf(sh));
   sh.status='voyage';sh.left=18;sh.c={type:'TC',months:18,hire,rev:hire*18,who:'East Coast Oil Operator',from:'Kemaman',to:'Terengganu oil fields',cargo:'Field support',hra:false};st.rep+=2;
   return ['Tender won. '+sh.name+' starts an 18-month charter at '+fm(hire)+' a month.','good'];
 }
@@ -820,7 +905,7 @@ function crewSafety(note,mStart){
     if(sh.tension>0)sh.tension--;
     const sea=sh.wasSea,seg=segOf(sh.cls);
     filled(sh).forEach(r=>{const p=sh.crew[r];p.onb++;
-      if(sea){let g=7+(seg==='bunker'?5:seg==='offshore'?3:sh.c&&sh.c.type==='VC'?2:0)+(r==='master'||r==='ce'?1:0)-(av('wifi')?1.5:0)-(s.fixes.fatigue>0?3:0)+(s.press>0?3:0);p.fat=clamp(Math.round(p.fat+g*rnd(0.8,1.2)),0,100)}
+      if(sea){let g=7+(seg==='bunker'?5:seg==='offshore'?3:sh.c&&sh.c.type==='VC'?2:0)+(r==='master'||r==='ce'?1:0)-(av('wifi')?1.5:0)-(hasEq(sh,'cabins')?1.5:0)-(s.fixes.fatigue>0?3:0)+(s.press>0?3:0);p.fat=clamp(Math.round(p.fat+g*rnd(0.8,1.2)),0,100)}
       else p.fat=Math.max(0,p.fat-12)});
     if(!sea)return;
     const cw=causeWeights(sh);if(!cw)return;
@@ -828,7 +913,7 @@ function crewSafety(note,mStart){
     const lam=(cw.tot+0.5)*1.3*(s.culture/100)*nmF,n=Math.floor(lam)+(Math.random()<lam%1?1:0);
     for(let i=0;i<n;i++){const p=pick(cw.offs);if(Math.random()<TRAITS[p.trait].nm/1.5){p.nm++}}
     nmTot+=n;sh.learn=Math.min(0.45,(sh.learn||0)*0.85+n*0.06);
-    const pr=clamp(0.034*(cw.tot+0.35)*(1.3-s.culture/100*0.6)*(1-sh.learn)*(s.budget.marine===0?1.2:1),0,0.35);
+    const pr=clamp(0.034*(cw.tot+0.35)*(1.3-s.culture/100*0.6)*(1-sh.learn)*(1-sp(sh).saf)*(s.budget.marine===0?1.2:1),0,0.35);
     if(!incDone&&Math.random()<pr){incDone=true;s.queue.push(makeIncident(sh,cw))}
   });
   s.nmLog.push({m:mStart,n:nmTot});s.nmLog=s.nmLog.slice(-24);s.incLog=s.incLog.filter(x=>x.m>s.m-24);
@@ -934,22 +1019,26 @@ function endMonth(){
   if(!st||st.over||st.queue.length)return;
   const s=st,notes=[],mStart=s.m;const note=(t,tone,cat)=>{notes.push({t,tone});addLog(t,tone,cat)};
   const te=eff('technical');
-  s.orders.forEach(o=>{o.left--;if(o.left<=0){const bal=o.price-o.paid,pay=Math.min(Math.max(0,s.cash),bal);capOut(pay);const rest=bal-pay;if(rest>0)s.loan+=rest;
-    const sh=newShip(o.cls,0,false,o.name);sh.cond=100;s.ships.push(sh);note(`Newbuilding ${sh.name} delivered${rest>0?'. Shipyard financing of '+fm(rest)+' added to your loan':''}.`,'good')}});
+  const payYard=amt=>{const pay=Math.min(Math.max(0,s.cash),amt);capOut(pay);const rest=amt-pay;if(rest>0)s.loan+=rest;return rest};
+  s.orders.forEach(o=>{o.left--;const nm=o.name||'your new '+CLS[o.cls].nama;
+    if(o.total&&o.left>0){const prog=1-o.left/o.total;while(o.stage<STAGES.length-1&&prog>=STAGES[o.stage][1]){const g=STAGES[o.stage],amt=r10k(o.price*g[2]),rest=payYard(amt);o.paid+=amt;note(`${g[0]} done for ${nm}. Stage payment of ${fm(amt)} paid to the shipyard${rest>0?' ('+fm(rest)+' financed by the bank)':''}.`,'','yard');o.stage++}}
+    if(o.left>0&&o.yardKey&&o.left>2&&!s.queue.some(q=>q.id==='yardDelay')&&Math.random()<YARDS[o.yardKey].delay/12){const ev=EVENTS.yardDelay.make(o);s.queue.push({kind:'event',id:'yardDelay',ship:null,extra:ev.extra,title:ev.title,body:ev.body.replace('The shipyard','The '+YARDS[o.yardKey].n)})}
+    if(o.left<=0){const bal=Math.max(0,o.price-o.paid),rest=payYard(bal);o.paid=o.price;
+    const sh=newShip(o.cls,0,false,o.name);if(o.spec){sh.spec=o.spec;sh.cond=o.spec.cond}else sh.cond=100;s.ships.push(sh);note(`Newbuilding ${sh.name} delivered${o.spec&&o.spec.yard?' from the '+YARDS[o.spec.yard].n:''}${rest>0?'. Shipyard financing of '+fm(rest)+' added to your loan':''}.`,'good','yard')}});
   s.orders=s.orders.filter(o=>o.left>0);
   s.ships.forEach(sh=>{
     sh._r=0;sh._c=0;const S=(cat,x)=>{spend(cat,x);sh._c+=x},E=(cat,x)=>{earn(cat,x);sh._r+=x};
     const c=CLS[sh.cls],atSea=sh.status==='voyage',cc=crewCost(sh.cls,shipBasic(sh),filled(sh).length+c.ratings,atSea,atSea&&sh.c&&sh.c.hra);
     sh.wasSea=atSea;S('wages',cc.wages);S('food',cc.food);S('allow',cc.allow);
-    S('insur',c.other*0.35);S('stores',c.other*0.45*MAINT[s.maint].mult);S('mgmt',c.other*0.2);
+    const X=sp(sh),oth=c.other*X.om;S('insur',oth*0.35);S('stores',oth*0.45*MAINT[s.maint].mult);S('mgmt',oth*0.2);
     if(sh.status==='delivery'){sh.left--;if(sh.left<=0){sh.status='idle';note(sh.name+' delivered.','good')}return}
     if(sh.status==='dock'){sh.left--;if(sh.left<=0){sh.status='idle';sh.cond=96;note(sh.name+(sh.emDock?' left emergency dry dock':' passed its special survey')+'. Condition 96%, next dry dock '+dueLabel(sh)+'.','good','tech');sh.emDock=false}return}
     if(sh.status==='idle'){sh.cond=Math.max(30,sh.cond-0.6);return}
     const k=sh.c;let off=false;
-    sh.cond=Math.max(20,sh.cond-(2+Math.random()*2.5)*MAINT[s.maint].decay*(1+sh.age/40)*(1.2-0.4*te));
-    let p=(0.008+Math.max(0,65-sh.cond)*0.018)*crewMult(sh)*(1.4-0.8*te);if(s.hseq)p*=0.6;if(s.morale<40)p*=1.4;
+    sh.cond=Math.max(20,sh.cond-(2+Math.random()*2.5)*MAINT[s.maint].decay*X.dm*(1+sh.age/40)*(1.2-0.4*te));
+    let p=(0.008+Math.max(0,65-sh.cond)*0.018)*crewMult(sh)*(1.4-0.8*te)*X.bd;if(s.hseq)p*=0.6;if(s.morale<40)p*=1.4;
     if(Math.random()<p){if(sh.cond<38&&!s.queue.some(q=>q.id==='bigBreak'&&q.ship===sh.id)){off=true;sh.left+=1;s.rep-=4;s.queue.push({kind:'event',id:'bigBreak',ship:sh.id,title:'Major breakdown on '+sh.name,body:`${sh.name} lost propulsion. The Chief Engineer reports a cracked cylinder liner and damage to the stern tube seal. Condition is ${Math.round(sh.cond)}%. Shore technicians alone cannot fix this properly.`})}else{const cost=r10k(rnd(6e5,1.4e6));S('repair',cost);sh.left+=1;s.rep-=4;off=true;note('Engine breakdown on '+sh.name+'. Repairs '+fm(cost)+', a month lost.','bad')}}
-    if(k.type==='VC'){S('fuel',c.fuel*s.bunker*s.fuelEff);S('port',c.port)}
+    if(k.type==='VC'){S('fuel',c.fuel*X.fm*s.bunker*s.fuelEff);S('port',c.port*X.pm)}
     else if(!off)E('hire',k.hire);else note(sh.name+' was off-hire, so no hire was paid.','bad');
     sh.left--;
     if(sh.left<=0){
@@ -979,7 +1068,7 @@ function endMonth(){
   s.hist.push({m:mStart,rev,exp,net:rev-exp,revD:{...s.cur.rev},expD:{...s.cur.exp},cap:{...s.cur.cap}});s.hist=s.hist.slice(-48);s.cur=newLedger();
   s.m++;fix();
   if(s.cash<0){s.neg++;addLog(s.neg>=2?'Cash negative two months in a row.':'Negative cash! Take a loan or sell a ship before the end of next month.','bad')}else s.neg=0;
-  genOffers();s.market.splice(0,2);while(s.market.length<5)s.market.push(genListing());refreshBids();if(s.m%3===0)s.headPool={};
+  genOffers();refillMarket(true);refreshBids();if(s.m%3===0)s.headPool={};
   autoCharter(note);
   s.queue.unshift({kind:'report',rev,exp,notes,m:mStart});
   if(Math.random()<0.75)rollEvent();if(Math.random()<0.2)rollEvent();
@@ -1024,7 +1113,7 @@ function act(a,v){
     const o=st.offers.find(x=>x.id===+v),sel=document.getElementById('sel-'+v),sh=sel&&shipById(+sel.value);
     if(!o||!sh||sh.status!=='idle'||!manned(sh))return;
     if(o.hra&&!av('hra')){if(Math.random()<0.5){st.morale-=6;st.empRep-=4;addLog('Crew of '+sh.name+' refused to sail to '+o.to+' without a high risk area bonus.','bad');save();render();return}st.empRep-=3;st.morale-=4}
-    sh.status='voyage';sh.left=o.months;sh.c=o;st.offers=st.offers.filter(x=>x!==o);
+    sh.status='voyage';sh.left=o.months;sh.c=fitFor(o,sh);st.offers=st.offers.filter(x=>x!==o);
     addLog('You fixed '+sh.name+(o.type==='VC'?' '+o.from+' → '+o.to+' for '+o.who+'.':' on a '+o.months+'-month time charter to '+o.who+'.'),'','charter');
   }
   if(a==='dock'){const sh=shipById(+v);if(!sh||sh.status!=='idle')return;const plan=dueIn(sh)<=12;if(!plan&&sh.cond>=40)return;const c=plan?dockCost(sh):emDockCost(sh);if(st.cash<c)return;enterDock(sh,c,plan?1:2,!plan);addLog(sh.name+(plan?' entered dry dock for its special survey. Cost ':' sent for emergency dry dock. Cost ')+fm(c)+'.','','tech')}
@@ -1032,9 +1121,20 @@ function act(a,v){
   if(a==='sell'){const key='sell'+v;if(confirmKey!==key){confirmKey=key;render();return}
     const sh=shipById(+v);if(!sh||sh.status!=='idle')return;const p=bidFor(sh);capIn(p);spend('commission',p*0.01);filled(sh).forEach(r=>sendHome(sh.crew[r]));st.ships=st.ships.filter(x=>x!==sh);addLog(sh.name+' sold for '+fm(p)+'.','')}
   if(a==='scrap'){const key='scrap'+v;if(confirmKey!==key){confirmKey=key;render();return}
-    const sh=shipById(+v);if(!sh||sh.status!=='idle')return;const p=r10k(CLS[sh.cls].ldt*st.scrap);capIn(p);filled(sh).forEach(r=>sendHome(sh.crew[r]));st.ships=st.ships.filter(x=>x!==sh);addLog(sh.name+' sold for demolition at '+fm(p)+'.','')}
-  if(a==='buy'){const m=st.market.find(x=>x.id===+v);if(!m||st.cash<m.price*1.01)return;const cn=checkName(inputVal('nm-m'+m.id));if(!cn.ok){nameMsg={k:'m'+m.id,t:cn.e};render();return}nameMsg=null;delete drafts['nm-m'+m.id];capOut(m.price);spend('commission',m.price*0.01);const sh=newShip(m.cls,m.age,false,cn.n);sh.cond=m.cond;sh.status='delivery';sh.left=1;st.ships.push(sh);st.market=st.market.filter(x=>x!==m);addLog('Bought '+sh.name+' ('+CLS[m.cls].nama+') for '+fm(m.price)+'. Crewing will man it on delivery.','good')}
-  if(a==='order'){const price=nbPrice(v),dep=price*0.2;if(st.cash<dep)return;const cn=checkName(inputVal('nm-n'+v));if(!cn.ok){nameMsg={k:'n'+v,t:cn.e};render();return}nameMsg=null;delete drafts['nm-n'+v];capOut(dep);st.orders.push({id:st.nid++,cls:v,price,paid:dep,left:12,name:cn.n||null});addLog('Ordered '+(cn.n?cn.n+', a new ':'a new ')+CLS[v].nama+' for '+fm(price)+'. 20% deposit paid, delivery in 12 months.','good')}
+    const sh=shipById(+v);if(!sh||sh.status!=='idle')return;const p=scrapVal(sh);capIn(p);filled(sh).forEach(r=>sendHome(sh.crew[r]));st.ships=st.ships.filter(x=>x!==sh);addLog(sh.name+' sold for demolition at '+fm(p)+'.','')}
+  if(a==='buy'){const m=st.market.find(x=>x.id===+v);if(!m||st.cash<m.price*1.01)return;const cn=checkName(inputVal('nm-m'+m.id));if(!cn.ok){nameMsg={k:'m'+m.id,t:cn.e};render();return}nameMsg=null;delete drafts['nm-m'+m.id];capOut(m.price);spend('commission',m.price*0.01);const sh=newShip(m.cls,m.age,false,cn.n);sh.spec=m.spec||null;sh.cond=m.cond;sh.status='delivery';sh.left=1;st.ships.push(sh);st.market=st.market.filter(x=>x!==m);addLog('Bought '+sh.name+' ('+CLS[m.cls].nama+') for '+fm(m.price)+'. Crewing will man it on delivery.','good')}
+  if(a==='sptab'){spTab=v;design=null;nameMsg=null;render();return}
+  if(a==='spmode'){spMode=v;nameMsg=null;render();return}
+  if(a==='gosell'){const sh=shipById(+v);tab='sp';spMode='sell';spTab=sh?segOf(sh.cls):'all';design=null;render();window.scrollTo(0,0);return}
+  if(a==='design'){design=defaultDesign(v);nameMsg=null;render();const el=document.getElementById('designer');if(el)el.scrollIntoView({block:'start'});return}
+  if(a==='dcancel'){design=null;nameMsg=null;render();return}
+  if(a==='deng'&&design){design.eng=v;if(v==='lng')design.eq=design.eq.filter(x=>x!=='scrub');render();return}
+  if(a==='deq'&&design){if(EQ[v].no===design.eng)return;design.eq=design.eq.includes(v)?design.eq.filter(x=>x!==v):design.eq.concat(v);render();return}
+  if(a==='dyard'&&design){design.yard=v;render();return}
+  if(a==='dflag'&&design){design.flag=v;render();return}
+  if(a==='build'){if(!design)return;const S=buildSpec(design.cls,design),dep=r10k(S.price*STAGES[0][2]);if(st.cash<dep)return;const cn=checkName(inputVal('nm-design'));if(!cn.ok){nameMsg={k:'d',t:cn.e};render();return}nameMsg=null;delete drafts['nm-design'];
+    capOut(dep);if(cn.n)st.used.push(cn.n);st.orders.push({id:st.nid++,cls:design.cls,price:S.price,paid:dep,left:S.months,total:S.months,stage:1,name:cn.n||null,spec:S,yardKey:S.yard});
+    addLog('Signed a newbuilding contract with the '+YARDS[S.yard].n+' for '+(cn.n||'a new '+CLS[design.cls].nama)+' ('+S.loa+' m, '+capTxt(design.cls,S.k)+') at '+fm(S.price)+'. 20% paid now, delivery in '+S.months+' months.','good','yard');design=null}
   if(a==='renameStart'){renaming=+v;nameMsg=null;render();const el=document.getElementById('rn-'+v);if(el){el.focus();el.select()}return}
   if(a==='renameCancel'){renaming=null;nameMsg=null;render();return}
   if(a==='rename'){const sh=shipById(+v);if(!sh)return;const raw=inputVal('rn-'+v);if(raw.trim().toLowerCase()===sh.name.toLowerCase()){renaming=null;render();return}const cn=checkName(raw);if(!cn.ok||!cn.n){nameMsg={k:'r'+v,t:cn.e||'Type a name first.'};render();return}const old=sh.name;sh.name=cn.n;st.used.push(cn.n);renaming=null;nameMsg=null;addLog(old+' renamed '+cn.n+'. Flag registry fee RM 15k.','');spend('port',15000)}
@@ -1154,7 +1254,8 @@ function shipCard(sh){
   const nameRow=renaming===sh.id?`<div class="namebox" style="margin-top:0"><label for="rn-${sh.id}">New name</label><input id="rn-${sh.id}" maxlength="30" value="${esc(sh.name)}" autocomplete="off" data-enter="rename|r${sh.id}|${sh.id}"><div style="display:flex;gap:8px"><button type="button" class="btn primary" data-a="rename" data-v="${sh.id}" style="flex:1">Save name</button><button type="button" class="btn" data-a="renameCancel">Cancel</button></div>${nameMsg&&nameMsg.k==='r'+sh.id?`<div class="err">${esc(nameMsg.t)}</div>`:''}<div class="muted small" style="margin-top:4px">Renaming costs RM 15k in flag registry fees.</div></div>`
     :`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="ship-name">${esc(sh.name)}</div><button type="button" class="linkbtn" data-a="renameStart" data-v="${sh.id}" aria-label="Rename ${esc(sh.name)}">Rename</button></div>`;
   const ren=renaming===sh.id;
-  return `<article class="card">${ren?nameRow:''}<div class="ship-head"${ren?' style="margin-top:12px"':''}><div style="flex:1;min-width:0">${ren?'':nameRow}<div class="facts"><span>${c.nama} · <b>${c.size}</b></span><span>Age <b>${Math.floor(sh.age)} yrs</b></span><span>Value <b class="num">${fm(valueOf(sh))}</b></span></div></div>${statusPill(sh)}</div>
+  return `<article class="card">${ren?nameRow:''}<div class="ship-head"${ren?' style="margin-top:12px"':''}><div style="flex:1;min-width:0">${ren?'':nameRow}<div class="facts"><span>${c.nama} · <b>${capTxt(sh.cls,sp(sh).k)}</b></span><span>LOA <b>${loaOf(sh)} m</b></span><span>Age <b>${Math.floor(sh.age)} yrs</b></span><span>Value <b class="num">${fm(valueOf(sh))}</b></span>${sp(sh).flag?`<span>Flag <b>${FLAGS[sp(sh).flag].n}</b></span>`:''}</div></div>${statusPill(sh)}</div>
+    ${specChips(sp(sh))}
     ${condBar('Ship condition (%)',sh.cond)}
     <div class="facts" style="margin-top:10px"><span>Officers <b>${f}/4</b></span><span>Crew competence <b>${crewScore(sh)||'–'}</b></span><span>${g?`<b class="down">${g} certificate gaps</b>`:'<b class="up">Certificates complete</b>'}</span></div>
     <div class="money"><div><small>Last month</small><b class="num ${sh.lastNet<0?'down':'up'}">${fm(sh.lastNet||0)}</b></div><div><small>Profit since joined</small><b class="num ${pr<0?'down':'up'}">${fm(pr)}</b></div><div><small>Avg per day</small><b class="num ${pr<0?'down':''}">${fm(pr/mo/30)}</b></div></div>
@@ -1167,7 +1268,7 @@ function shipCard(sh){
       if(canShore(sh))b.push(`<button type="button" class="btn" data-a="shore" data-v="${sh.id}" ${st.cash<sc?'disabled':''}>Shore repair (${fm(sc)})</button>`);
       if(sh.status==='idle'&&plan)b.push(`<button type="button" class="btn ${surveyOverdue(sh)?'primary':''}" data-a="dock" data-v="${sh.id}" ${st.cash<dc?'disabled':''}>Special survey dry dock (${fm(dc)})</button>`);
       if(sh.status==='idle'&&em)b.push(`<button type="button" class="btn danger" data-a="dock" data-v="${sh.id}" ${st.cash<emDockCost(sh)?'disabled':''}>Emergency dry dock (${fm(emDockCost(sh))})</button>`);
-      if(sh.status==='idle'&&tooOld(sh))b.push('<button type="button" class="btn" data-a="tab" data-v="sp">Sell or scrap</button>');
+      if(sh.status==='idle'&&tooOld(sh))b.push('<button type="button" class="btn" data-a="gosell" data-v="${sh.id}">Sell or scrap</button>');
       return b.length?`<div class="actions">${b.join('')}</div>`:''})()}
     </article>`;
 }
@@ -1181,7 +1282,7 @@ function vFleet(){
   const groups=fleetTab==='all'?segs.map(d=>[d,show.filter(s=>segOf(s.cls)===d)]).filter(g=>g[1].length):[[fleetTab,show]];
   return `${tabs}
   ${fleetSummary(show,fleetTab==='all'?'Whole fleet':SEG[fleetTab]+' fleet')}
-  ${ord.length?`<h2>On order</h2><section class="card pl">${ord.map(o=>`<div><span><b>${esc(o.name||'Unnamed')}</b> · ${CLS[o.cls].nama}</span><span class="muted">${o.left} months to delivery</span></div>`).join('')}</section>`:''}
+  ${ord.length?`<h2>On order</h2><section class="card pl">${ord.map(o=>`<div><span><b>${esc(o.name||'Unnamed')}</b> · ${CLS[o.cls].nama}<br><span class="muted small">${stageNow(o)}</span></span><span class="muted">${o.left} mo</span></div>`).join('')}</section>`:''}
   ${groups.map(([d,ships])=>`<h2>${SEG[d]} · ${ships.length}</h2><div class="ships">${ships.map(shipCard).join('')}</div>`).join('')}
   <p class="muted small">Ships dry dock once every 5 years for the class special survey (booking opens 12 months before it is due). In between, shore technicians fix wear while the ship trades, up to a limit that drops as the ship goes longer since its last dock. Emergency dry dock is only for major breakdowns or condition below 40%. Tankers and gas carriers stop getting charters at 22 years, other ships at 25. Profit per ship counts voyage revenue against crew, running, fuel, port, repair and dock costs. It leaves out head office overhead.</p>`;
 }
@@ -1193,7 +1294,7 @@ function vContracts(){
       <div class="route">${o.type==='VC'?esc(o.from)+' → '+esc(o.to):o.months+' months for '+esc(o.who)}</div>
       <div class="muted small">${o.type==='VC'?esc(o.cargo)+' · '+esc(o.who)+' · '+o.months+(o.months>1?' months':' month'):'Hire '+fm(o.hire)+'/month · '+esc(o.cargo)}</div>
       <div class="money"><div><small>${o.type==='VC'?'Freight':'Total hire'}</small><b class="num">${fm(o.rev)}</b></div><div><small>Est. cost</small><b class="num">${fm(cost)}</b></div><div><small>Est. profit</small><b class="num ${prof<0?'down':'up'}">${fm(prof)}</b></div></div>
-      ${ok.length?`<div class="assign"><select id="sel-${o.id}" aria-label="Choose a ship">${ok.map(s=>`<option value="${s.id}">${esc(s.name)} (${Math.round(s.cond)}%)</option>`).join('')}</select><button type="button" class="btn primary" data-a="accept" data-v="${o.id}">Fix now</button></div>`:`<div class="muted small" style="margin-top:12px">No idle ${c.nama} ready.</div>`}
+      ${ok.length?`<div class="assign"><select id="sel-${o.id}" aria-label="Choose a ship">${ok.map(s=>{const m=emOf(s);return `<option value="${s.id}">${esc(s.name)} (${Math.round(s.cond)}%)${Math.abs(m-1)>0.005?' · rate '+(m>1?'+':'')+Math.round((m-1)*100)+'%':''}</option>`}).join('')}</select><button type="button" class="btn primary" data-a="accept" data-v="${o.id}">Fix now</button></div>`:`<div class="muted small" style="margin-top:12px">No idle ${c.nama} ready.</div>`}
     </article>`}).join('');
   return `<section class="help">${st.pol.autoCharter?`Your Chartering Manager fixes idle ships automatically at the end of each month (${['voyage charters first','balanced','time charters first'][st.pol.mode]}). You can still fix a ship yourself here.`:'Auto-chartering is off. Fix ships yourself here, or turn it on in Departments.'}</section>
   <h2>Chartering activity</h2><section class="card">${memoLog('charter',6)}</section>
@@ -1325,28 +1426,98 @@ function vPayroll(){
   </section>`;
 }
 
+const SHORT={scrub:'Scrubber',coat:'Silicone hull',esd:'Energy-saving fins',shaft:'Shaft generator',reefer:'Reefer plugs',geared:'Own cranes',coatTank:'Coated tanks',mfm:'Mass flow meter',reliq:'Reliquefaction',dp2:'DP2',fifi:'Fi-Fi 1',freefall:'Free-fall lifeboat',mist:'Water mist',ibs:'Integrated bridge',gasdet:'Gas detection',cms:'Engine monitoring',citadel:'Citadel',cabins:'Single cabins',hosp:'Ship hospital'};
+function specChips(S){
+  if(!S||S===NOSPEC)return '';const items=[];if(S.eng==='eco')items.push('Eco engine');if(S.eng==='lng')items.push('LNG dual-fuel');
+  (S.eq||[]).forEach(k=>{if(SHORT[k])items.push(SHORT[k])});
+  return items.length?`<div class="certs">${items.map(t=>`<span class="cert tank">${esc(t)}</span>`).join('')}</div>`:'';
+}
+function stageNow(o){
+  if(!o.total)return 'Under construction';const i=o.stage||1,done=STAGES[i-1][0],nx=STAGES[i];
+  return done+' · next: '+nx[0]+' ('+fm(i===STAGES.length-1?o.price-o.paid:o.price*nx[2])+')';
+}
+const safStars=saf=>clamp(1+Math.round(saf/0.6*4),1,5);
+function defaultDesign(cls){const seg=segOf(cls);return {cls,loa:LOA[cls][1],eng:'conv',eq:Object.keys(EQ).filter(k=>EQ[k].def&&(!EQ[k].segs||EQ[k].segs.includes(seg))),yard:'cn',flag:seg==='bunker'?'sg':seg==='offshore'?'my':'mh'}}
+const pct=v=>(v>0?'+':'')+Math.round(v*100)+'%';
+function loaRead(S,cls){return `<b class="num">${S.loa} m</b><span>${capTxt(cls,S.k)} · <span class="${S.k>1.005?'up':S.k<0.995?'down':''}">${Math.abs(S.k-1)<0.005?'standard size':pct(S.k-1)+' capacity'}</span></span>`}
+function designSum(S){
+  const d=design,dep=r10k(S.price*STAGES[0][2]),em=emOf({cls:d.cls,spec:S}),ss=safStars(S.saf);
+  return `<h3>Contract summary</h3>
+    <div class="pl" style="margin-top:10px"><div><span>Hull and machinery · ${YARDS[S.yard].n}</span><span class="num">${fm(S.hull)}</span></div><div><span>Engine and equipment</span><span class="num">${fm(S.eqc)}</span></div><div><span>Flag registration · ${FLAGS[S.flag].n}</span><span class="num">${fm(S.fee)}</span></div><div class="tot"><span>Contract price</span><span class="num">${fm(S.price)}</span></div></div>
+    <div class="kpis k3">${kpi('Earning power',pct(em-1),em>=1?'up':'down')}${kpi('Fuel per day',pct(S.fm-1),S.fm<=1?'up':'down')}${kpi('Safety rating',stars(ss))}${kpi('Build time',S.months+' months')}${kpi('Delivery',mlabel(st.m+S.months))}${kpi('Start condition',S.cond+'%')}</div>
+    <p class="muted small" style="margin:12px 0 0">Payments: ${STAGES.map(g=>`${Math.round(g[2]*100)}% ${g[0]==='Contract signed'?'now':'at '+g[0].toLowerCase()}`).join(', ')}. If cash is short at a stage, the bank finances the gap.</p>
+    <div class="actions"><button type="button" class="btn primary" data-a="build" ${st.cash<dep?'disabled':''} style="flex:1">${st.cash<dep?'Not enough cash for the '+fm(dep)+' deposit':'Sign contract · pay '+fm(dep)+' now'}</button><button type="button" class="btn" data-a="dcancel">Cancel</button></div>`;
+}
+function optBtn(a,v,on,t,d,price,dis){return `<button type="button" class="opt" data-a="${a}" data-v="${v}" aria-pressed="${on}" ${dis?'disabled':''}><b>${esc(t)}</b><span>${esc(d)}</span>${price?`<em>${price}</em>`:''}</button>`}
+function vDesigner(){
+  const d=design,c=CLS[d.cls],seg=c.seg,L=LOA[d.cls],S=buildSpec(d.cls,d),hf=S.k**0.85;
+  const eqPrice=e=>'+ '+fm(Math.max(e.min||0,e.c*c.value*hf));
+  const groups=EQG.map(([g,label])=>{const items=Object.entries(EQ).filter(([k,e])=>e.g===g&&(!e.segs||e.segs.includes(seg)));if(!items.length)return '';
+    return `<h2>${label}</h2><section class="card"><div class="opt-grid">${items.map(([k,e])=>optBtn('deq',k,d.eq.includes(k),e.t,e.d+(e.no===d.eng?' Not available with LNG.':''),eqPrice(e),e.no===d.eng)).join('')}</div></section>`}).join('');
+  const yards=Object.entries(YARDS).filter(([k,y])=>!y.segs||y.segs.includes(seg));
+  return `<div id="designer"></div><section class="card">
+    <div class="ship-head"><div><span class="chip">${SEG[seg]} · custom newbuild</span><div class="ship-name" style="margin-top:8px">${c.nama}</div></div><button type="button" class="linkbtn" data-a="dcancel">Back to ship types</button></div>
+    <div class="setting" style="margin-top:14px"><h3>Length overall (LOA)</h3><div class="loa-read" id="d-loa-out">${loaRead(S,d.cls)}</div>
+      <input type="range" id="d-loa" min="${L[0]}" max="${L[2]}" step="1" value="${S.loa}" aria-label="Length overall in metres" ${L[0]===L[2]?'disabled':''}>
+      <div class="range-ends muted small"><span>${L[0]} m</span><span>Standard ${L[1]} m</span><span>${L[2]} m</span></div>
+      <p class="muted small" style="margin:8px 0 0">A longer ship carries more cargo and earns more per voyage, but costs more to build and burns more fuel. ${LOANOTE[d.cls]||''}</p></div></section>
+  <h2>Main engine</h2><section class="card"><div class="opt-grid">${Object.entries(ENG).map(([k,e])=>optBtn('deng',k,d.eng===k,e.t,e.d,e.c?'+ '+fm(e.c*c.value*hf):'Included')).join('')}</div></section>
+  ${groups}
+  <h2>Shipyard</h2><section class="card"><div class="opt-grid">${yards.map(([k,y])=>optBtn('dyard',k,d.yard===k,y.n,y.d,fm(nbPrice(d.cls)*hf*y.pm)+' · '+(y.mo+(S.k>1.06?1:0))+' months')).join('')}</div></section>
+  <h2>Flag</h2><section class="card"><div class="opt-grid">${Object.entries(FLAGS).map(([k,f])=>optBtn('dflag',k,d.flag===k,f.n,f.d,fm(f.fee)+' registration')).join('')}</div></section>
+  <h2>Ship name</h2><section class="card" style="padding-top:4px">${nameInput('nm-design','Leave blank for an FX name','build|d|0')}</section>
+  <section class="card" id="d-sum">${designSum(S)}</section>`;
+}
+function orderCard(o){
+  const tot=o.total||12,prog=clamp(1-o.left/tot,0,1),S=o.spec;
+  return `<article class="card"><div class="ship-head"><div style="min-width:0"><div class="ship-name">${esc(o.name||'Unnamed newbuilding')}</div><div class="facts"><span>${CLS[o.cls].nama} · <b>${capTxt(o.cls,S?S.k:1)}</b></span>${S?`<span>LOA <b>${S.loa} m</b></span><span>${YARDS[S.yard].n}</span><span>Flag <b>${FLAGS[S.flag].n}</b></span>`:''}</div></div><span class="pill p-del">${o.left} mo</span></div>
+    <div class="cond"><div style="display:flex;justify-content:space-between;gap:8px"><span>${stageNow(o)}</span><b class="num">${Math.round(prog*100)}%</b></div><div class="bar"><i style="width:${prog*100}%"></i></div></div>
+    <div class="money"><div><small>Paid so far</small><b class="num">${fm(o.paid)}</b></div><div><small>Contract price</small><b class="num">${fm(o.price)}</b></div><div><small>Delivery</small><b>${mlabel(st.m+o.left)}</b></div></div>
+    ${S?specChips(S):''}</article>`;
+}
+function spSegs(){return SEGS.filter(d=>st.divs.includes(d)||st.ships.some(s=>segOf(s.cls)===d)||st.orders.some(o=>segOf(o.cls)===d))}
 function vSP(){
-  return `<h2>Second-hand ships for sale</h2>
-  <div class="offers">${st.market.map(m=>{const c=CLS[m.cls],tot=m.price*1.01;return `<article class="card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="chip">${SEG[c.seg]}</span><span class="muted small">Seller: ${m.seller}</span></div><div class="route">${c.nama} · ${c.size}</div>
-    <div class="facts"><span>Built <b>${yearOf(st.m)-m.age}</b> (${m.age} yrs)</span><span>Survey condition <b>${m.cond}%</b></span></div>
-    <div class="money"><div><small>Price</small><b class="num">${fm(m.price)}</b></div><div><small>Broker 1%</small><b class="num">${fm(m.price*0.01)}</b></div><div><small>Total</small><b class="num">${fm(tot)}</b></div></div>
-    ${st.cash>=tot?nameInput('nm-m'+m.id,'Leave blank for an FX name','buy|m'+m.id+'|'+m.id):''}
-    <div class="actions"><button type="button" class="btn primary" data-a="buy" data-v="${m.id}" ${st.cash<tot?'disabled':''}>${st.cash<tot?'Not enough cash':'Buy ship'}</button></div></article>`}).join('')}</div>
-  <p class="muted small">Only ships for your open divisions are listed. Open new divisions in <b>Company</b>.</p>
-  <h2>Sell or scrap your ships</h2>
-  <div class="offers">${st.ships.length?st.ships.map(sh=>{const b=bidFor(sh),scrap=r10k(CLS[sh.cls].ldt*st.scrap),ks='sell'+sh.id,kd='scrap'+sh.id,idle=sh.status==='idle';
-    return `<article class="card"><div class="ship-head"><div><div class="ship-name">${esc(sh.name)}</div><div class="facts"><span>${CLS[sh.cls].nama}</span><span>Age <b>${Math.floor(sh.age)} yrs</b></span><span>Condition <b>${Math.round(sh.cond)}%</b></span></div></div>${statusPill(sh)}</div>
-    <div class="money"><div><small>Best buyer offer</small><b class="num">${fm(b)}</b></div><div><small>Scrap value</small><b class="num">${fm(scrap)}</b></div><div><small>Book value</small><b class="num">${fm(valueOf(sh))}</b></div></div>
-    ${idle?`<div class="actions"><button type="button" class="btn ${confirmKey===ks?'danger':''}" data-a="sell" data-v="${sh.id}">${confirmKey===ks?'Confirm sale for '+fm(b):'Sell to buyer'}</button>${sh.age>=18?`<button type="button" class="btn ${confirmKey===kd?'danger':''}" data-a="scrap" data-v="${sh.id}">${confirmKey===kd?'Confirm demolition':'Sell for demolition'}</button>`:''}</div>`:'<div class="muted small" style="margin-top:12px">Ships can be sold only when idle.</div>'}
-  </article>`}).join(''):'<section class="help">You have no ships to sell.</section>'}</div>
-  <p class="muted small">Scrap value = lightweight tonnage (LDT) × demolition price, now ${full(st.scrap)} per LDT.</p>
-  <h2>Order a newbuilding</h2>
-  ${st.orders.length?`<section class="card pl">${st.orders.map(o=>`<div><span><b>${esc(o.name||'Unnamed')}</b> · ${CLS[o.cls].nama} · ${o.left} months to delivery</span><span class="num">${fm(o.paid)} of ${fm(o.price)}</span></div>`).join('')}</section>`:''}
-  <div class="offers">${Object.keys(CLS).filter(k=>st.divs.includes(segOf(k))).map(k=>{const c=CLS[k],p=nbPrice(k);return `<article class="card"><span class="chip">${SEG[c.seg]}</span><div class="route">${c.nama} · ${c.size}</div>
-    <div class="facts"><span>Price <b class="num">${fm(p)}</b></span><span>Deposit <b class="num">${fm(p*0.2)}</b></span><span>Delivery <b>12 months</b></span></div>
-    ${st.cash>=p*0.2?nameInput('nm-n'+k,'Leave blank for an FX name','order|n'+k+'|'+k):''}
-    <div class="actions"><button type="button" class="btn" data-a="order" data-v="${k}" ${st.cash<p*0.2?'disabled':''}>Order from shipyard</button></div></article>`}).join('')}</div>
-  <p class="muted small">The 80% balance is due on delivery. Any shortfall becomes shipyard financing on your loan.</p>`;
+  const segs=spSegs();if(spTab!=='all'&&!segs.includes(spTab))spTab='all';
+  const inSeg=cls=>spTab==='all'||segOf(cls)===spTab,label=spTab==='all'?'Whole fleet':SEG[spTab]+' fleet';
+  const mk=st.market.filter(m=>inSeg(m.cls)),mine=st.ships.filter(s=>inSeg(s.cls)),ord=st.orders.filter(o=>inSeg(o.cls));
+  const tabs=`<nav class="subtabs" aria-label="Fleets">${[['all','All fleets']].concat(segs.map(d=>[d,SEG[d]])).map(([k,l])=>`<button type="button" data-a="sptab" data-v="${k}" aria-pressed="${spTab===k}">${l} <span>${k==='all'?st.ships.length:st.ships.filter(s=>segOf(s.cls)===k).length}</span></button>`).join('')}</nav>`;
+  const val=mine.reduce((a,s)=>a+valueOf(s),0),age=mine.length?mine.reduce((a,s)=>a+s.age,0)/mine.length:0;
+  const summary=`<section class="card"><span class="chip">${label}</span><div style="margin-top:8px;font-family:var(--f-display);font-weight:800;font-size:24px">${mine.length} ship${mine.length===1?'':'s'}${ord.length?` <span class="muted" style="font-size:16px">+ ${ord.length} on order</span>`:''}</div>
+    <div class="kpis k3">${kpi('Fleet value',fm(val))}${kpi('Avg age',mine.length?age.toFixed(1)+' yrs':'–')}${kpi('Ships for sale',mk.length)}</div></section>`;
+  const modes=`<div class="seg" style="margin-top:0">${[['buy','Buy','('+mk.length+')'],['sell','Sell','('+mine.length+')'],['build','Newbuild',ord.length?'('+ord.length+')':'']].map(([k,l,n])=>`<button type="button" data-a="spmode" data-v="${k}" aria-pressed="${spMode===k}">${l} <small class="num">${n}</small></button>`).join('')}</div>`;
+  let body='';
+  if(spMode==='buy'){
+    body=mk.length?`<div class="offers">${mk.map(m=>{const c=CLS[m.cls],tot=m.price*1.01,S=m.spec||NOSPEC;return `<article class="card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="chip">${SEG[c.seg]}</span><span class="muted small">Seller: ${m.seller}</span></div><div class="route">${c.nama} · ${capTxt(m.cls,S.k)}</div>
+      <div class="facts"><span>Built <b>${yearOf(st.m)-m.age}</b> (${m.age} yrs)</span><span>LOA <b>${S.loa||LOA[m.cls][1]} m</b></span><span>Survey condition <b>${m.cond}%</b></span>${S.flag?`<span>Flag <b>${FLAGS[S.flag].n}</b></span>`:''}</div>
+      ${specChips(S)}
+      <div class="money"><div><small>Price</small><b class="num">${fm(m.price)}</b></div><div><small>Broker 1%</small><b class="num">${fm(m.price*0.01)}</b></div><div><small>Total</small><b class="num">${fm(tot)}</b></div></div>
+      ${st.cash>=tot?nameInput('nm-m'+m.id,'Leave blank for an FX name','buy|m'+m.id+'|'+m.id):''}
+      <div class="actions"><button type="button" class="btn primary" data-a="buy" data-v="${m.id}" ${st.cash<tot?'disabled':''}>${st.cash<tot?'Not enough cash':'Buy ship'}</button></div></article>`}).join('')}</div>`
+      :`<section class="help">No ${spTab==='all'?'':SEG[spTab].toLowerCase()+' '}ships for sale this month. Brokers bring new listings every month.</section>`;
+    body+=`<p class="muted small">Only ships for your open divisions are listed. Open new divisions in <b>Company</b>. Equipment shown is already fitted on board.</p>`;
+  }
+  if(spMode==='sell'){
+    body=`<div class="offers">${mine.length?mine.map(sh=>{const b=bidFor(sh),scrap=scrapVal(sh),ks='sell'+sh.id,kd='scrap'+sh.id,idle=sh.status==='idle';
+      return `<article class="card"><div class="ship-head"><div><div class="ship-name">${esc(sh.name)}</div><div class="facts"><span>${CLS[sh.cls].nama}</span><span>LOA <b>${loaOf(sh)} m</b></span><span>Age <b>${Math.floor(sh.age)} yrs</b></span><span>Condition <b>${Math.round(sh.cond)}%</b></span></div></div>${statusPill(sh)}</div>
+      <div class="money"><div><small>Best buyer offer</small><b class="num">${fm(b)}</b></div><div><small>Scrap value</small><b class="num">${fm(scrap)}</b></div><div><small>Book value</small><b class="num">${fm(valueOf(sh))}</b></div></div>
+      ${idle?`<div class="actions"><button type="button" class="btn ${confirmKey===ks?'danger':''}" data-a="sell" data-v="${sh.id}">${confirmKey===ks?'Confirm sale for '+fm(b):'Sell to buyer'}</button>${sh.age>=18?`<button type="button" class="btn ${confirmKey===kd?'danger':''}" data-a="scrap" data-v="${sh.id}">${confirmKey===kd?'Confirm demolition':'Sell for demolition'}</button>`:''}</div>`:'<div class="muted small" style="margin-top:12px">Ships can be sold only when idle.</div>'}
+    </article>`}).join(''):'<section class="help">You have no ships in this fleet to sell.</section>'}</div>
+    <p class="muted small">Scrap value = lightweight tonnage (LDT) × demolition price, now ${full(st.scrap)} per LDT. Ships with good equipment sell for more.</p>`;
+  }
+  if(spMode==='build'){
+    if(design)body=vDesigner();
+    else{
+      const types=Object.keys(CLS).filter(k=>st.divs.includes(segOf(k))&&inSeg(k));
+      body=`${ord.length?`<h2>Under construction</h2><div class="offers">${ord.map(orderCard).join('')}</div>`:''}
+      <h2>Design a new ship</h2>
+      <section class="help">Pick a ship type, then choose its length, engine, cargo gear, safety equipment, shipyard and flag. Every choice changes the price and how the ship performs.</section>
+      ${types.length?`<div class="offers">${types.map(k=>{const c=CLS[k],L=LOA[k];return `<article class="card"><span class="chip">${SEG[c.seg]}</span><div class="route">${c.nama}</div>
+        <div class="facts"><span>Standard <b>${capTxt(k,1)}</b></span><span>LOA <b>${L[0]===L[2]?L[1]+' m':L[0]+' to '+L[2]+' m'}</b></span><span>From <b class="num">${fm(nbPrice(k)*([...Object.values(YARDS)].filter(y=>!y.segs||y.segs.includes(c.seg)).reduce((a,y)=>Math.min(a,y.pm),9)))}</b></span></div>
+        <div class="actions"><button type="button" class="btn primary" data-a="design" data-v="${k}">Design and order</button></div></article>`}).join('')}</div>`
+      :'<section class="help">Open this division in <b>Company</b> before ordering ships for it.</section>'}`;
+    }
+  }
+  return `${tabs}${summary}${modes}${body}`;
 }
 
 function chart12(){
@@ -1425,6 +1596,12 @@ function vCompany(){
     <dt>Near miss</dt><dd>An event that could have caused harm but did not. Reporting them is how fleets prevent real accidents.</dd>
     <dt>Root cause</dt><dd>The underlying reason a mistake happened, such as fatigue or a bad procedure, rather than just who made it.</dd>
     <dt>Just culture</dt><dd>Crew are not punished for honest mistakes, but deliberate rule-breaking is not tolerated.</dd>
+    <dt>LOA</dt><dd>Length overall, from the tip of the bow to the stern. Ports, locks and berths limit how long a ship can be.</dd>
+    <dt>Scrubber</dt><dd>Cleans sulphur from the exhaust so the ship can burn cheaper high-sulphur fuel under IMO 2020 rules.</dd>
+    <dt>MFM</dt><dd>Mass flow meter. Measures fuel delivered by a bunker tanker. MPA requires it in Singapore.</dd>
+    <dt>DP2</dt><dd>Dynamic positioning with back-up systems, so a single failure does not move the vessel off position.</dd>
+    <dt>Steel cutting</dt><dd>Shipbuilding milestones: steel cutting, keel laying, launching and delivery. The owner pays the yard at each stage.</dd>
+    <dt>Flag state</dt><dd>The country where the ship is registered. Its laws apply on board, and it affects cabotage rights and PSC inspections.</dd>
     <dt>LDT</dt><dd>Lightweight tonnage, the weight of the empty ship. Used to price demolition.</dd>
   </dl></section>
   <div><button type="button" class="btn ${confirmKey==='reset'?'danger':''}" data-a="reset">${confirmKey==='reset'?'Tap again to start over':'Start a new game'}</button></div>`;
@@ -1434,7 +1611,7 @@ function vStart(){
   return `<div class="wrap start">
     <section class="hero"><svg viewBox="0 0 200 90" aria-hidden="true"><path d="M10 60 L190 60 L170 82 L28 82 Z" fill="#fff"/><rect x="40" y="36" width="22" height="22" fill="#fff"/><rect x="66" y="36" width="22" height="22" fill="#fff"/><rect x="92" y="36" width="22" height="22" fill="#fff"/><rect x="118" y="36" width="22" height="22" fill="#fff"/><rect x="150" y="18" width="20" height="40" fill="#fff"/></svg>
       <h1>FX Shipping</h1>
-      <p>You are the new CEO. Hire department heads and office staff, decide how lean each department runs, set crew and office pay, investigate crew mistakes, buy and name your own ships, and open divisions from container lines to LPG and offshore. Grow from a small owner into an Asian shipping giant. Meet the board's yearly target or get fired.</p></section>
+      <p>You are the new CEO. Hire department heads and office staff, decide how lean each department runs, set crew and office pay, investigate crew mistakes, buy and name your own ships, design newbuildings down to the LOA and safety gear, and open divisions from container lines to LPG and offshore. Grow from a small owner into an Asian shipping giant. Meet the board's yearly target or get fired.</p></section>
     <label class="field">Company name<input id="co-name" maxlength="40" placeholder="FX Shipping Sdn Bhd" autocomplete="off" value="${esc(drafts['co-name']||'')}"></label>
     <div><div style="font-weight:600;margin-bottom:8px">Choose your starting fleet</div>
       <div class="plans">${Object.entries(PLANS).map(([k,p])=>`<button type="button" class="plan" data-a="plan" data-v="${k}" aria-pressed="${startPlan===k}"><b>${p.nama}</b><span>${p.desc} Cash ${fm(p.cash)}.</span></button>`).join('')}</div></div>
@@ -1490,10 +1667,11 @@ function save(){try{if(st)localStorage.setItem(KEY,JSON.stringify(st))}catch(e){
 function load(){try{let s=localStorage.getItem(KEY);if(!s)s=localStorage.getItem(OLDKEY);const o=s?JSON.parse(s):null;return o&&(o.v===3||o.v===4)?o:null}catch(e){return null}}
 function adopt(o){st=o;const wasV3=st.v===3;upgrade(st);if(wasV3){DK().forEach(d=>{if(st.heads[d]===undefined)st.heads[d]=genHead(d,3)});st.omorale=oMoraleTarget();addLog('New departments added: Finance and HR & Admin. Office staff are now managed in HR & Office.','')}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;act(b.dataset.a,b.dataset.v)});
-document.addEventListener('input',e=>{const t=e.target;if(t.id&&(t.id.startsWith('nm-')||t.id==='co-name'))drafts[t.id]=t.value});
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='d-loa'&&design){design.loa=+t.value;const S=buildSpec(design.cls,design),o=document.getElementById('d-loa-out'),m=document.getElementById('d-sum');if(o)o.innerHTML=loaRead(S,design.cls);if(m)m.innerHTML=designSum(S);return}if(t.id&&(t.id.startsWith('nm-')||t.id==='co-name'))drafts[t.id]=t.value});
+document.addEventListener('change',e=>{if(e.target.id==='d-loa'&&design)render()});
 document.addEventListener('keydown',e=>{const t=e.target;if(e.key!=='Enter'||!t.dataset||!t.dataset.enter)return;e.preventDefault();const [a,,v]=t.dataset.enter.split('|');act(a,v)});
-function start(data){const d=data&&data.st&&(data.st.v===3||data.st.v===4)?data.st:null;const o=d||load();if(o)adopt(o);else st=null;if(data&&data.tab)tab=data.tab;if(data&&data.fleetTab)fleetTab=data.fleetTab;render()}
-window.claude?.hot?.snapshot?.(()=>({st,tab,fleetTab}));
+function start(data){const d=data&&data.st&&(data.st.v===3||data.st.v===4)?data.st:null;const o=d||load();if(o)adopt(o);else st=null;if(data&&data.tab)tab=data.tab;if(data&&data.fleetTab)fleetTab=data.fleetTab;if(data&&data.spTab)spTab=data.spTab;if(data&&data.spMode)spMode=data.spMode;if(data&&data.design)design=data.design;render()}
+window.claude?.hot?.snapshot?.(()=>({st,tab,fleetTab,spTab,spMode,design}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 </script>
 
