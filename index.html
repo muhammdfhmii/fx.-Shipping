@@ -19,29 +19,32 @@ img{max-width:100%}
 </style>
 <title>FX Shipping</title>
 <style>
-/* Layout: sticky navy bridge bar + tabs, single centred column of cards on a cool white sea */
+/* Monochrome: black bridge bar, white chart-paper cards, ink accents; red/green kept only for money and warnings */
 :root{
-  --bg:#F3F7FC; --surface:#FFFFFF; --ink:#0C1F3A; --muted:#566884; --line:#D9E3EF;
-  --accent:#1557C0; --accent-ink:#FFFFFF; --soft:#E4EEFB;
-  --hdr:#0B2545; --hdr-ink:#FFFFFF; --hdr-muted:#A9BEDC;
-  --good:#1C7C54; --good-soft:#E3F3EB; --warn:#9A6400; --warn-soft:#FBF0DC; --bad:#BC3328; --bad-soft:#FBE7E5;
-  --shade:rgba(11,37,69,.45);
-  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
-  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --bg:#F3F3F1; --surface:#FFFFFF; --ink:#111111; --muted:#6A6A66; --line:#DCDCD8;
+  --accent:#111111; --accent-ink:#FFFFFF; --soft:#ECECE8;
+  --hdr:#0A0A0A; --hdr-ink:#FFFFFF; --hdr-muted:#9C9C98;
+  --good:#24764A; --good-soft:#E6F1EA; --warn:#7A5B00; --warn-soft:#F3EEDD; --bad:#B8322A; --bad-soft:#F7E6E4;
+  --sea:#FFFFFF; --land:#E4E4E0; --coast:#8E8E89; --grid:#EFEFEC;
+  --shade:rgba(0,0,0,.5);
+  --f-display:"Space Grotesk","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"JetBrains Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#081325; --surface:#0F1F38; --ink:#E7EEF8; --muted:#93A5C1; --line:#1F3459;
-  --accent:#5E9DFF; --accent-ink:#04122A; --soft:#14305A;
-  --hdr:#050D1B; --hdr-ink:#FFFFFF; --hdr-muted:#8EA5C8;
-  --good:#4CC38A; --good-soft:#0F3326; --warn:#E3B04B; --warn-soft:#3A2C0E; --bad:#F27B6E; --bad-soft:#3D1A17;
-  --shade:rgba(0,0,0,.6); color-scheme:dark}}
+  --bg:#0B0B0B; --surface:#151515; --ink:#F2F2F0; --muted:#9C9C98; --line:#2B2B29;
+  --accent:#F2F2F0; --accent-ink:#0B0B0B; --soft:#232321;
+  --hdr:#000000; --hdr-ink:#FFFFFF; --hdr-muted:#8E8E8A;
+  --good:#5CC58C; --good-soft:#14281D; --warn:#D9B44A; --warn-soft:#2D260F; --bad:#F07A6E; --bad-soft:#331816;
+  --sea:#0E0E0E; --land:#262624; --coast:#5A5A56; --grid:#1A1A19;
+  --shade:rgba(0,0,0,.65); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#081325; --surface:#0F1F38; --ink:#E7EEF8; --muted:#93A5C1; --line:#1F3459;
-  --accent:#5E9DFF; --accent-ink:#04122A; --soft:#14305A;
-  --hdr:#050D1B; --hdr-ink:#FFFFFF; --hdr-muted:#8EA5C8;
-  --good:#4CC38A; --good-soft:#0F3326; --warn:#E3B04B; --warn-soft:#3A2C0E; --bad:#F27B6E; --bad-soft:#3D1A17;
-  --shade:rgba(0,0,0,.6); color-scheme:dark}
+  --bg:#0B0B0B; --surface:#151515; --ink:#F2F2F0; --muted:#9C9C98; --line:#2B2B29;
+  --accent:#F2F2F0; --accent-ink:#0B0B0B; --soft:#232321;
+  --hdr:#000000; --hdr-ink:#FFFFFF; --hdr-muted:#8E8E8A;
+  --good:#5CC58C; --good-soft:#14281D; --warn:#D9B44A; --warn-soft:#2D260F; --bad:#F07A6E; --bad-soft:#331816;
+  --sea:#0E0E0E; --land:#262624; --coast:#5A5A56; --grid:#1A1A19;
+  --shade:rgba(0,0,0,.65); color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--hdr)}
