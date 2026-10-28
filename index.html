@@ -710,7 +710,7 @@ function autoCrew(note){
       else if(!over)over=p;
     }
     if(cur){cur.flag=false;note(`Crewing found no better ${RANKS[r].t} than ${cur.name} this month.`,'','crew');return}
-    if(over&&!st.queue.some(q=>q.id==='premium'))st.queue.push({kind:'event',id:'premium',ship:sh.id,extra:{r,p:over},title:'Crewing Manager requests approval',
+    if(over&&!st.queue.some(q=>q.id==='premium'&&q.ship===sh.id&&q.extra&&q.extra.r===r))st.queue.push({kind:'event',id:'premium',ship:sh.id,extra:{r,p:over},title:'Crewing Manager requests approval',
       body:`${sh.name} has no ${RANKS[r].t}. The best candidate, ${over.name} (${over.nat}, competence ${over.comp}, reputation ${over.rep.toFixed(1)}), asks for ${full(over.expect)} a month. Your scale is ${full(st.wages[r])} and your policy allows up to ${full(cap)}.`});
     else note(`Crewing could not find a ${RANKS[r].t} for ${sh.name}. The ship cannot sail until one is found.`,'bad','crew');
   }));
@@ -1361,7 +1361,9 @@ function act(a,v){
   if(a==='plan'){startPlan=v;render();return}
   if(a==='begin'){const n=(document.getElementById('co-name').value||'').trim()||'FX Shipping Sdn Bhd';fresh(n.slice(0,40),startPlan);tab='overview';render();return}
   if(!st)return;
-  if(a==='end')return endMonth();
+  if(a==='end'){st.clock=Date.now();return endMonth()}
+  if(a==='rtToggle'){st.rt=!liveOn();st.clock=Date.now();if(!st.rt)st.owed=0;save();render();return}
+  if(a==='rush'){const list=v==='all'?st.ships.filter(s=>rushN(s)&&s.status!=='dock'):[shipById(+v)].filter(Boolean);const c=list.reduce((x,s)=>x+rushCost(s),0);if(!list.length||st.cash<c)return;list.forEach(rushShip);save();render();return}
   if(a==='accept'){
     const o=st.offers.find(x=>x.id===+v),sel=document.getElementById('sel-'+v),sh=sel&&shipById(+sel.value);
     if(!o||!sh||sh.status!=='idle'||!manned(sh))return;
@@ -1778,7 +1780,7 @@ function shipCard(sh){
     <div class="facts" style="margin-top:6px"><span>Next dry dock <b class="${dueIn(sh)<=6?'down':''}">${dueIn(sh)<=0?'overdue':dueLabel(sh)+' ('+dueIn(sh)+' mo)'}</b></span><span>Shore repair limit <b>${shoreCap(sh)}%</b></span><span>Carbon rating (CII) <b class="${['D','E'].includes(sh.cii)?'down':''}">${sh.cii||'not rated yet'}</b> · on track for <b class="${['D','E'].includes(ciiOf(sh))?'down':''}">${ciiOf(sh)}</b> in ${yearOf(st.m)}</span>${sh.slowCii>0?'<span><b>Slow steaming</b> '+sh.slowCii+' mo</span>':''}${sh.pscPrep>0?'<span><b>PSC ready</b></span>':''}</div>
     ${sh.status==='dock'?`<div class="voyage">${sh.emDock?'Emergency repairs in the shipyard after a major breakdown. The 5-year survey is done at the same time.':'5-year special survey: hull blasting and painting, propeller and rudder checks, tank inspections and engine overhaul.'}</div>`:''}
     ${surveyOverdue(sh)&&sh.status==='idle'?`<div class="warnbox">Class requires the 5-year special survey. This ship cannot take new charters until it is dry docked.</div>`:''}
-    ${sh.status==='idle'&&f<4?`<div class="voyage">Crewing is recruiting the missing officers. They join at the end of the month.</div>`:''}
+    ${rushN(sh)&&sh.status!=='dock'?`<div class="voyage">${rushSr(sh).length?'Missing '+rushSr(sh).map(r=>RANKS[r].t).join(', ')+'. ':''}${jrVac(sh).length?jrVac(sh).length+' junior post'+(jrVac(sh).length>1?'s':'')+' open. ':''}Crewing fills these at month end, but may fail.<div class="actions" style="margin-top:10px"><button type="button" class="btn primary" data-a="rush" data-v="${sh.id}" ${st.cash<rushCost(sh)?'disabled':''}>Push Crewing: hire now (${fm(rushCost(sh))})</button></div></div>`:''}
     ${(()=>{if(!['idle','voyage'].includes(sh.status))return '';const sc=shoreCost(sh),plan=dueIn(sh)<=12,em=!plan&&sh.cond<40,b=[];
       if(canShore(sh))b.push(`<button type="button" class="btn" data-a="shore" data-v="${sh.id}" ${st.cash<sc?'disabled':''}>Shore repair (${fm(sc)})</button>`);
       if(sh.status==='idle'&&plan)b.push(`<button type="button" class="btn ${surveyOverdue(sh)?'primary':''}" data-a="dock" data-v="${sh.id}" ${st.cash<dc?'disabled':''}>Special survey dry dock (${fm(dc)})</button>`);
@@ -1908,6 +1910,11 @@ function vCrewing(){
     <div class="actions"><button type="button" class="btn" data-a="tab" data-v="depts">Change crewing policy</button></div>
   </section>
   ${vac.length?`<div class="warnbox">Vacant: ${vac.map(x=>esc(x.s.name)+' '+RANKS[x.r].t).join(' · ')}. Crewing fills these at the end of the month.</div>`:''}
+  <h2>Push Crewing</h2>
+  <section class="card">${(()=>{const why=crewWhy(),sh=st.ships.filter(s=>rushN(s)&&s.status!=='dock'),cost=sh.reduce((a,s)=>a+rushCost(s),0),n=sh.reduce((a,s)=>a+rushN(s),0);
+    return `<h3>Why ships stay undermanned</h3>${why.length?`<ul class="memo" style="margin-top:10px">${why.map(t=>`<li class="q-bad">${t}</li>`).join('')}</ul>`:'<p class="muted small" style="margin:8px 0 0">Your crewing setup is healthy. Vacancies usually fill at month end.</p>'}
+    <div class="setting"><h3>Rush hire now</h3><p class="muted small" style="margin:6px 0 0">The agency sends crew straight away instead of waiting for month end. Costs ${fm(RUSH_SR+7500)} per officer and ${fm(RUSH_JR+3000)} per junior, and officers sign at 10% above your scale.</p>
+    <div class="actions"><button type="button" class="btn primary" data-a="rush" data-v="all" ${!n||st.cash<cost?'disabled':''}>${n?'Fill all '+n+' post'+(n>1?'s':'')+' now ('+fm(cost)+')':'No open posts'}</button></div></div>`})()}</section>
   <h2>Crew voice</h2>
   <section class="card">${st.voice.length?`<ul class="memo">${st.voice.slice(0,8).map(v=>`<li class="${v.tone==='bad'?'q-bad':v.tone==='good'?'q-good':''}"><div class="rk">${esc(v.rank)} ${esc(v.name)} · ${esc(v.ship)} · ${mlabel(v.m)}</div><div>“${esc(v.t)}”</div></li>`).join('')}</ul>`:'<p class="muted" style="margin:0">Crew messages appear after your first month.</p>'}
     <p class="tip muted small" style="margin:12px 0 0">Read these like a manager: one complaint is one person, the same complaint from several ships is a pattern.</p></section>
@@ -2282,10 +2289,10 @@ function render(){
   const mp=meetPending();
   const flag={meeting:mp,crewing:vac,depts:noHead,hr:st.omorale<45?1:0,safety:exh};
   const gdot=g=>g.tabs.reduce((a,t)=>a+(flag[t]||0),0);
-  const body={overview:vOverview,meeting:vMeeting,fleet:vFleet,map:vMap,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,crew:vCrew,safety:vSafety,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
+  const body=(tab==='overview'?liveCard():'')+{overview:vOverview,meeting:vMeeting,fleet:vFleet,map:vMap,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,crew:vCrew,safety:vSafety,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
   const G=groupOf(tab);
   app.innerHTML=`<header class="top"><div class="wrap">
-    <div class="top-row"><div class="brand"><div class="co">${esc(st.company)}</div><div class="when">${st.over?'Game over':mlabel(st.m)}</div></div>
+    <div class="top-row"><div class="brand"><div class="co">${esc(st.company)}</div><div class="when">${whenTxt()}</div></div>
       <div class="cashpill"><small>Cash</small><b class="${st.cash<0?'neg':''}">${fm(st.cash)}</b></div>
       <button type="button" class="tipbtn" data-a="tips" aria-pressed="${tipsOn}" aria-label="${tipsOn?'Hide':'Show'} tips">?</button>
       <button type="button" class="btn-end" data-a="end" ${st.over?'disabled':''}>End month</button></div>
@@ -2299,7 +2306,13 @@ function renderModal(){
   const el=document.getElementById('modal');
   if(!st||!st.queue.length){el.hidden=true;el.innerHTML='';return}
   const q=st.queue[0];let h='';
-  if(q.kind==='report'){const net=q.rev-q.exp;
+  if(q.kind==='away'){const net=q.rev-q.exp;
+    h=`<div class="eyebrow">While you were away</div><h3>${q.n} month${q.n>1?'s':''} passed</h3>
+    <div class="pl" style="margin-bottom:14px"><div><span>Revenue</span><b class="num up">${fm(q.rev)}</b></div><div><span>Expenditure</span><span class="num">-${fm(q.exp)}</span></div><div><span>${net>=0?'Profit':'Loss'}</span><b class="num ${net<0?'down':'up'}">${fm(net)}</b></div><div class="tot"><span>Cash now</span><span class="num ${st.cash<0?'down':''}">${fm(st.cash)}</span></div></div>
+    ${q.notes.length?`<ul class="notes">${q.notes.slice(-12).map(n=>`<li class="${n.tone==='bad'?'down':n.tone==='good'?'up':''}">${esc(n.t)}</li>`).join('')}</ul>`:'<p class="muted">Nothing major happened.</p>'}
+    ${q.wait?'<p><b>A decision needs you.</b> The clock waits until you answer it.</p>':''}${st.owed?'<p class="muted small">'+st.owed+' more month'+(st.owed>1?'s':'')+' will run after that.</p>':''}
+    <button type="button" class="btn primary" data-a="next">Continue</button>`}
+  else if(q.kind==='report'){const net=q.rev-q.exp;
     h=`<div class="eyebrow">Monthly report · ${mlabel(q.m)}</div><h3>${net>=0?'Profit':'Loss'} of ${fm(Math.abs(net))} this month</h3>
     <div class="pl" style="margin-bottom:14px"><div><span>Revenue</span><b class="num up">${fm(q.rev)}</b></div><div><span>Expenditure</span><span class="num">-${fm(q.exp)}</span></div><div class="tot"><span>Cash now</span><span class="num ${st.cash<0?'down':''}">${fm(st.cash)}</span></div></div>
     ${q.notes.length?`<ul class="notes">${q.notes.slice(0,14).map(n=>`<li class="${n.tone==='bad'?'down':n.tone==='good'?'up':''}">${esc(n.t)}</li>`).join('')}${q.notes.length>14?`<li class="muted">and ${q.notes.length-14} more in Reports and news</li>`:''}</ul>`:'<p class="muted">A quiet month.</p>'}
@@ -2325,14 +2338,81 @@ function renderModal(){
   el.hidden=false;el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${h}</div>`;
 }
 
+
+/* ---------- push crewing: rush hire through the agency ---------- */
+const RUSH_SR=20000,RUSH_JR=4000;
+const rushSr=sh=>RK.filter(r=>!sh.crew[r]&&!isHeld(sh,r));
+const rushN=sh=>rushSr(sh).length+jrVac(sh).length;
+const rushCost=sh=>rushSr(sh).length*(RUSH_SR+7500)+jrVac(sh).length*(RUSH_JR+3000);
+function rushShip(sh){
+  const ce=eff('crewing'),mean=44+st.empRep*0.3+Math.min(1,ce)*20,seg=cseg(sh.cls),got=[];
+  rushSr(sh).forEach(r=>{
+    let c=[0,1,2,3,4,5].map(()=>genSeafarer(r,{mean,seg,boost:0.15})).concat(st.pool.filter(p=>p.rank===r&&!p.sour));
+    const ok=c.filter(p=>p.rep>=MINREP[st.pol.minRep]);if(ok.length)c=ok;
+    c.sort((a,b)=>b.comp-a.comp);const p=c[0];
+    p.wage=Math.round(Math.max(st.wages[r],p.expect)*1.1/100)*100;
+    spend('recruit',RUSH_SR);place(sh,r,p);got.push(RANKS[r].t+' '+p.name);
+  });
+  const jv=jrVac(sh);jv.forEach(r=>{spend('recruit',RUSH_JR);hireJr(sh,r)});
+  if(jv.length)got.push(jv.length+' junior crew');
+  if(got.length)addLog('Push Crewing: agency rushed '+got.join(', ')+' to '+sh.name+'. Officers signed at 10% above scale.','good','crew');
+  return got.length;
+}
+function crewWhy(){
+  const out=[],h=st.heads.crewing,cov=coverage('crewing');
+  if(!h)out.push('No Crewing Manager. Hire one in <b>Departments</b>, this is the biggest fix.');
+  else if(h.skill<3)out.push('Your Crewing Manager is weak (skill '+h.skill+'/5). A stronger manager finds better officers.');
+  if(cov<1)out.push('Crewing team is stretched: '+(1+st.staff.crewing)+' people for '+st.ships.length+' ships. Each person handles about 3 ships. Add staff in <b>HR & Office</b>.');
+  if(st.budget.crewing<2)out.push('Crewing budget is <b>'+BUDGET[st.budget.crewing].l+'</b>. Agencies send fewer candidates.');
+  if(st.pol.minRep>0)out.push('Reputation rule <b>'+['any','3.5+','4.0+'][st.pol.minRep]+'</b> rejects many candidates.');
+  if(st.pol.needStcw&&!st.pol.autoTrain)out.push('STCW is required but auto-training is off, so anyone missing a certificate is rejected.');
+  if(PREM[st.pol.premium]===0)out.push('Crewing cannot offer anything above your wage scale, so officers who ask a little more walk away.');
+  if(wageRatio()<1)out.push('Your wage scale is '+Math.round(wageRatio()*100)+'% of market. Officers prefer better-paying companies. Raise it in <b>Crew Pay</b>.');
+  if(st.empRep<50)out.push('Employer rating is low ('+Math.round(st.empRep)+'/100). Better crew morale and wages lift it over time.');
+  return out;
+}
+
+/* ---------- live time: 1 real hour away = 1 game month ---------- */
+const HOUR=3600000,MAX_OWED=12;let catching=false;
+const liveOn=()=>st&&st.rt!==false;
+function minsLeft(){return Math.max(1,60-Math.floor((Date.now()-(st.clock||Date.now()))/60000))}
+function whenTxt(){if(!st)return '';if(st.over)return 'Game over';let t=mlabel(st.m);if(liveOn())t+=(st.owed?' · '+st.owed+' month'+(st.owed>1?'s':'')+' waiting':' · next in '+minsLeft()+' min');return t}
+function syncClock(){
+  if(!st||st.over)return;
+  if(!st.clock)st.clock=Date.now();
+  if(!liveOn()){st.clock=Date.now();return}
+  const h=Math.floor((Date.now()-st.clock)/HOUR);
+  if(h>0){st.owed=Math.min(MAX_OWED,(st.owed||0)+h);st.clock+=h*HOUR;save()}
+  if(st.owed&&!st.queue.length)catchUp();
+  else{const w=document.querySelector('.when');if(w)w.textContent=whenTxt()}
+}
+function catchUp(){
+  if(catching||!st||!st.owed||st.queue.length||st.over)return;
+  catching=true;let n=0,rev=0,exp=0,notes=[];const m0=st.m;
+  try{
+    while(st.owed>0&&!st.over&&!st.queue.length){
+      const before=st.m;endMonth();if(st.m===before)break;
+      st.owed--;n++;
+      st.queue=st.queue.filter(q=>{if(q.kind!=='report')return true;rev+=q.rev;exp+=q.exp;q.notes.forEach(x=>{if(x.tone)notes.push(x)});return false});
+    }
+  }finally{catching=false}
+  if(n)st.queue.unshift({kind:'away',n,rev,exp,notes,m0,wait:st.queue.length>0});
+  save();render();
+}
+function liveCard(){
+  return `<section class="card"><div class="ship-head"><div><h3>Live time ${liveOn()?'on':'off'}</h3><div class="muted small" style="margin-top:4px">${liveOn()?'Every hour you are away, one month passes. Decisions pause the clock until you answer them. Up to '+MAX_OWED+' months can build up.':'Months only pass when you tap End month.'}</div></div><button type="button" class="btn" data-a="rtToggle">${liveOn()?'Turn off':'Turn on'}</button></div></section>`;
+}
+
 function save(){try{if(st)localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
 function load(){try{let s=localStorage.getItem(KEY);if(!s)s=localStorage.getItem(OLDKEY);const o=s?JSON.parse(s):null;return o&&(o.v===3||o.v===4)?o:null}catch(e){return null}}
 function adopt(o){st=o;const wasV3=st.v===3;upgrade(st);if(wasV3){DK().forEach(d=>{if(st.heads[d]===undefined)st.heads[d]=genHead(d,3)});st.omorale=oMoraleTarget();addLog('New departments added: Finance and HR & Admin. Office staff are now managed in HR & Office.','')}if(!st.meet)genAgenda()}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;act(b.dataset.a,b.dataset.v)});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;act(b.dataset.a,b.dataset.v);if(st&&st.owed&&!st.queue.length)setTimeout(catchUp,250)});
+setInterval(syncClock,30000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')syncClock()});
 document.addEventListener('input',e=>{const t=e.target;if(t.id==='d-loa'&&design){design.loa=+t.value;const S=buildSpec(design.cls,design),o=document.getElementById('d-loa-out'),m=document.getElementById('d-sum');if(o)o.innerHTML=loaRead(S,design.cls);if(m)m.innerHTML=designSum(S);return}if(t.id&&(t.id.startsWith('nm-')||t.id==='co-name'))drafts[t.id]=t.value});
 document.addEventListener('change',e=>{if(e.target.id==='d-loa'&&design)render()});
 document.addEventListener('keydown',e=>{const t=e.target;if(e.key!=='Enter'||!t.dataset||!t.dataset.enter)return;e.preventDefault();const [a,,v]=t.dataset.enter.split('|');act(a,v)});
-function start(data){const d=data&&data.st&&(data.st.v===3||data.st.v===4)?data.st:null;const o=d||load();if(o)adopt(o);else st=null;if(data&&data.tab)tab=data.tab;if(data&&data.fleetTab)fleetTab=data.fleetTab;if(data&&data.spTab)spTab=data.spTab;if(data&&data.spMode)spMode=data.spMode;if(data&&data.design)design=data.design;if(data&&data.mapReg)mapReg=data.mapReg;if(data&&data.mapSel)mapSel=data.mapSel;if(data&&data.crewSel)crewSel=data.crewSel;render()}
+function start(data){const d=data&&data.st&&(data.st.v===3||data.st.v===4)?data.st:null;const o=d||load();if(o)adopt(o);else st=null;if(data&&data.tab)tab=data.tab;if(data&&data.fleetTab)fleetTab=data.fleetTab;if(data&&data.spTab)spTab=data.spTab;if(data&&data.spMode)spMode=data.spMode;if(data&&data.design)design=data.design;if(data&&data.mapReg)mapReg=data.mapReg;if(data&&data.mapSel)mapSel=data.mapSel;if(data&&data.crewSel)crewSel=data.crewSel;render();syncClock()}
 window.claude?.hot?.snapshot?.(()=>({st,tab,fleetTab,spTab,spMode,design,mapReg,mapSel,crewSel}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 </script>
