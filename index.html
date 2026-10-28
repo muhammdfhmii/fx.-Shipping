@@ -284,6 +284,16 @@ svg.map{display:block;width:100%;height:auto;max-height:68vh;background:var(--se
 .fatw{display:flex;align-items:center;gap:6px;flex:none}.fatw small{font-size:12px;color:var(--muted);min-width:20px;text-align:right}
 .fatm{display:inline-block;width:52px;height:5px;background:var(--soft);border-radius:9px;overflow:hidden}.fatm i{display:block;height:100%;background:var(--ink)}
 .warnbox{margin-top:12px;background:var(--bad-soft);color:var(--bad);border-radius:10px;padding:10px 12px;font-size:13.5px;font-weight:600}
+/* meeting and nationality */
+.dlg{display:grid;gap:8px;margin-top:12px}
+.say{background:var(--bg);border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:9px 12px;font-size:14px;max-width:92%}
+.say .who{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.say.alt{margin-left:8%;border-radius:14px 4px 14px 14px;background:var(--surface)}
+.say.me{border-color:var(--ink)}
+.eyebrow-m{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.natchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.natchips button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-weight:600;font-size:13.5px;color:var(--muted)}
+.natchips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 </style>
 </head>
 <body>
@@ -337,7 +347,7 @@ const ROUTES={
   container:[["Port Klang","Shanghai",1,"Electronics and furniture"],["Tanjung Pelepas","Jebel Ali",2,"Mixed containers",1],["Port Klang","Chennai",1,"Tyres and packed palm oil"],["Singapore","Ho Chi Minh City",1,"Factory raw materials"],["Penang","Hong Kong",1,"Semiconductors"],["Shanghai","Tanjung Pelepas",1,"Asia–Europe service, Asian leg",0,["ulcv","neo"]],["Qingdao","Port Klang",1,"Exports from northern China",0,["ulcv","neo","panamax"]],["Ningbo","Tanjung Pelepas",1,"Transhipment boxes for Europe",0,["ulcv","neo"]]],
   bulk:[["Kuantan","Qingdao",2,"Bauxite"],["Kalimantan","Port Klang",1,"Coal for power plants"],["Fremantle","Pasir Gudang",2,"Wheat"],["Port Hedland","Qingdao",2,"Iron ore"],["Bintulu","Manila",1,"Urea fertiliser"],["Port Hedland","Qingdao",2,"Iron ore for a steel mill",0,["cape"]],["Kuantan","Qingdao",2,"Bauxite",0,["cape","kamsar"]],["Gladstone","Qingdao",2,"Coking coal",0,["cape","kamsar","ultra"]]],
   tanker:[["Singapore","Brisbane",2,"Diesel and gasoline"],["Pengerang","Vung Tau",1,"RON95 gasoline"],["Ras Tanura","Singapore",2,"Naphtha",1],["Melaka","Bangkok",1,"Jet fuel"],["Singapore","Ulsan",1,"Chemicals for a Korean plant",0,["chem"]],["Pasir Gudang","Map Ta Phut",1,"Palm oil and methanol",0,["chem"]],["Ras Tanura","Ningbo",2,"Arab Light crude",1,["vlcc","afra"]],["Ras Tanura","Pengerang",2,"Crude for the Pengerang refinery",1,["vlcc","afra"]],["Darwin","Singapore",1,"Condensate",0,["afra","lr1"]]],
-  bunker:[["Singapore","Eastern Anchorage",1,"VLSFO deliveries to client ships"],["Tanjung Pelepas","Port limits",1,"MGO deliveries to container ships"],["Singapore","Western Anchorage",1,"VLSFO and MGO deliveries"],["Singapore","Eastern Anchorage",1,"LNG bunkering for dual-fuel ships",0,["lngb"]],["Singapore","Western Anchorage",1,"LNG bunkering for container ships",0,["lngb"]]],
+  bunker:[["Singapore","Eastern Anchorage",1,"VLSFO deliveries to client ships"],["Tanjung Pelepas","Port limits",1,"MGO deliveries to container ships"],["Singapore","Western Anchorage",1,"VLSFO and MGO deliveries"],["Singapore","Eastern Anchorage",1,"LNG bunkering for dual-fuel ships",0,["lngb"]],["Singapore","Western Anchorage",1,"LNG bunkering for container ships",0,["lngb"]],["Singapore","Eastern Anchorage",1,"Methanol bunkering for dual-fuel ships",0,["bunk"]]],
   gas:[["Ras Tanura","Pasir Gudang",2,"Propane and butane",1],["Houston","Map Ta Phut",3,"LPG for a petrochemical plant"],["Bintulu","Haiphong",1,"Butane"],["Yanbu","Pengerang",2,"Propane",1],["Pengerang","Bangkok",1,"LPG for cooking gas",0,["lpgs"]],["Bintulu","Labuan",1,"Coastal LPG for Sabah",0,["lpgs"]],["Map Ta Phut","Haiphong",1,"LPG for Vietnam",0,["lpgs","lpg"]]],
   lng:[["Bintulu","Tokyo Bay",1,"LNG for a Japanese utility"],["Bintulu","Incheon",1,"LNG for Korean power plants"],["Ras Laffan","Pengerang",1,"LNG for the Pengerang regas terminal",1],["Gladstone","Tokyo Bay",1,"Australian LNG"],["Darwin","Shanghai",1,"LNG for eastern China"],["Bintulu","Dapeng",1,"LNG for southern China"]],
   offshore:[["Kemaman","Terengganu oil fields"],["Labuan","Sabah deepwater fields"],["Bintulu","Sarawak gas fields"]]
@@ -410,9 +420,11 @@ const PLANS={
 const LOA={ulcv:[366,400,400],cape:[280,292,300],ultra:[195,200,200],chem:[140,150,160],lr1:[220,228,230],afra:[240,250,250],vlcc:[320,330,333],bunks:[60,70,80],lngb:[95,105,120],lpgs:[95,105,115],vlgc:[225,230,230],sslng:[160,175,185],lngc:[285,295,300],fcb:[35,40,50],ocv:[110,130,150],feeder:[150,172,190],panamax:[240,260,294],neo:[280,300,366],handy:[160,180,190],supra:[180,190,200],kamsar:[215,229,229],mr:[170,183,190],lr2:[228,250,256],bunk:[85,100,110],lpg:[160,180,190],psv:[70,85,95],ahts:[60,75,90]};
 const CAP={ulcv:[24000,'TEU',100],cape:[180000,'DWT',1000],ultra:[64000,'DWT',500],chem:[20000,'DWT',500],lr1:[75000,'DWT',500],afra:[115000,'DWT',1000],vlcc:[300000,'DWT',1000],bunks:[3000,'DWT',100],lngb:[7500,'cbm',100],lpgs:[5000,'cbm',100],vlgc:[84000,'cbm',500],sslng:[30000,'cbm',500],lngc:[174000,'cbm',1000],fcb:[60,'passengers',2],ocv:[250,'t crane',10],feeder:[1700,'TEU',50],panamax:[4250,'TEU',50],neo:[8500,'TEU',100],handy:[35000,'DWT',500],supra:[58000,'DWT',500],kamsar:[82000,'DWT',500],mr:[50000,'DWT',500],lr2:[115000,'DWT',1000],bunk:[6500,'DWT',100],lpg:[38000,'cbm',500],psv:[4000,'DWT',100],ahts:[80,'t bollard pull',1]};
 const LOANOTE={ulcv:'400 m is about the longest any port can handle today.',ultra:'Ultramax bulkers are built to 200 m to fit most bulk ports.',afra:'Aframax tankers are usually about 245 to 250 m.',vlcc:'VLCCs are around 330 m, close to the limit for most crude terminals.',vlgc:'VLGCs are about 230 m, sized for most LPG terminals.',lngc:'Most LNG terminals accept ships up to about 300 m.',panamax:'294 m is the limit for the old Panama Canal locks.',neo:'366 m is the limit for the new Panama Canal locks.',kamsar:'Kamsarmax ships are capped at 229 m by the bauxite port of Kamsar, Guinea, so they can only be shorter.',bunk:'Bunker tankers serving Singapore anchorages are usually under 110 m.',supra:'Supramax bulkers are usually 190 to 200 m.',lr2:'LR2 tankers are usually 228 to 250 m.'};
-const ENG={conv:{t:'Conventional diesel',d:'Burns VLSFO. Cheapest to build.',c:0,fm:1},eco:{t:'Eco electronic engine',d:'Electronically controlled fuel injection. About 10% less fuel.',c:0.03,fm:0.9},lng:{t:'Dual-fuel LNG',d:'Runs on LNG. About 22% lower fuel cost, and clients pay a little more for a low-carbon ship.',c:0.12,fm:0.78}};
+const ENG={conv:{t:'Conventional diesel',d:'Burns VLSFO. Cheapest to build.',c:0,fm:1},eco:{t:'Eco electronic engine',d:'Electronically controlled fuel injection. About 10% less fuel.',c:0.03,fm:0.9},lng:{t:'Dual-fuel LNG',d:'Runs on LNG. About 22% lower fuel cost, and clients pay a little more for a low-carbon ship.',c:0.12,fm:0.78},
+  meth:{t:'Dual-fuel methanol',d:'Runs on methanol. Fuel costs about 10% more today, but carbon is lower, no scrubber is needed and container lines and oil majors pay about 4% more.',c:0.1,fm:1.1}};
+const blocked=(e,eng)=>!!e.no&&[].concat(e.no).includes(eng);
 const EQ={
-  scrub:{g:'eco',t:'Exhaust gas scrubber',d:'Lets the ship burn cheaper high-sulphur fuel legally. About 8% lower fuel cost. Not needed with LNG.',c:0.025,fm:0.92,no:'lng'},
+  scrub:{g:'eco',t:'Exhaust gas scrubber',d:'Lets the ship burn cheaper high-sulphur fuel legally. About 8% lower fuel cost. Not needed with LNG or methanol.',c:0.025,fm:0.92,no:['lng','meth']},
   coat:{g:'eco',t:'Silicone hull coating',d:'Smoother hull with less marine growth. About 4% less fuel.',c:0.006,fm:0.96},
   esd:{g:'eco',t:'Propeller duct and energy-saving fins',d:'Better water flow into the propeller. About 5% less fuel.',c:0.01,fm:0.95},
   shaft:{g:'eco',t:'Shaft generator',d:'Makes electricity from the main engine at sea. About 3% less fuel.',c:0.008,fm:0.97},
@@ -449,7 +461,7 @@ const STAGES=[['Contract signed',0,0.2],['Steel cutting',0.25,0.1],['Keel laying
 const NOSPEC={k:1,fm:1,em:1,om:1,pm:1,vm:1,saf:0,dm:1,bd:1,eq:[],eng:'conv',loa:null,flag:null,yard:null};
 
 let drafts={};let st=null,tab='overview',confirmKey=null,startPlan='a',showPool=null,fleetTab='all',renaming=null,nameMsg=null,spTab='all',spMode='buy',design=null,mapReg='all',mapSel=null,mapFocus=null;
-const TABS=[['overview','Overview'],['fleet','Fleet'],['map','Map'],['contracts','Contracts'],['depts','Departments'],['hr','HR & Office'],['crewing','Crewing'],['crew','Crew List'],['safety','Safety'],['payroll','Crew Pay'],['sp','Buy & Sell'],['finance','Finance'],['company','Company']];
+const TABS=[['overview','Overview'],['meeting','Meeting'],['fleet','Fleet'],['map','Map'],['contracts','Contracts'],['depts','Departments'],['hr','HR & Office'],['crewing','Crewing'],['crew','Crew List'],['safety','Safety'],['payroll','Crew Pay'],['sp','Buy & Sell'],['finance','Finance'],['company','Company']];
 const OPS=['chartering','crewing','marine','technical','finance'];
 const DNAME={chartering:'Chartering',crewing:'Crewing',marine:'Marine',technical:'Technical',finance:'Finance',hr:'HR & Admin'};
 const rnd=(a,b)=>a+Math.random()*(b-a);
@@ -485,7 +497,7 @@ const shoreCap=sh=>Math.round(clamp(90-((sh.age-((sh.dockDue??(sh.age+5))-5)))*3
 const shoreCost=sh=>r10k(CLS[sh.cls].value*sp(sh).vm*0.005*(1.15-0.25*Math.min(1,eff('technical'))));
 const canShore=sh=>['idle','voyage'].includes(sh.status)&&sh.cond<shoreCap(sh)-3;
 function crewScore(sh){const f=filled(sh);if(!f.length)return 0;return Math.round(f.reduce((a,r)=>a+sh.crew[r].comp,0)/f.length)}
-function crewMult(sh){const f=filled(sh);let m=1.6-(f.length?crewScore(sh):40)/100;m+=Math.min(0.6,shipGaps(sh)*0.08);if(f.length<4)m+=0.3;m-=0.15*cohesion(sh);if(f.length){const af=f.reduce((a,r)=>a+(sh.crew[r].fat||0),0)/f.length;m+=Math.max(0,(af-55)/100)}return Math.max(0.5,m)}
+function crewMult(sh){const f=filled(sh);let m=1.6-(f.length?crewScore(sh):40)/100;m+=Math.min(0.6,shipGaps(sh)*0.08);if(f.length<4)m+=0.3;m-=0.15*cohesion(sh);m+=commPen(sh);if(f.length){const af=f.reduce((a,r)=>a+(sh.crew[r].fat||0),0)/f.length;m+=Math.max(0,(af-55)/100)}return Math.max(0.5,m)}
 const DK=()=>Object.keys(DEPTS);
 const staffCount=()=>DK().reduce((a,d)=>a+st.staff[d],0);
 const officeHeads=()=>DK().reduce((a,d)=>a+(st.heads[d]?1:0)+st.staff[d],0);
@@ -518,12 +530,13 @@ function buildSpec(cls,o){
   const c=CLS[cls],L=LOA[cls],loa=clamp(Math.round(o.loa??L[1]),L[0],L[2]),k=(loa/L[1])**2,hf=k**0.85,yd=YARDS[o.yard],fl=FLAGS[o.flag],E=ENG[o.eng]||ENG.conv;
   let eqc=E.c*c.value*hf,fmul=E.fm,em=1,saf=0,bd=1;
   (o.eq||[]).forEach(key=>{const e=EQ[key];if(!e)return;eqc+=Math.max(e.min||0,e.c*c.value*hf);fmul*=e.fm||1;em*=e.em||1;saf+=e.saf||0;bd*=e.bd||1});
-  if(o.eng==='lng')em*=1.02;
+  if(o.eng==='lng')em*=1.02;if(o.eng==='meth')em*=1.04;
   const hull=nbPrice(cls)*hf*(yd?yd.pm:1),fee=fl?fl.fee:0;
   return {loa,k,eng:o.eng||'conv',eq:[...(o.eq||[])],yard:o.yard||null,flag:o.flag||null,fe:fmul,fm:fmul*k**0.75,ee:em,em:em*k**0.9,om:0.5+0.5*k,pm:0.6+0.4*k,
     vm:hf*(1+eqc/(c.value*hf)*0.6),saf:Math.min(0.6,saf),dm:yd?yd.dm:1,bd,hull:r10k(hull),eqc:r10k(eqc),fee,price:r10k(hull+eqc+fee),months:yd?yd.mo+(k>1.06?1:0):12,cond:yd?yd.cond:100};
 }
-function emOf(sh){const s=sp(sh),seg=segOf(sh.cls);let m=s.em*((FLAGS[s.flag]&&FLAGS[s.flag].em[seg])||1);if(['tanker','gas','lng'].includes(seg))m*=1+s.saf*0.08;return m}
+function emOf(sh){const s=sp(sh),seg=segOf(sh.cls);let m=s.em*((FLAGS[s.flag]&&FLAGS[s.flag].em[seg])||1);if(['tanker','gas','lng'].includes(seg))m*=1+s.saf*0.08;
+  if(sh.cii&&CII_EM[sh.cii])m*=1+(CII_EM[sh.cii]-1)*(['tanker','gas','lng','container'].includes(seg)?1:0.5);if(sh.slowCii>0)m*=0.95;return m}
 function fitFor(o,sh){const m=emOf(sh);if(Math.abs(m-1)<0.001)return o;return {...o,rev:r10k(o.rev*m),hire:o.hire?r10k(o.hire*m):o.hire}}
 const hasEq=(sh,k)=>sp(sh).eq.includes(k);
 const scrapVal=sh=>r10k(CLS[sh.cls].ldt*sp(sh).k*st.scrap);
@@ -564,16 +577,16 @@ function nameTaken(n){n=n.trim().toLowerCase();return st.ships.some(x=>x.name.to
 function checkName(n){n=(n||'').trim().replace(/\s+/g,' ');if(!n)return {ok:true,n:''};if(n.length<2)return {ok:false,e:'Name is too short.'};if(n.length>30)return {ok:false,e:'Keep the name under 30 characters.'};if(nameTaken(n))return {ok:false,e:'You already have a ship called '+n+'.'};return {ok:true,n}}
 function shipName(){const free=SHIPNAMES.filter(n=>!st.used.includes(n));const n=free.length?pick(free):pick(SHIPNAMES)+' '+(st.used.length-SHIPNAMES.length+2);st.used.push(n);return n}
 function genSeafarer(rank,o={}){
-  const mean=o.mean??(46+st.empRep*0.38);const comp=clamp(Math.round(mean+gauss()*11),30,98);
+  const nat=o.nat||pickNat(rank,o.sh),N=NAT[nat]||{w:1,c:0};
+  const mean=(o.mean??(46+st.empRep*0.38))+N.c;const comp=clamp(Math.round(mean+gauss()*11),30,98);
   const er=ER[rank]||[2,10];const exp=Math.round(rnd(er[0],er[1]));
   const rep=Math.round(clamp(1.8+comp/32+gauss()*0.35,1.5,5)*10)/10;
   const pc=0.55+comp/250+(o.boost||0);
   const certs=REQ[rank].filter(c=>c==='BST'||Math.random()<pc);
   const sc=o.seg?segCerts(o.seg,rank):[];
   if(sc.length){if(Math.random()<0.5+comp/250+(o.boost||0))certs.push(...sc);else if(Math.random()<0.5)certs.push(sc[0])}
-  const nat=pick(Object.keys(PEOPLE));
   return humanize({id:st.nid++,name:NAMES[nat](),nat,rank,age:exp+Math.round(rnd(22,27)),exp,comp,rep,certs,
-    expect:Math.round(RANKS[rank].mk*(0.8+comp/500+exp/300)/500)*500,left:0,ex:false,exAge:0,flag:false,wage:0,rankM:Math.round(rnd(0,12)),
+    expect:Math.round(RANKS[rank].mk*N.w*(0.8+comp/500+exp/300)/500)*500,left:0,ex:false,exAge:0,flag:false,wage:0,rankM:Math.round(rnd(0,12)),
     remark:pick(REMARKS[rep>=4.3?'hi':rep>=3.4?'mid':'lo'])});
 }
 function genHead(d,mean){
@@ -585,13 +598,14 @@ function newShip(cls,age,crewed,name){
   if(name)st.used.push(name);
   const sh={id:st.nid++,name:name||shipName(),totR:0,totC:0,lastNet:0,since:st.m,dockDue:age<1?5:Math.round((age+rnd(0.5,5))*12)/12,cls,age,cond:Math.round(clamp(94-age*1.4+rnd(-4,4),58,95)),status:'idle',left:0,c:null,crew:{master:null,co:null,ce:null,se:null}};
   sh.size=CLS[cls].ratings;sh.jr=[];
-  if(crewed){RK.forEach(r=>{const p=genSeafarer(r,{mean:68,boost:0.3,seg:cseg(cls)});p.left=Math.round(rnd(2,8));p.lastShip=sh.id;p.shipM=Math.round(rnd(0,8));sh.crew[r]=p});staffJr(sh)}
+  if(crewed){RK.forEach(r=>{const p=genSeafarer(r,{mean:68,boost:0.3,seg:cseg(cls),sh});p.left=Math.round(rnd(2,8));p.lastShip=sh.id;p.shipM=Math.round(rnd(0,8));sh.crew[r]=p});staffJr(sh)}
   return sh;
 }
 function genOffer(cls){
   const c=CLS[cls],seg=c.seg,rs=ROUTES[seg].filter(r=>r[5]?r[5].includes(cls):!c.only),r=pick(rs.length?rs:ROUTES[seg]),base=earnBase(cls);
   let f=(0.9+st.rep/500)*(0.95+0.1*eff('chartering'))*(1+boostFor(seg))*[1.02,1,0.98][st.pol.credit??1]*(st.slow>0?0.98:1);
-  if(['tanker','gas','lng'].includes(seg))f*=0.93+0.1*eff('marine');
+  if(['tanker','gas','lng'].includes(seg))f*=(0.93+0.1*eff('marine'))*(st.nonIG?0.96:1);
+  if(seg==='offshore')f*=1+0.06*malShare();
   if(seg==='offshore'||Math.random()<(seg==='lng'?0.6:0.32)){
     const months=seg==='offshore'?pick([6,9,12,18,24]):pick([4,6,9,12]);
     const hire=r10k((base-c.fuel*2635-c.port)*st.idx[seg]*rnd(0.95,1.1)*f);
@@ -603,7 +617,8 @@ function genOffers(){
   const bl=st.budget.chartering,cap=[1,2,3,3,4][bl],extra=[0,1,2,2,3][bl];
   const out=[];[...new Set(st.ships.map(s=>s.cls))].forEach(c=>{const n=1+st.ships.filter(s=>s.cls===c&&s.status==='idle').length;for(let i=0;i<Math.min(n,cap);i++)out.push(genOffer(c))});
   const open=Object.keys(CLS).filter(k=>st.divs.includes(segOf(k)));for(let i=0;i<extra;i++)out.push(genOffer(pick(open)));
-  st.offers=out.slice(0,18);
+  const kept=(st.offers||[]).filter(o=>o.keep>=st.m&&st.ships.some(s=>s.cls===o.cls));
+  st.offers=kept.concat(out).slice(0,22);
 }
 function genListing(seg){
   const open=Object.keys(CLS).filter(k=>seg?segOf(k)===seg:st.divs.includes(segOf(k)));const cls=pick(open),age=Math.round(rnd(3,18)),sg=segOf(cls),L=LOA[cls];
@@ -637,6 +652,8 @@ function upgrade(o){
   if(o.culture==null)o.culture=50;o.fixes=o.fixes||{};o.invs=o.invs||[];o.voice=o.voice||[];o.nmLog=o.nmLog||[];o.incLog=o.incLog||[];if(o.press==null)o.press=0;if(o.slow==null)o.slow=0;if(o.pol.contract==null)o.pol.contract=1;
   (o.ships||[]).forEach(sh=>RK.forEach(r=>{if(sh.crew[r])humanize(sh.crew[r])}));(o.pool||[]).forEach(humanize);
   if(o.pol.rotation==null)o.pol.rotation=0;o.hold=o.hold||[];o.promoLog=o.promoLog||[];
+  if(!o.pol.natOff)o.pol.natOff=[...NAT_DEF];if(!o.pol.natRat)o.pol.natRat=[...NAT_DEF];if(o.pol.natMix==null)o.pol.natMix=0;
+  if(o.insM==null)o.insM=1;o.meetCd=o.meetCd||{};if(o.waiver==null)o.waiver=0;
   (o.ships||[]).forEach(sh=>{if(sh.size==null)sh.size=CLS[sh.cls].ratings;if(!sh.jr)staffJr(sh);RK.forEach(r=>{const p=sh.crew[r];if(p&&p.rankM==null){p.rankM=Math.round(rnd(3,14));p.lastShip=sh.id;p.shipM=Math.min(p.onb||0,12)}})});(o.pool||[]).forEach(p=>{if(p.rankM==null)p.rankM=Math.round(rnd(3,14))});
   o.v=4;return o;
 }
@@ -657,6 +674,7 @@ function fresh(company,plan){
   genOffers();refillMarket(false);refreshBids();
   addLog('You have been appointed CEO of '+company+'. Board target for 2027: net worth of '+fm(st.target)+'.','');
   autoCharter((t,tn,c)=>addLog(t,tn,c));
+  genAgenda();
   save();
 }
 
@@ -671,7 +689,7 @@ function autoCrew(note){
   const ce=eff('crewing'),mean=36+st.empRep*0.3+ce*24;
   st.ships.forEach(sh=>RK.forEach(r=>{
     const cur=sh.crew[r];if(cur&&!cur.flag)return;if(!cur&&isHeld(sh,r))return;
-    const seg=cseg(sh.cls);let cands=[0,1,2,3].map(()=>genSeafarer(r,{mean,seg,boost:ce*0.15})).concat(st.pool.filter(p=>p.rank===r));
+    const seg=cseg(sh.cls),nc=clamp(Math.round(natList(r).reduce((a,k)=>a+NAT[k].av,0)/3),1,5);let cands=Array.from({length:nc},()=>genSeafarer(r,{mean,seg,boost:ce*0.15,sh})).concat(st.pool.filter(p=>p.rank===r&&natList(r).includes(p.nat)));
     cands=cands.filter(p=>p.rep>=MINREP[st.pol.minRep]);
     if(st.pol.needStcw&&!st.pol.autoTrain)cands=cands.filter(p=>!gapsOf(p,sh.cls).length);
     if(cur)cands=cands.filter(p=>p.comp>cur.comp+4);
@@ -716,7 +734,7 @@ const EVENTS={
     make:x=>{const cert=pick(gapsOf(x.p,x.sh.cls));return {extra:{pid:x.p.id,cert},ship:x.sh.id,title:'PSC detention: missing certificate',body:`During a Port State Control inspection in Singapore, ${RANKS[x.r].t} ${x.p.name} on ${x.sh.name} could not show a valid ${CERTS[cert][0]} certificate (${CERTS[cert][1]}). The ship is detained.`}},
     choices:[['Pay the fine and train the officer','RM 40k fine plus course fee. Ship released.',(s,sh,q)=>{const p=findPerson(q.extra.pid);spend('penalty',40000);spend('train',CERTS[q.extra.cert][2]);if(p&&!p.certs.includes(q.extra.cert))p.certs.push(q.extra.cert);s.rep-=1;return ['Officer completed the course and the ship was released.','']}],
              ['Appeal the detention','RM 20k legal cost. Ship held a month, reputation drops.',(s,sh)=>{spend('penalty',20000);s.rep-=4;if(sh&&sh.status==='voyage')sh.left+=1;return ['Appeal rejected. Ship held for a month.','bad']}]]},
-  psc:{elig:s=>s.ships.filter(x=>x.status!=='delivery'&&x.cond<(s.hseq?70:78)+((FLAGS[sp(x).flag]||{}).psc||0)-sp(x).saf*15),
+  psc:{elig:s=>s.ships.filter(x=>x.status!=='delivery'&&!(x.pscPrep>0)&&x.cond<pscLine(x)),
     make:sh=>({ship:sh.id,title:'PSC detention: safety deficiencies',body:`PSC officers inspected ${sh.name} and found defects in the firefighting system and maintenance records. The ship cannot sail until they are fixed.`}),
     choices:[['Repair immediately','RM 450k. Ship released within days.',(s,sh)=>{spend('repair',450000);s.rep-=1;sh.cond=Math.min(100,sh.cond+6);return ['Defects fixed and the ship was released.','']}],
              ['Appeal and wait','RM 120k, ship held a month, reputation drops.',(s,sh)=>{spend('penalty',120000);s.rep-=4;if(sh.status==='voyage')sh.left+=1;return ['Appeal failed. Ship held for a month.','bad']}]]},
@@ -763,7 +781,7 @@ const EVENTS={
     choices:[['Send a helicopter','RM 350k. Voyage unaffected.',s=>{spend('penalty',350000);s.morale+=5;s.empRep+=3;return ['The AB was flown to hospital and is stable.','good']}],
              ['Divert to the nearest port','RM 120k, voyage a month late.',(s,sh)=>{spend('port',120000);sh.left+=1;return ['Ship diverted and the AB reached hospital.','']}]]},
   claim:{elig:s=>voyaging(s).filter(x=>x.c&&x.c.type==='VC'),make:sh=>({ship:sh.id,title:'Cargo damage claim',body:`Seawater entered a hold on ${sh.name} and damaged cargo. The cargo owner is claiming compensation.`}),
-    choices:[['Claim through the P&I Club','Pay the RM 100k deductible only.',()=>{spend('penalty',100000);return ['P&I Club handled the claim.','']}],
+    choices:[['Claim through the P&I Club','Pay the deductible only: RM 100k, or RM 250k if you took a higher deductible at renewal.',s=>{spend('penalty',s.deduct?250000:100000);return ['P&I Club handled the claim.','']}],
              ['Settle with the client','RM 380k, better client relationship.',s=>{spend('penalty',380000);s.rep+=4;return ['The client appreciated the quick settlement.','good']}]]},
   drop:{elig:s=>s.divs,make:seg=>({extra:{seg},title:SEG[seg]+' market slumps',body:'Too many new ships entered the '+SEG[seg].toLowerCase()+' market. Rates are expected to fall.'}),
     choices:[['Understood','This segment\'s index falls.',(s,sh,q)=>{const g=q.extra.seg;s.idx[g]=Math.max(0.6,s.idx[g]-0.2);return [SEG[g]+' index fell. Time charters are safer for now.','bad']}]]},
@@ -902,7 +920,7 @@ function causeWeights(sh){
   const F=st.fixes,m=k=>(F[k]>0?0.25:1),maxF=Math.max(...offs.map(p=>p.fat)),minC=Math.min(...offs.map(p=>p.comp));
   const w={
     fatigue:Math.max(0,(maxF-45)/22)*m('fatigue'),
-    training:(Math.max(0,(66-minC)/18)+shipGaps(sh)*0.25+offs.filter(p=>p.onb<=1).length*0.2+offs.filter(p=>p.green>0).length*0.6)*m('training')*(1-0.3*cohesion(sh)),
+    training:(Math.max(0,(66-minC)/18)+shipGaps(sh)*0.25+offs.filter(p=>p.onb<=1).length*0.2+offs.filter(p=>p.green>0).length*0.6+Math.max(0,commPen(sh))*4)*m('training')*(1-0.3*cohesion(sh)),
     pressure:((st.press>0?1.3:0)+(st.pol.mode===0?0.25:0))*m('pressure'),
     equipment:Math.max(0,(66-sh.cond)/14)*m('equipment'),
     procedure:((st.budget.marine<=1?0.6:0.15)+(st.hseq?0:0.35)+(st.heads.marine?0:0.4))*m('procedure'),
@@ -923,7 +941,7 @@ function makeIncident(sh,cw){
   const ty=pick(types);
   if(!rank){const rs=filled(sh).filter(r=>deptOf(r)===ty.dept);rank=rs.length?pick(rs):pick(filled(sh))}
   const p=sh.crew[rank],who=RANKS[rank].t+' '+p.name,x={who,wk:Math.round(rnd(3,9))};
-  const cost=r10k(rnd(ty.cost[0],ty.cost[1]));spend('penalty',cost);sh.totC+=cost;st.rep-=ty.rep;p.inc++;p.seen=1;st.incLog.push({m:st.m,ship:sh.name});
+  const cost=r10k(rnd(ty.cost[0],ty.cost[1])*(st.deduct?1.25:1));spend('penalty',cost);sh.totC+=cost;st.rep-=ty.rep;p.inc++;p.seen=1;st.incLog.push({m:st.m,ship:sh.name});
   const others=Object.keys(CAUSES).filter(k=>k!==cause).sort(()=>Math.random()-0.5).slice(0,2);
   const facts=[STRONG[cause](x),...others.map(k=>HERR[k](x))].sort(()=>Math.random()-0.5);
   const data=`On file: ${who}, fatigue ${p.fat} (${fatLbl(p.fat).toLowerCase()}), competence ${p.comp}, ${p.onb} month${p.onb===1?'':'s'} on this ship, personality "${TRAITS[p.trait].t}". Ship condition ${Math.round(sh.cond)}%.`;
@@ -991,6 +1009,7 @@ function genVoice(mStart){
     if(st.culture<35)add(1.5,'Nobody reports anything here. If you speak up, you get blamed.','Safety','bad');
     if((sh.jr||[]).length<=minN(sh.cls))add(2.5,'We are only '+crewCount(sh)+' on board. Everyone does two jobs and nobody sleeps properly.','Manning','bad');
     if(cohesion(sh)>0.7)add(1.2,'Same team as last contract. We know each other and the work is smooth.','Teamwork','good');
+    {const ns=natStats(sh);if(ns.n>=3&&ns.e<3.8&&!(sh.langT>0))add(2,'We have '+ns.n+' nationalities on board. Half the crew cannot follow the safety briefing in English.','Language','bad');if(ns.n===1&&crewCount(sh)>6)add(1,'Everyone on board speaks the same language. Easy to work together.','Teamwork','good')}
     if(sh.cond<60)add(1.5,'Half the equipment on this ship is broken and spares never come.','Equipment','bad');
     if(o.some(x=>x.trait==='hothead')||sh.tension>0)add(1.5,'The atmosphere on board is tense. The senior officers do not talk to each other.','Teamwork','bad');
     if(o.some(x=>x.trait==='mentor'))add(1,'One of our senior officers takes time to teach the juniors. Best ship I have sailed on.','Teamwork','good');
@@ -1058,17 +1077,17 @@ function jrVac(sh){const need=jrNeed(sh),have=countBy((sh.jr||[]).map(p=>p.rank)
 function msmOK(sh){const need=jrNeed(sh,minN(sh.cls)),have=countBy((sh.jr||[]).map(p=>p.rank));return Object.entries(need).every(([r,n])=>(have[r]||0)>=n)}
 function manMod(sh){const n=(sh.jr||[]).length,std=stdN(sh.cls),m=minN(sh.cls);return n<=std?3*(std-n)/Math.max(1,std-m):-0.9*(n-std)}
 function cohesion(sh){const f=filled(sh);if(f.length<4)return 0;return f.reduce((a,r)=>a+Math.min(12,sh.crew[r].shipM||0)/12,0)/4}
-const jrPay=sh=>(sh.jr||[]).reduce((a,p)=>a+RANKS[p.rank].mk,0)*st.wages.rating/RATING_MK;
+const jrPay=sh=>(sh.jr||[]).reduce((a,p)=>a+RANKS[p.rank].mk*natOf(p).w,0)*st.wages.rating/RATING_MK;
 const jrWage=r=>Math.round(RANKS[r].mk*st.wages.rating/RATING_MK/100)*100;
 const crewCount=sh=>filled(sh).length+(sh.jr||[]).length;
-function staffJr(sh,mean){sh.jr=[];PRI.slice(0,sizeOf(sh)).forEach(r=>{const p=genSeafarer(r,{mean:mean??58,boost:0.3,seg:cseg(sh.cls)});p.left=Math.round(rnd(1,7));p.lastShip=sh.id;p.shipM=Math.round(rnd(0,8));sh.jr.push(p)})}
+function staffJr(sh,mean){sh.jr=[];PRI.slice(0,sizeOf(sh)).forEach(r=>{const p=genSeafarer(r,{mean:mean??58,boost:0.3,seg:cseg(sh.cls),sh});p.left=Math.round(rnd(1,7));p.lastShip=sh.id;p.shipM=Math.round(rnd(0,8));sh.jr.push(p)})}
 function allPeople(){const out=[];st.ships.forEach(sh=>{RK.forEach(r=>{if(sh.crew[r])out.push({p:sh.crew[r],sh,slot:'sr',r})});(sh.jr||[]).forEach(p=>out.push({p,sh,slot:'jr',r:p.rank}))});st.pool.forEach(p=>out.push({p,sh:null,slot:'pool',r:p.rank}));return out}
 const findAny=id=>allPeople().find(x=>x.p.id===id);
 function tickCrew(){st.ships.forEach(sh=>{[...filled(sh).map(r=>sh.crew[r]),...(sh.jr||[])].forEach(p=>{p.rankM=(p.rankM||0)+1;if(p.lastShip!==sh.id){p.lastShip=sh.id;p.shipM=0}p.shipM=(p.shipM||0)+1;if(p.green>0)p.green--})})}
 function hireJr(sh,r,fromPool){
-  let p=null;const pool=st.pool.filter(x=>x.rank===r&&!x.sour);
+  let p=null;const pool=st.pool.filter(x=>x.rank===r&&!x.sour&&natList(r).includes(x.nat));
   if(pool.length){pool.sort((a,b)=>(b.comp+(st.pol.rotation&&b.lastShip===sh.id?25:0))-(a.comp+(st.pol.rotation&&a.lastShip===sh.id?25:0)));if(st.pol.rotation&&pool[0].lastShip===sh.id||Math.random()<0.5)p=pool[0]}
-  const back=!!p;if(!p)p=genSeafarer(r,{mean:40+st.empRep*0.25+Math.min(1,eff('crewing'))*20,seg:cseg(sh.cls),boost:0.1});
+  const back=!!p;if(!p)p=genSeafarer(r,{mean:40+st.empRep*0.25+Math.min(1,eff('crewing'))*20,seg:cseg(sh.cls),boost:0.1,sh});
   st.pool=st.pool.filter(x=>x!==p);spend('recruit',back?1500:OFFR.includes(r)?5000:2500);
   p.ex=false;p.flag=false;p.left=CONTRACT[st.pol.contract??1];p.onb=0;p.fat=Math.round(rnd(0,10));if(p.lastShip!==sh.id){p.lastShip=sh.id;p.shipM=0}
   if(st.pol.autoTrain)gapsOf(p,sh.cls).forEach(c=>{spend('train',CERTS[c][2]);p.certs.push(c)});
@@ -1127,7 +1146,7 @@ function approvePromo(cs){
   if(cs.ready)return [`${p.name} is now ${RANKS[T].t} on ${S.name}. Promoting from within lifts morale across the fleet.${moved}`,'good'];
   return [`${p.name} is now ${RANKS[T].t} on ${S.name}, but is struggling in the new job.${cs.mv===false?' The Marine Superintendent had warned you.':''} Expect more mistakes on board for a few months.${moved}`,'bad'];
 }
-function fillExternal(S,T){if(RK.includes(T)){if(S.crew[T])return null;const p=genSeafarer(T,{mean:40+st.empRep*0.3+Math.min(1,eff('crewing'))*20,seg:cseg(S.cls)});p.wage=Math.max(st.wages[T],p.expect);place(S,T,p);return p}return hireJr(S,T).p}
+function fillExternal(S,T){if(RK.includes(T)){if(S.crew[T])return null;const p=genSeafarer(T,{mean:40+st.empRep*0.3+Math.min(1,eff('crewing'))*20,seg:cseg(S.cls),sh:S});p.wage=Math.max(st.wages[T],p.expect);place(S,T,p);return p}return hireJr(S,T).p}
 function rejectPromo(cs){
   releaseHold(cs);const S=shipById(cs.ship),x=findAny(cs.pid);const h=S?fillExternal(S,cs.to):null;
   st.promoLog=st.promoLog||[];st.promoLog.unshift({m:st.m,name:cs.name,from:cs.from,to:cs.to,ship:cs.shipName,ready:cs.ready,mv:cs.mv,ok:0});st.promoLog=st.promoLog.slice(0,30);
@@ -1231,6 +1250,7 @@ function officeMonth(note,mStart){
 function endMonth(){
   if(!st||st.over||st.queue.length)return;
   const s=st,notes=[],mStart=s.m;const note=(t,tone,cat)=>{notes.push({t,tone});addLog(t,tone,cat)};
+  meetClose(note);
   const te=eff('technical');
   const payYard=amt=>{const pay=Math.min(Math.max(0,s.cash),amt);capOut(pay);const rest=amt-pay;if(rest>0)s.loan+=rest;return rest};
   s.orders.forEach(o=>{o.left--;const nm=o.name||'your new '+CLS[o.cls].nama;
@@ -1243,7 +1263,7 @@ function endMonth(){
     sh._r=0;sh._c=0;const S=(cat,x)=>{spend(cat,x);sh._c+=x},E=(cat,x)=>{earn(cat,x);sh._r+=x};
     const c=CLS[sh.cls],atSea=sh.status==='voyage',cc=crewCost(sh.cls,shipBasic(sh),crewCount(sh),atSea,atSea&&sh.c&&sh.c.hra);
     sh.wasSea=atSea;S('wages',cc.wages);S('food',cc.food);S('allow',cc.allow);
-    const X=sp(sh),oth=c.other*X.om;S('insur',oth*0.35);S('stores',oth*0.45*MAINT[s.maint].mult);S('mgmt',oth*0.2);
+    const X=sp(sh),oth=c.other*X.om;S('insur',oth*0.35*(s.insM||1));S('stores',oth*0.45*MAINT[s.maint].mult);S('mgmt',oth*0.2);
     if(sh.status==='delivery'){sh.left--;if(sh.left<=0){sh.status='idle';note(sh.name+' delivered.','good')}return}
     if(sh.status==='dock'){sh.left--;if(sh.left<=0){sh.status='idle';sh.cond=96;note(sh.name+(sh.emDock?' left emergency dry dock':' passed its special survey')+'. Condition 96%, next dry dock '+dueLabel(sh)+'.','good','tech');sh.emDock=false}return}
     if(sh.status==='idle'){sh.cond=Math.max(30,sh.cond-0.6);return}
@@ -1273,8 +1293,11 @@ function endMonth(){
   if(mStart%12===2&&av('fest')){const b=s.ships.reduce((a,sh)=>a+shipBasic(sh),0)*0.5;spend('allow',b);note('Festive bonus of '+fm(b)+' paid to all crew.','good')}
   officeMonth(note,mStart);
   if(s.hseq)spend('hseq',190000);spend('interest',s.loan*effRate()/12);
-  const lv=ltv();if(lv>0.65){if(!s.ltvPen)note('Bank warning: loan is '+Math.round(lv*100)+'% of fleet value, above the 65% covenant. A 1% penalty rate applies until you bring it down.','bad','fin');s.ltvPen=1;s.board-=2}else if(s.ltvPen&&lv<=0.6){s.ltvPen=0;note('Loan-to-value back under 60%. The bank removed the penalty rate.','good','fin')}
-  s.ships.forEach(sh=>sh.age+=1/12);
+  if(mStart%3===2&&s.loan>0){const due=Math.min(s.loan,r10k(s.loan*0.025)),pay=Math.min(due,Math.max(0,s.cash));s.cash-=pay;s.loan-=pay;
+    if(pay<due){s.board-=5;s.rate+=0.005;note('Missed part of the quarterly loan repayment ('+fm(due-pay)+' unpaid). The bank raised the rate by 0.5%.','bad','fin')}else note('Quarterly loan repayment of '+fm(due)+' paid to the bank.','','fin')}
+  const lv=ltv();if(lv>0.65&&s.waiver>0){if(s.ltvPen)s.ltvPen=0}else if(lv>0.65){if(!s.ltvPen)note('Bank warning: loan is '+Math.round(lv*100)+'% of fleet value, above the 65% covenant. A 1% penalty rate applies until you bring it down.','bad','fin');s.ltvPen=1;s.board-=2}else if(s.ltvPen&&lv<=0.6){s.ltvPen=0;note('Loan-to-value back under 60%. The bank removed the penalty rate.','good','fin')}
+  s.ships.forEach(sh=>{sh.age+=1/12;['pscPrep','slowCii','langT','ciiBad'].forEach(k=>{if(sh[k]>0)sh[k]--})});if(s.waiver>0)s.waiver--;
+  if(mStart%12===11)ciiYear(note,mStart);
   const mt=moraleTarget();s.morale+=(mt-s.morale)*0.25;s.empRep+=((mt*0.7+12+(s.hseq?5:0)+eff('crewing')*8)-s.empRep)*0.2;
   SEGS.forEach(k=>{s.idx[k]=clamp(s.idx[k]+gauss()*0.06+(1-s.idx[k])*0.08,0.6,1.6)});
   s.prevBunker=s.bunker;s.bunker=clamp(s.bunker*(1+gauss()*0.045)+(2680-s.bunker)*0.08,2000,4000);s.bunkerHist.push(s.bunker);s.bunkerHist=s.bunkerHist.slice(-24);
@@ -1288,12 +1311,15 @@ function endMonth(){
   s.queue.unshift({kind:'report',rev,exp,notes,m:mStart});
   if(Math.random()<0.75)rollEvent();if(Math.random()<0.2)rollEvent();
   if(mStart%12===9&&aboard(s).length)s.queue.push(surveyEvent());if(mStart%12===11&&s.ships.length)s.queue.push(yearEndEvent());
+  if(mStart%12===1&&s.ships.length)s.queue.push(pandiEvent());
+  if(s.ciiQ){s.queue.push(s.ciiQ);delete s.ciiQ}
   const t=tierIdx();if(t>s.tierMax){s.tierMax=t;s.board+=10;s.rep+=5;s.queue.push({kind:'tier',t});addLog(s.company+' is now a '+TIERS[t].n+'.','good')}
   fix();
   if(s.neg>=2)s.over={type:'fired',why:'The company ran out of cash two months in a row.'};
   else if(s.m%12===0)annualReview();
   else if(s.m%3===0)boardReview();
   if(s.over)s.queue.push({kind:'end'});
+  genAgenda();meetOpen=null;
   confirmKey=null;save();render();
 }
 function boardReview(){
@@ -1343,8 +1369,8 @@ function act(a,v){
   if(a==='gosell'){const sh=shipById(+v);tab='sp';spMode='sell';spTab=sh?segOf(sh.cls):'all';design=null;render();window.scrollTo(0,0);return}
   if(a==='design'){design=defaultDesign(v);nameMsg=null;render();const el=document.getElementById('designer');if(el)el.scrollIntoView({block:'start'});return}
   if(a==='dcancel'){design=null;nameMsg=null;render();return}
-  if(a==='deng'&&design){design.eng=v;if(v==='lng')design.eq=design.eq.filter(x=>x!=='scrub');render();return}
-  if(a==='deq'&&design){if(EQ[v].no===design.eng)return;design.eq=design.eq.includes(v)?design.eq.filter(x=>x!==v):design.eq.concat(v);render();return}
+  if(a==='deng'&&design){design.eng=v;design.eq=design.eq.filter(x=>!blocked(EQ[x],v));render();return}
+  if(a==='deq'&&design){if(blocked(EQ[v],design.eng))return;design.eq=design.eq.includes(v)?design.eq.filter(x=>x!==v):design.eq.concat(v);render();return}
   if(a==='dyard'&&design){design.yard=v;render();return}
   if(a==='dflag'&&design){design.flag=v;render();return}
   if(a==='build'){if(!design)return;const S=buildSpec(design.cls,design),dep=r10k(S.price*STAGES[0][2]);if(st.cash<dep)return;const cn=checkName(inputVal('nm-design'));if(!cn.ok){nameMsg={k:'d',t:cn.e};render();return}nameMsg=null;delete drafts['nm-design'];
@@ -1354,6 +1380,9 @@ function act(a,v){
   if(a==='renameCancel'){renaming=null;nameMsg=null;render();return}
   if(a==='rename'){const sh=shipById(+v);if(!sh)return;const raw=inputVal('rn-'+v);if(raw.trim().toLowerCase()===sh.name.toLowerCase()){renaming=null;render();return}const cn=checkName(raw);if(!cn.ok||!cn.n){nameMsg={k:'r'+v,t:cn.e||'Type a name first.'};render();return}const old=sh.name;sh.name=cn.n;st.used.push(cn.n);renaming=null;nameMsg=null;addLog(old+' renamed '+cn.n+'. Flag registry fee RM 15k.','');spend('port',15000)}
   if(a==='ftab'){fleetTab=v;render();return}
+  if(a==='meet'){const [id,i]=v.split(':');const it=st.meet&&st.meet.items.find(x=>x.id===+id);if(!it||it.done!=null)return;if(+i<0)meetSkip(it);else meetDo(it,+i);meetOpen=null}
+  if(a==='meetopen'){meetOpen=meetOpen===+v?null:+v;render();return}
+  if(a==='nat'){const [kind,k]=v.split(':');const key=kind==='off'?'natOff':'natRat',l=st.pol[key];if(!NAT[k])return;if(l.includes(k)){if(l.length>1)st.pol[key]=l.filter(x=>x!==k)}else st.pol[key]=l.concat(k)}
   if(a==='crewsel'){crewSel=v;render();window.scrollTo(0,0);return}
   if(a==='man'){const [id,n]=v.split(':');const sh=shipById(+id);if(!sh)return;const nn=clamp(+n,minN(sh.cls),maxN(sh.cls)),old=sizeOf(sh);sh.size=nn;const cut=trimJr(sh);addLog(sh.name+' manning set to '+(4+nn)+' crew'+(nn===minN(sh.cls)?' (the legal minimum)':'')+(cut?'. '+cut+' crew signed off and flown home':nn>old?'. Crewing hires the extra crew at month end':'')+'.',nn===minN(sh.cls)?'bad':'','crew')}
   if(a==='mapreg'){mapReg=v;mapFocus=null;render();return}
@@ -1383,6 +1412,260 @@ function act(a,v){
   if(a==='again'){st=null;try{localStorage.removeItem(KEY)}catch(e){}tab='overview';render();return}
   if(!['sell','scrap','dismiss'].includes(a))confirmKey=null;
   save();render();
+}
+
+/* ---------- crew nationality sourcing ---------- */
+const NAT={
+  Filipino:{w:1,c:0,e:5,av:5,d:'The biggest seafarer nation. Good English, easy to find.'},
+  Indian:{w:0.97,c:2,e:4,av:4,d:'Strong officers, especially engineers. Good English.'},
+  Indonesian:{w:0.85,c:-2,e:3,av:4,d:'Large pool and cheaper. Best value for ratings.'},
+  Malaysian:{w:1,c:0,e:4,av:2,d:'Local crew. Malaysian oil and gas clients pay more for offshore ships crewed by Malaysians. Small officer pool.'},
+  Myanmar:{w:0.78,c:-4,e:2,av:3,d:'The cheapest and hard working. Weaker English, so mixed crews struggle to talk.'},
+  Chinese:{w:0.92,c:0,e:2,av:4,d:'Large pool. Works best in all-Chinese crews because English is limited.'},
+  Vietnamese:{w:0.8,c:-3,e:2,av:3,d:'Cheaper and growing fast. Weaker English.'},
+  'Sri Lankan':{w:0.9,c:0,e:4,av:2,d:'Good English and training. Smaller pool.'},
+  Ukrainian:{w:1.3,c:6,e:4,av:1,d:'Highly rated senior officers, but expensive and hard to find since the war.'}
+};
+const NATK=Object.keys(NAT),NAT_DEF=['Filipino','Indian','Indonesian','Malaysian','Myanmar'];
+Object.assign(NAMES,{
+  Chinese:()=>pick(['Wang','Li','Zhang','Liu','Chen','Yang','Zhao','Huang','Zhou','Wu'])+' '+pick(['Wei','Jun','Hao','Lei','Qiang','Peng','Bo','Gang','Ming','Tao']),
+  Vietnamese:()=>pick(['Nguyen','Tran','Le','Pham','Hoang','Vu','Dang','Bui'])+' '+pick(['Van Hung','Minh Tuan','Duc Anh','Quang Huy','Thanh Long','Van Nam','Hoang Son','Van Duc']),
+  'Sri Lankan':()=>pick(['Nuwan','Chaminda','Kasun','Ruwan','Lahiru','Dinesh','Sampath','Tharindu'])+' '+pick(['Perera','Fernando','Silva','Jayasuriya','Bandara','Wickramasinghe','Dissanayake']),
+  Ukrainian:()=>pick(['Oleksandr','Andrii','Serhii','Dmytro','Vitalii','Yurii','Ihor','Mykola'])+' '+pick(['Kovalenko','Bondarenko','Shevchenko','Tkachenko','Kravchenko','Melnyk','Boyko','Moroz'])
+});
+const natOf=p=>NAT[p&&p.nat]||{w:1,c:0,e:4,av:3};
+function natList(rank){const l=((OFFR.includes(rank)?st.pol.natOff:st.pol.natRat)||[]).filter(k=>NAT[k]);return l.length?l:NATK}
+function crewList(sh){return [...filled(sh).map(r=>sh.crew[r]),...(sh.jr||[])]}
+function natStats(sh){const ps=crewList(sh);if(!ps.length)return {n:0,e:5,top:null,share:0,c:{}};const c=countBy(ps.map(p=>p.nat)),top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0];return {n:Object.keys(c).length,e:ps.reduce((a,p)=>a+natOf(p).e,0)/ps.length,top:top[0],share:top[1]/ps.length,c}}
+function commPen(sh){const s=natStats(sh);if(s.n<=1)return s.n?-0.05:0;return (s.n-1)*0.025*Math.max(0,1.5-s.e/5)*(sh.langT>0?0.4:1)}
+function pickNat(rank,sh){const l=natList(rank);if(st.pol.natMix&&sh){const s=natStats(sh);if(s.top&&l.includes(s.top)&&Math.random()<0.85)return s.top}let t=l.reduce((a,k)=>a+NAT[k].av,0)*Math.random();for(const k of l){t-=NAT[k].av;if(t<=0)return k}return l[0]}
+function malShare(){const ps=st.ships.filter(s=>segOf(s.cls)==='offshore').flatMap(crewList);return ps.length?ps.filter(p=>p.nat==='Malaysian').length/ps.length:0}
+function natPick(kind){const l=kind==='off'?st.pol.natOff:st.pol.natRat;return `<div class="natchips">${NATK.map(k=>`<button type="button" data-a="nat" data-v="${kind}:${k}" aria-pressed="${l.includes(k)}">${esc(k)}</button>`).join('')}</div>`}
+function vNatCard(){
+  const ps=st.ships.flatMap(crewList),c=countBy(ps.map(p=>p.nat)),mx=Math.max(1,...Object.values(c)),multi=st.ships.filter(s=>natStats(s).n>=3).length,one=st.ships.filter(s=>natStats(s).n===1).length;
+  const rows=Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<div class="hbar"><span><b>${esc(k)}</b></span><span class="v">${n}</span><div class="t"><i style="width:${n/mx*100}%"></i></div></div>`).join('');
+  return `<section class="card">${rows||'<p class="muted" style="margin:0">No crew yet.</p>'}
+    <div class="facts" style="margin-top:6px"><span>Ships with one nationality <b>${one}</b></span><span>Ships with 3+ nationalities <b class="${multi?'down':''}">${multi}</b></span><span>Policy <b>${st.pol.natMix?'same nationality per ship':'mixed'}</b></span></div>
+    <dl class="gloss" style="margin-top:14px">${NATK.map(k=>{const n=NAT[k];return `<dt>${esc(k)}</dt><dd>Pay ${Math.round(n.w*100)}% of market · skill ${n.c>0?'+':''}${n.c} · English ${n.e}/5. ${esc(n.d)}${st.pol.natOff.includes(k)||st.pol.natRat.includes(k)?' <span class="tag good">Recruiting</span>':''}</dd>`}).join('')}</dl>
+    <div class="actions"><button type="button" class="btn" data-a="tab" data-v="depts">Change where we recruit</button></div></section>`;
+}
+
+/* ---------- carbon rating, insurance renewal, congestion ---------- */
+const pscLine=x=>(st.hseq?70:78)+((FLAGS[sp(x).flag]||{}).psc||0)-sp(x).saf*15+(x.ciiBad>0?6:0);
+const ENGCF={conv:1,eco:0.9,lng:0.8,meth:0.85},EQCF={coat:0.96,esd:0.95,shaft:0.97,scrub:1.02};
+const CIIB=[['A',0.86],['B',0.94],['C',1.06],['D',1.18],['E',99]],CII_EM={A:1.03,B:1.01,C:1,D:0.97,E:0.93};
+function ciiRatio(sh,y){const s=sp(sh),f=(ENGCF[s.eng]||1)*(s.eq||[]).reduce((a,k)=>a*(EQCF[k]||1),1);return f*(1+sh.age*0.012)*(st.fuelEff||1)*(sh.slowCii>0?0.9:1)/(1-0.02*((y??yearOf(st.m))-2027))}
+function ciiOf(sh,y){const r=ciiRatio(sh,y);return CIIB.find(b=>r<b[1])[0]}
+function ciiYear(note,mStart){
+  const y=yearOf(mStart),cnt={},bad=[];
+  st.ships.filter(sh=>sh.status!=='delivery').forEach(sh=>{const L=ciiOf(sh,y);sh.cii=L;sh.ciiH=(sh.ciiH||[]).concat(L).slice(-3);cnt[L]=(cnt[L]||0)+1;if(L==='E'||(sh.ciiH.length===3&&sh.ciiH.every(x=>x==='D')))bad.push(sh)});
+  if(Object.keys(cnt).length)note('IMO carbon ratings (CII) for '+y+': '+CIIB.map(b=>b[0]).filter(k=>cnt[k]).map(k=>cnt[k]+' rated '+k).join(', ')+'. Charterers pay more for A and B ships and less for D and E.',bad.length?'bad':'','tech');
+  if(bad.length){const cost=bad.reduce((a,sh)=>a+r10k(Math.max(4e5,CLS[sh.cls].value*0.012)),0);
+    st.ciiQ={kind:'event',id:'ciiPlan',title:'Carbon corrective plan needed',body:`${andList(bad.map(x=>x.name+' ('+x.ciiH.join(', ')+')'))} failed the IMO carbon rating. The flag state wants a corrective action plan in the ship's energy efficiency plan (SEEMP).`,facts:['A ship rated E once, or D three years in a row, must show how it will reach C.','Ratings get stricter every year, so older ships slide down even if nothing changes.'],ask:'What is the plan?',extra:{ids:bad.map(x=>x.id),cost}}}
+}
+EVENTS.ciiPlan={elig:()=>[],choices:q=>{const ss=()=>q.extra.ids.map(shipById).filter(Boolean);return [
+  ['Retrofit energy-saving kits','About '+fm(q.extra.cost)+'. Silicone hull coating and propeller fins: fuel and carbon down about 9%.',s=>{let c=0;ss().forEach(sh=>{const k=r10k(Math.max(4e5,CLS[sh.cls].value*0.012));spend('repair',k);sh.totC+=k;c+=k;sh.spec=sh.spec?{...sh.spec,eq:[...sh.spec.eq]}:{...NOSPEC,eq:[]};['coat','esd'].forEach(e=>{if(!sh.spec.eq.includes(e)){sh.spec.eq.push(e);sh.spec.fm*=EQ[e].fm}})});return ['Retrofits done for '+fm(c)+'. The ships burn less fuel and their rating improves from next year.','good']}],
+  ['Slow steam for a year','No cost. Carbon down about 10%, earnings down about 5% for 12 months.',s=>{ss().forEach(sh=>sh.slowCii=12);return ['The ships slow down for a year. Cheaper than a retrofit, but the problem returns as the ships age.','']}],
+  ['Do nothing','No cost. Inspectors and charterers will notice.',s=>{ss().forEach(sh=>sh.ciiBad=12);s.rep-=4;return ['No plan submitted. Port State Control is now targeting these ships and charterers are asking questions.','bad']}]]}};
+function pandiEvent(){
+  const inc=st.incLog.filter(x=>x.m>st.m-13).length,gen=Math.round(rnd(3,8)),load=inc*5,clean=inc===0&&st.culture>=60?5:0,pct=gen+load-clean,next=Math.round((st.insM||1)*(1+pct/100)*1000)/1000;
+  const ins=st.ships.reduce((a,sh)=>a+CLS[sh.cls].other*sp(sh).om*0.35,0)*12*(st.insM||1);
+  return {kind:'event',id:'pandi',title:'Insurance renewal, 20 February',body:`Our P&I club and hull underwriters sent their renewal terms. The fleet pays about ${fm(ins)} a year in insurance now.`,
+    facts:[`General increase for every member: +${gen}%.`,inc?`Our claims record: ${inc} incident${inc>1?'s':''} in the last 12 months. Loading +${load}%.`:'Our claims record is clean.'+(clean?' Good safety culture earns a 5% discount.':''),`Result: ${pct>=0?'+':''}${pct}% on last year.`],ask:'How do you want to renew?',extra:{next}};
+}
+EVENTS.pandi={elig:()=>[],choices:q=>[
+  ['Renew with our International Group club','Accept the terms as offered.',s=>{s.insM=q.extra.next;s.nonIG=0;s.deduct=0;return ['Renewed with the club. The new premium applies from this month.','']}],
+  ['Renew with a higher deductible','About 12% cheaper. We pay more of every claim ourselves.',s=>{s.insM=q.extra.next*0.88;s.deduct=1;s.nonIG=0;return ['Premium is lower, but each incident and cargo claim now costs us more. This pays off only if the fleet stays safe.','']}],
+  ['Move to a cheaper non-IG club','About 15% cheaper. Oil majors do not like it.',s=>{s.insM=q.extra.next*0.85;s.nonIG=1;s.deduct=0;s.rep-=2;return ['Cheaper cover, but oil majors and gas charterers now pay less for our tankers and gas carriers.','bad']}]]};
+EVENTS.congest={elig:s=>voyaging(s).filter(x=>x.c&&x.c.type==='VC'&&x.left===1),
+  make:sh=>{const d=r10k(sh.c.rev/sh.c.months*0.7),n=Math.round(rnd(9,24));return {ship:sh.id,extra:{d},title:'Port congestion at '+sh.c.to,body:`${sh.name} is at anchor off ${sh.c.to} with ${n} ships ahead of it for a berth. Laytime has run out, so under the charter party ${sh.c.who} owes us demurrage of about ${fm(d)} for the extra month.`}},
+  choices:[['Claim the full demurrage','Finance invoices the charterer. They may pay late.',(s,sh,q)=>{if(sh&&sh.status==='voyage')sh.left+=1;s.recv.push({id:s.nid++,amt:q.extra.d,who:sh&&sh.c?sh.c.who:'The charterer',ship:sh?sh.name:'',age:0});return ['Demurrage claim of '+fm(q.extra.d)+' sent. The ship discharges a month late.','']}],
+    ['Settle at half to keep the client','Half paid now. The charterer remembers the favour.',(s,sh,q)=>{if(sh&&sh.status==='voyage')sh.left+=1;earn('freight',q.extra.d*0.5);s.rep+=2;return ['Settled at '+fm(q.extra.d*0.5)+'. The charterer appreciated it.','good']}]]};
+
+/* ---------- monthly management meeting ---------- */
+const andList=a=>{a=a.filter(Boolean);if(a.length>4)a=a.slice(0,3).concat((a.length-3)+' others');return a.length<2?(a[0]||''):a.slice(0,-1).join(', ')+' and '+a[a.length-1]};
+const AUTH=[0,40e3,100e3,220e3,450e3,900e3];
+const authOf=h=>h?r10k(AUTH[h.skill]*(1+st.ships.length/12)):0;
+const shipsOf=ids=>ids.map(shipById).filter(Boolean);
+const AG={
+  idleNo:{d:'chartering',skill:2,sev:6,cost:p=>60e3*p.ids.length,
+    title:p=>p.ids.length>1?p.ids.length+' ships idle with no cargo':p.names[0]+' is idle with no cargo',
+    talk:p=>[['chartering',`${andList(p.names)} ${p.ids.length>1?'are':'is'} sitting in port. Every cargo on offer this month loses money after fuel and port costs. ${SEG[p.seg]} rates are at ${Math.round(p.idx*100)} on the index.`],
+      ['chartering',p.idx<0.85?'In a weak market, a ship that just covers its costs is better than a ship that earns nothing and still pays its crew.':'The market is fine. The brokers just have not shown us the right cargo yet.']],
+    opts:p=>[['Pay brokers extra to find cargo','RM 60k per ship. Brokers bring better offers this month.',s=>{const ss=shipsOf(p.ids);spend('commission',60e3*ss.length);let n=0;ss.forEach(sh=>{for(let i=0;i<2;i++){const o=genOffer(sh.cls);if(o.type==='VC')o.rev=r10k(o.rev*1.08);else{o.hire=r10k(o.hire*1.08);o.rev=o.hire*o.months}o.keep=s.m+1;s.offers.unshift(o);n++}});return [n+' new cargo offers came in. Fix them in Contracts, or Chartering fixes them at month end if they pay.',p.idx>=0.85?'good':'']}],
+      ['Take a break-even cargo to keep moving','No fee. Chartering fixes a cargo that only covers running costs.',s=>{let n=0;shipsOf(p.ids).filter(sh=>sh.status==='idle'&&manned(sh)&&canTrade(sh)).forEach(sh=>{const o=genOffer(sh.cls),c=estCost(o,sh),m=emOf(sh);if(o.type==='VC')o.rev=r10k(c*1.04/m);else{o.hire=r10k(c*1.04/o.months/m);o.rev=o.hire*o.months}sh.status='voyage';sh.left=o.months;sh.c=fitFor(o,sh);n++;addLog('Chartering fixed '+sh.name+(o.type==='VC'?' '+o.from+' → '+o.to:' on a '+o.months+'-month time charter')+' at break-even for '+o.who+'.','','charter')});return [n?n+' ship'+(n>1?'s are':' is')+' trading again at break-even. '+(p.idx<0.85?'The crew stays busy and costs are covered while the market is weak.':'It works, but in this market a little patience would have paid more.'):'The ships were no longer free to fix.',p.idx<0.85?'good':'']}],
+      ['Leave them idle this month','No cost now. The ships still pay crew, insurance and stores.',()=>['The ships wait in port. Running costs continue.','bad']]],
+    best:p=>p.idx<0.85?1:0},
+  cycle:{d:'chartering',skill:3,sev:4,policy:1,cd:6,
+    title:p=>SEG[p.seg]+' market '+(p.dir==='low'?'is at the bottom':'is booming'),
+    talk:p=>p.dir==='low'?[['chartering',`${SEG[p.seg]} rates have fallen to ${Math.round(p.v*100)} on the index. Charterers are offering long time charters at these low rates.`],['finance','Long charters would make our cash flow predictable. The bank likes that.']]
+      :[['chartering',`${SEG[p.seg]} rates are at ${Math.round(p.v*100)}, well above normal. Charterers want ships for 12 months or more and will pay today's rates.`],['finance','Spot voyages earn more right now, but nobody knows how long this lasts.']],
+    opts:p=>p.dir==='low'?[['Lock in long time charters now','Chartering prefers time charters from now on.',s=>{s.pol.mode=2;return ['Ships go on long charters at today\'s low rates. Safe, but when the market recovers you are stuck with cheap contracts. Owners usually lock in when rates are high, not at the bottom.','bad']}],
+        ['Stay short: fix voyage by voyage','Chartering prefers voyage charters while rates are low.',s=>{s.pol.mode=0;return ['Good call. Short voyages keep the ships free to catch the recovery.','good']}]]
+      :[['Lock in long time charters now','Chartering prefers time charters from now on.',s=>{s.pol.mode=2;return ['Good call. Ships are booked at boom rates, so income stays high when the market cools.','good']}],
+        ['Ride the boom on voyage charters','Chartering prefers voyage charters.',s=>{s.pol.mode=0;return ['You earn more while the boom lasts, but every ship is exposed when rates fall back.','']}]],
+    best:p=>p.dir==='low'?1:0},
+  lowCond:{d:'technical',skill:2,sev:7,cost:p=>p.cost,
+    title:p=>p.ids.length+' ship'+(p.ids.length>1?'s':'')+' below 62% condition',
+    talk:p=>[['technical',`${andList(shipsOf(p.ids).map(x=>x.name+' ('+Math.round(x.cond)+'%)'))}. Below about 60%, breakdowns get much more likely. One breakdown costs a month of earnings plus RM 0.6 to 1.4M.`],['technical',`My plan is shore technicians at the next port call. Total ${fm(p.cost)}.`]],
+    opts:p=>[['Repair all of them',fm(p.cost)+'. Condition up about 16% each.',s=>{let c=0,n=0;shipsOf(p.ids).filter(canShore).forEach(x=>{c+=shoreRepair(x)[0];n++});return [n?`Shore technicians repaired ${n} ship${n>1?'s':''} for ${fm(c)}.`:'The ships were no longer available for shore repair.',n?'good':'']}],
+      ['Repair only the worst one','Saves money. The others keep wearing.',s=>{const x=shipsOf(p.ids).filter(canShore).sort((a,b)=>a.cond-b.cond)[0];if(!x)return ['No ship was available for repair.',''];const [c,g]=shoreRepair(x);return [x.name+' repaired for '+fm(c)+' (+'+g+'%). The others still carry the breakdown risk.','']}],
+      ['Hold off','No cost now.',()=>['No repairs. The breakdown risk stays high.','bad']]],
+    best:()=>0},
+  survey:{d:'technical',skill:3,sev:8,policy:1,
+    title:p=>(shipById(p.id)||{name:'A ship'}).name+' is due for dry dock and cash is short',
+    talk:p=>{const sh=shipById(p.id);if(!sh)return [['technical','That ship is no longer in the fleet.']];const m=Math.max(0,dueIn(sh));return [['technical',`${sh.name}'s 5-year special survey is due in ${m} month${m===1?'':'s'}. The dry dock costs ${fm(p.cost)}. After the due date, class will not let it trade.`],['finance',`We have ${fm(st.cash)} in the bank. Paying for the dock leaves us very thin.`],['technical',p.cond>=65?'Its condition is '+p.cond+'%. Class usually gives a 3-month extension to a ship in this state.':'Its condition is only '+p.cond+'%. I doubt class will give an extension.']]},
+    opts:p=>[['Ask class for a 3-month extension','RM 40k survey fee. Works only if the ship is in decent condition.',s=>{const sh=shipById(p.id);spend('repair',40e3);if(!sh)return ['The ship is no longer in the fleet.',''];if(sh.cond>=65){sh.dockDue=Math.round(((sh.dockDue??sh.age+0.25)+0.25)*12)/12;return ['The class surveyor granted the extension. New due date '+dueLabel(sh)+'.','good']}return ['The surveyor found too many defects and refused. RM 40k spent for nothing.','bad']}],
+      ['Borrow and dock now','The bank covers the gap. The ship is out for a month.',s=>{const sh=shipById(p.id);if(!sh||sh.status!=='idle')return ['The ship is not in port, so it could not dock now.',''];const c=dockCost(sh),need=Math.max(0,c*1.3-s.cash);if(need>0){const amt=Math.min(Math.max(need,5e5),loanCap());if(amt<need)return ['The bank would not lend more. The loan is already high against fleet value.','bad'];s.loan+=amt;s.cash+=amt}enterDock(sh,c,1);return [sh.name+' is in dry dock'+(need>0?', paid partly with a bank loan':'')+'.','good']}],
+      ['Do nothing for now','The ship cannot take charters once the survey is overdue.',()=>['No decision. Once the date passes, the ship is stuck in port.','bad']]],
+    best:p=>p.cond>=65?0:1},
+  tired:{d:'crewing',skill:2,sev:7,cost:p=>13e3*p.list.length,
+    title:p=>p.list.length+' officer'+(p.list.length>1?'s are':' is')+' exhausted',
+    talk:p=>[['crewing',`${andList(p.list.map(x=>x.name+' on '+x.sn+' (fatigue '+x.fat+')'))} ${p.list.length>1?'are':'is'} still standing watches.`],['marine','Fatigue is behind most accidents at sea. Tired officers make mistakes however good they are.'],['crewing',`I can fly reliefs out now. About ${fm(13e3*p.list.length)} in travel and agency fees.`]],
+    opts:p=>[['Send reliefs now','New officers join, the tired ones fly home.',s=>{let n=0;p.list.forEach(x=>{const sh=shipById(x.ship);if(!sh||!sh.crew[x.r]||sh.crew[x.r].id!==x.pid)return;const q=genSeafarer(x.r,{mean:40+s.empRep*0.3+Math.min(1,eff('crewing'))*20,seg:cseg(sh.cls),sh});q.wage=Math.max(s.wages[x.r],q.expect);place(sh,x.r,q);n++});return [n?n+' relief officer'+(n>1?'s':'')+' joined. The tired officers are on their way home.':'They had already signed off.',n?'good':'']}],
+      ['Ask the Masters to rest them in port','No cost. Port work slows a little.',s=>{p.list.forEach(x=>{const q=findPerson(x.pid);if(q)q.fat=Math.max(0,q.fat-15)});s.slow=Math.max(s.slow,2);return ['They got some rest, but they are still tired. It buys time, it does not fix it.','']}],
+      ['Leave it','No cost.',s=>{s.culture-=2;return ['Nothing changes. The crews notice that nobody acted.','bad']}]],
+    best:()=>0},
+  payGap:{d:'crewing',skill:3,sev:5,policy:1,
+    title:()=>'Our crew pay is below market',
+    talk:p=>[['crewing',`Our wage scale is ${Math.round(p.wr*100)}% of market. ${p.vac?p.vac+' officer post'+(p.vac>1?'s are':' is')+' vacant and good candidates choose other owners.':'Good officers are turning us down.'}`],['finance','A 5% rise on the whole scale is a permanent cost. Can we recruit differently instead?']],
+    opts:p=>[['Raise all crew wages by 5%','Permanent. Hiring and morale improve.',s=>{Object.keys(s.wages).forEach(k=>s.wages[k]=Math.round(s.wages[k]*1.05/100)*100);s.empRep+=3;return ['Wage scale raised 5%. Candidates are accepting again.',p.wr<0.9?'good':'']}],
+      ['Recruit from lower-cost countries','Crewing adds Indonesia, Myanmar and Vietnam to the list.',s=>{['Indonesian','Myanmar','Vietnamese'].forEach(k=>{if(!s.pol.natOff.includes(k))s.pol.natOff.push(k);if(!s.pol.natRat.includes(k))s.pol.natRat.push(k)});return ['More candidates accept our scale. They cost less, but average skill and English are lower, and mixed crews talk less.',p.wr<0.9?'':'good']}],
+      ['Keep the scale','No cost.',s=>{s.empRep-=2;return ['Nothing changes. Vacancies stay hard to fill.','bad']}]],
+    best:p=>p.wr<0.9?0:1},
+  mixed:{d:'crewing',skill:3,sev:4,cost:p=>40e3*p.ids.length,
+    title:()=>'Mixed crews struggle to communicate',
+    talk:p=>[['marine',`${andList(p.names)} ${p.ids.length>1?'have':'has'} up to ${p.n} nationalities on board and weak English. In the last fire drill, half the crew did not follow the Master's orders.`],['crewing','We can train these crews now, or keep each ship to one nationality from now on.']],
+    opts:p=>[['English and teamwork training on these ships',fm(40e3*p.ids.length)+'. Helps for about a year.',s=>{spend('train',40e3*p.ids.length);shipsOf(p.ids).forEach(x=>x.langT=12);return ['Trainers sailed with the crews. Communication improves for about a year.','good']}],
+      ['Keep each ship one nationality from now on','Crewing hires each ship\'s main nationality where it can.',s=>{s.pol.natMix=1;return ['From now on, new hires match each ship\'s main nationality. Crews settle over the next few contracts.','good']}],
+      ['Leave it','No cost.',()=>['Nothing changes. Misunderstandings on board continue.','bad']]],
+    best:()=>0},
+  culture:{d:'marine',skill:3,sev:6,cost:()=>150e3,
+    title:p=>'Safety culture is weak ('+p.v+')',
+    talk:()=>[['marine','Near-miss reports have dried up. Crews are not telling us about problems, so we only hear after an accident.'],['marine','I want a safety stand-down day on every ship and a Masters\' conference in KL. RM 150k.'],['hr','Some people in the office think a firm memo would be enough.']],
+    opts:()=>[['Safety stand-down and Masters\' conference','RM 150k. Masters and crews talk openly with the office.',s=>{spend('hseq',150e3);s.culture+=7;s.morale+=2;return ['Crews spoke up about real problems. Reporting picks up again.','good']}],
+      ['Send a strong memo on following the rules','No cost.',s=>{s.culture-=2;return ['Crews read the memo as blame and report even less. Culture changes when people feel safe to speak, not when they are told off.','bad']}],
+      ['Leave it','No cost.',()=>['Nothing changes.','bad']]],
+    best:()=>0},
+  psc:{d:'marine',skill:2,sev:6,cost:p=>35e3*p.ids.length,
+    title:p=>p.ids.length+' ship'+(p.ids.length>1?'s':'')+' at risk of PSC detention',
+    talk:p=>[['marine',`${andList(p.names)} would probably fail a Port State Control inspection today. A detention costs money and hurts our name with charterers.`],['marine',`I can send a superintendent to pre-inspect ${p.ids.length>1?'each ship':'it'} and close the gaps before the next port. RM 35k per ship.`]],
+    opts:p=>[['Pre-inspect and close the gaps',fm(35e3*p.ids.length)+'. Ready for PSC for about 3 months.',s=>{const ss=shipsOf(p.ids);ss.forEach(x=>{x.pscPrep=3;x.cond=Math.min(100,x.cond+2)});spend('hseq',35e3*ss.length);return [ss.length+' ship'+(ss.length>1?'s were':' was')+' pre-inspected and ready for PSC.','good']}],
+      ['Leave it','No cost.',()=>['No action. Inspectors may still come aboard.','bad']]],
+    best:()=>0},
+  runway:{d:'finance',skill:3,sev:9,policy:1,
+    title:p=>'Cash covers only '+p.run.toFixed(1)+' months',
+    talk:p=>[['finance',`At our current spending, cash runs out in ${p.run.toFixed(1)} months. Most owners keep at least three months in the bank.`],['finance',p.cap>=5e5?`The bank can still lend ${fm(p.cap)}. The loan is ${Math.round(p.ltv*100)}% of fleet value.`:'The bank will not lend more. We are at our limit.']],
+    opts:p=>[['Draw on the bank loan',p.cap>=5e5?'Borrow '+fm(Math.min(loanStep(),p.cap))+'.':'The bank limit is used up.',s=>{const amt=Math.min(loanStep(),loanCap());if(amt<5e5)return ['The bank declined. We are at our limit.','bad'];s.loan+=amt;s.cash+=amt;return ['Borrowed '+fm(amt)+'. More interest, but a safer buffer.',p.ltv<0.55?'good':'']}],
+      ['Cut every department budget one level','Saves money now. Work quality and office morale drop.',s=>{DK().forEach(d=>{if(s.budget[d]>0)s.budget[d]--});s.oShock-=4;return ['Budgets cut across the office. Staff notice, and departments do a little less.','']}],
+      ['Do nothing','Hope next month is better.',()=>['No action. If cash is negative two months in a row, the board fires you.','bad']]],
+    best:p=>p.cap>=5e5&&p.ltv<0.55?0:1},
+  debt:{d:'finance',skill:3,sev:5,cost:p=>p.sum*0.1,
+    title:p=>fm(p.sum)+' overdue from clients',
+    talk:p=>[['finance',`${p.n>1?p.n+' charterers, including '+p.who+', owe':p.who+' owes'} us ${fm(p.sum)}, more than two months late. The longer it waits, the less likely we see it.`],['chartering','Careful. Some of these are clients we want to keep.']],
+    opts:p=>[['Send it to a collection lawyer','10% fee on what is recovered. Usually works, but clients do not like it.',s=>{let got=0;s.recv.filter(r=>r.age>=2).forEach(r=>{if(Math.random()<0.8){earn('freight',r.amt*0.9);got+=r.amt*0.9;r.done=1}});s.recv=s.recv.filter(r=>!r.done);s.rep-=1;return [got?'Lawyers recovered '+fm(got)+' after fees. On average a quick discount would have brought in a bit more and kept the clients happy.':'The lawyer letters have not worked yet.',got?'':'bad']}],
+      ['Offer 15% off for payment this week','Collect 85% now. Clients stay friendly.',s=>{let got=0;s.recv.filter(r=>r.age>=2).forEach(r=>{earn('freight',r.amt*0.85);got+=r.amt*0.85;r.done=1});s.recv=s.recv.filter(r=>!r.done);return ['Clients paid '+fm(got)+' after the discount. Money in the bank today beats a bigger number that might never come.','good']}],
+      ['Keep chasing','No cost.',()=>['Finance keeps sending reminders.','']]],
+    best:()=>1},
+  ltv:{d:'finance',skill:4,sev:8,policy:1,
+    title:p=>'Loan is '+Math.round(p.ltv*100)+'% of fleet value',
+    talk:p=>[['finance',`Our loan is ${Math.round(p.ltv*100)}% of what the fleet is worth. The bank covenant is 65%. Above that, the bank charges a 1% penalty and can ask for more security.`],['finance','We can repay some now, or ask the bank for a waiver for a fee.']],
+    opts:p=>[['Repay part of the loan','Pay '+fm(Math.max(0,Math.min(loanStep(),st.loan,st.cash-5e6)))+' now and keep RM 5M in the bank.',s=>{const amt=Math.min(loanStep(),s.loan,Math.max(0,s.cash-5e6));if(amt<=0)return ['Not enough spare cash to repay.','bad'];s.loan-=amt;s.cash-=amt;return ['Repaid '+fm(amt)+'. The loan is now '+Math.round(ltv()*100)+'% of fleet value.','good']}],
+      ['Ask the bank for a covenant waiver','RM 100k fee. The bank may ignore the breach for 6 months.',s=>{spend('interest',100e3);if(Math.random()<clamp(0.55+(s.board-50)/200,0.2,0.85)){s.waiver=6;s.ltvPen=0;return ['The bank granted a 6-month waiver. Use the time to bring the loan down.','good']}return ['The bank refused. The fee is gone and the penalty stays.','bad']}],
+      ['Do nothing','No cost now.',()=>['No action.','bad']]],
+    best:p=>p.cash>loanStep()+5e6?0:1},
+  morale:{d:'hr',skill:3,sev:5,policy:1,
+    title:p=>'Office morale is low ('+p.v+')',
+    talk:p=>[['hr',`Office morale is ${p.v}. ${p.left} staff left in the last year. Exit interviews mention pay and workload.`],['finance','Salary is a permanent cost. Let us look at cheaper fixes first.']],
+    opts:p=>[p.raise?['Raise office salary one level','Permanent cost increase. Morale rises steadily.',s=>{if(s.opay<3)s.opay++;s.oShock+=5;return ['Office salaries moved to '+OPAY[s.opay].l.toLowerCase()+'. Staff are relieved.','good']}]
+        :['Pay a one-off bonus of one month','One month of office payroll now.',s=>{spend('obonus',staffCount()*oPay());s.oShock+=8;return ['Bonus paid. Morale is up for a while.','']}],
+      !p.flex?['Allow hybrid working','Free. Two days a week from home, small loss in teamwork.',s=>{s.oben.flex=1;s.oShock+=3;return ['Hybrid working starts now. Staff love it, and it costs nothing.','good']}]
+        :['Team building and annual dinner','RM 150 per staff a month.',s=>{s.oben.team=1;s.oShock+=2;return ['Team events are back on the calendar.','good']}],
+      ['Leave it','No cost.',s=>{s.oShock-=3;return ['Nothing changes. More resignations are likely.','bad']}]],
+    best:p=>!p.flex?1:0},
+  overload:{d:'hr',skill:2,sev:5,policy:1,
+    title:p=>DNAME[p.d]+' team is overloaded',
+    talk:p=>[[p.d,`My team covers only ${Math.round(p.cov*100)}% of the fleet. We work weekends and things are slipping.`],['hr',`I can hire one more ${DNAME[p.d].toLowerCase()} executive for about ${fm(oPay()*1.145)} a month.`]],
+    opts:p=>[['Approve one more staff for '+DNAME[p.d],'HR hires at month end.',s=>{s.hc[p.d]=Math.min(25,s.hc[p.d]+1);return ['Headcount approved. HR will hire at month end.','good']}],
+      ['Raise their budget instead','One budget level up.',s=>{s.budget[p.d]=Math.min(4,s.budget[p.d]+1);return ['A bigger budget helps a little, but the team is still short of people.','']}],
+      ['Leave it','No cost.',s=>{s.oShock-=2;return ['The team keeps working overtime.','bad']}]],
+    best:()=>0},
+  hireFail:{d:'hr',skill:2,sev:4,cost:p=>oPay()*p.gap,
+    title:p=>p.gap+' office posts still empty',
+    talk:p=>[['hr',`Our job ads are not working. ${p.gap} approved posts are still empty and the teams are short.`],['hr','A recruitment agency charges one month of salary per hire, but fills most posts within a month.']],
+    opts:()=>[['Switch to a recruitment agency','About one month of salary per hire.',s=>{s.pol.hire=1;return ['HR switched to an agency. Posts should fill faster.','good']}],
+      ['Keep using job ads','Cheaper but slower.',()=>['HR keeps posting ads.','']]],
+    best:()=>0}
+};
+function genAgenda(){
+  const s=st;if(!s)return;const out=[],cd=s.meetCd||(s.meetCd={}),push=(k,p,key)=>{key=key||k;if(cd[key]>s.m)return;out.push({id:s.nid++,k,p,key})};
+  const idle=s.ships.filter(sh=>sh.status==='idle'&&manned(sh)&&canTrade(sh)&&!s.offers.some(o=>o.cls===sh.cls&&estProfit(o,sh)>0));
+  if(idle.length){const g=segOf(idle[0].cls);push('idleNo',{ids:idle.map(x=>x.id),names:idle.map(x=>x.name),seg:g,idx:s.idx[g]})}
+  s.divs.forEach(g=>{const v=s.idx[g];if(!s.ships.some(x=>segOf(x.cls)===g))return;if(v<0.8)push('cycle',{seg:g,dir:'low',v},'cycle'+g);else if(v>1.25)push('cycle',{seg:g,dir:'high',v},'cycle'+g)});
+  const low=s.ships.filter(sh=>sh.cond<62&&canShore(sh));if(low.length)push('lowCond',{ids:low.map(x=>x.id),cost:low.reduce((a,x)=>a+shoreCost(x),0)});
+  const due=s.ships.filter(sh=>sh.status==='idle'&&!tooOld(sh)&&dueIn(sh)<=3&&s.cash<dockCost(sh)*1.5);if(due.length){const sh=due[0];push('survey',{id:sh.id,cost:dockCost(sh),cond:Math.round(sh.cond)},'survey'+sh.id)}
+  const tired=aboard(s,p=>p.fat>=78);if(tired.length)push('tired',{list:tired.slice(0,4).map(x=>({ship:x.sh.id,r:x.r,pid:x.p.id,name:x.p.name,sn:x.sh.name,fat:x.p.fat}))});
+  const vac=s.ships.reduce((a,x)=>a+RK.filter(r=>!x.crew[r]).length,0);if(wageRatio()<0.95&&(vac||s.empRep<50))push('payGap',{wr:wageRatio(),vac});
+  const mixed=s.pol.natMix?[]:s.ships.filter(sh=>{const n=natStats(sh);return n.n>=4&&n.e<3.8&&!(sh.langT>0)});if(mixed.length)push('mixed',{ids:mixed.map(x=>x.id),names:mixed.map(x=>x.name),n:Math.max(...mixed.map(x=>natStats(x).n))});
+  if(s.culture<42)push('culture',{v:Math.round(s.culture)});
+  const risk=s.ships.filter(x=>!['delivery','dock'].includes(x.status)&&!(x.pscPrep>0)&&x.cond<pscLine(x));if(risk.length)push('psc',{ids:risk.map(x=>x.id),names:risk.map(x=>x.name)});
+  const mn=mgmtNums();if(s.m>0&&mn.runway!=null&&mn.runway<2.5)push('runway',{run:mn.runway,cap:loanCap(),ltv:ltv()});
+  const old=s.recv.filter(r=>r.age>=2);if(old.length)push('debt',{sum:old.reduce((a,r)=>a+r.amt,0),n:old.length,who:old[0].who});
+  if(ltv()>0.6)push('ltv',{ltv:ltv(),cash:s.cash});
+  if(s.omorale<50)push('morale',{v:Math.round(s.omorale),left:s.oLeft.reduce((a,x)=>a+x.n,0),raise:s.opay<3,flex:!!ob('flex')});
+  const ov=OPS.filter(d=>s.ships.length&&coverage(d)<0.7);if(ov.length)push('overload',{d:ov[0],cov:coverage(ov[0])},'overload'+ov[0]);
+  const gap=DK().reduce((a,d)=>a+Math.max(0,s.hc[d]-s.staff[d]),0);if(gap>=2&&s.pol.hire===0)push('hireFail',{gap});
+  s.meet={m:s.m,items:out.sort((a,b)=>AG[b.k].sev-AG[a.k].sev).slice(0,7).map(it=>{const A=AG[it.k],h=s.heads[A.d],n=A.opts(it.p).length;
+    it.d=A.d;it.best=A.best(it.p);it.cost=A.cost?A.cost(it.p):0;it.can=!A.policy&&!!h&&h.skill>=A.skill&&it.cost<=authOf(h);
+    it.rec=!h?null:it.can||Math.random()<0.5+0.1*h.skill?it.best:pick([...Array(n).keys()].filter(i=>i!==it.best));return it})};
+}
+const meetPending=()=>st&&st.meet?st.meet.items.filter(i=>i.done==null&&!i.can).length:0;
+function meetDo(it,i){const A=AG[it.k],o=A.opts(it.p)[i];if(!o)return;const [res,tone]=o[2](st,it.p);it.done=i;it.res=res;it.tone=tone;st.meetCd[it.key]=st.m+(A.cd||3);fix();addLog(DNAME[it.d]+': '+res,tone,'meet')}
+function meetSkip(it){it.done=-1;it.res='You told '+(st.heads[it.d]?st.heads[it.d].name:'the department')+' to hold off for now.';it.tone='';st.meetCd[it.key]=st.m+2}
+function meetClose(note){
+  if(!st.meet||st.meet.m!==st.m)return;let wait=0;
+  st.meet.items.forEach(it=>{if(it.done!=null)return;const A=AG[it.k];
+    if(it.can){const h=st.heads[it.d];const [res,tone]=A.opts(it.p)[it.best][2](st,it.p);it.done=it.best;note((h?h.name:DNAME[it.d])+' ('+DNAME[it.d]+') went ahead without waiting: '+res,tone,'meet');st.meetCd[it.key]=st.m+(A.cd||3)}
+    else wait++});
+  if(wait)note(wait+' meeting item'+(wait>1?'s':'')+' waited for your decision, so nothing was done about '+(wait>1?'them':'it')+'.','bad','meet');
+}
+let meetOpen=null;
+function spk(d){const h=st.heads[d];return h?h.name:'Acting '+DNAME[d]+' head'}
+function meetCard(it){
+  const A=AG[it.k],opts=A.opts(it.p),h=st.heads[it.d],done=it.done!=null,mn=mgmtNums();
+  const talk=A.talk(it.p).filter(([d])=>d===it.d||st.heads[d]);
+  if(!done&&it.cost>0&&it.d!=='finance'&&st.heads.finance&&mn.runway!=null&&mn.runway<3&&!talk.some(([d])=>d==='finance'))talk.push(['finance',`Cash covers only ${mn.runway.toFixed(1)} months. Please keep spending to what is necessary.`]);
+  const say=(d,t,c)=>`<div class="say${c?' '+c:''}"><span class="who">${esc(spk(d))} · ${DNAME[d]}</span>${t}</div>`;
+  let why='';
+  if(!done){
+    if(it.can)why=say(it.d,`This is within my authority (up to ${fm(authOf(h))}). Unless you stop me, I will go ahead at month end: <b>${esc(opts[it.best][0])}</b>.`,'me');
+    else{const r=!h?`We have no ${DEPTS[it.d].t}. Nobody has prepared this properly, so you decide alone.`:A.policy?'This changes company policy, so it is your call.':h.skill<A.skill?'I am not sure what is best here. I need you to decide.':`It is above my spending limit of ${fm(authOf(h))}.`;
+      why=say(it.d,esc(r)+(it.rec!=null?` My recommendation: <b>${esc(opts[it.rec][0])}</b>.`:''),'me')}
+  }
+  const choices=opts.map((c,i)=>`<button type="button" class="choice" data-a="meet" data-v="${it.id}:${i}"><b>${esc(c[0])}${it.rec===i?' <span class="tag">Recommended</span>':''}</b><span>${esc(c[1])}</span></button>`).join('');
+  let act='';
+  if(done)act=`<div class="result ${it.tone==='bad'?'down':it.tone==='good'?'up':''}" style="margin:12px 0 0">${it.done>=0?'<b>'+esc(opts[it.done][0])+'.</b> ':''}${esc(it.res||'Done.')}</div>`;
+  else if(it.can)act=`<div class="actions"><button type="button" class="btn primary" data-a="meet" data-v="${it.id}:${it.best}">Go ahead now</button><button type="button" class="btn" data-a="meetopen" data-v="${it.id}">${meetOpen===it.id?'Hide options':'Other options'}</button><button type="button" class="btn" data-a="meet" data-v="${it.id}:-1">Not now</button></div>${meetOpen===it.id?`<div class="choices" style="margin-top:10px">${choices}</div>`:''}`;
+  else act=`<div class="choices" style="margin-top:12px">${choices}<button type="button" class="choice" data-a="meet" data-v="${it.id}:-1"><b>Not now</b><span>Come back to it later. Nothing is done this month.</span></button></div>`;
+  return `<article class="card"><div class="ship-head"><div style="min-width:0"><span class="chip">${DNAME[it.d]}</span><div class="ship-name" style="margin-top:8px;font-size:17px">${esc(A.title(it.p))}</div></div><span class="pill ${done?'p-del':it.can?'p-idle':'p-dock'}">${done?'Decided':it.can?'Manager\'s call':'Your decision'}</span></div>
+    <div class="dlg">${talk.map(([d,t])=>say(d,esc(t),d===it.d?'':'alt')).join('')}${why}</div>${act}</article>`;
+}
+function vMeeting(){
+  if(!st.meet)genAgenda();const its=st.meet.items,yours=its.filter(i=>!i.can&&i.done==null).length,own=its.filter(i=>i.can&&i.done==null).length;
+  const att=DK().map(d=>{const h=st.heads[d];return `<span>${DNAME[d]} <b class="${h?'':'down'}">${h?esc(h.name):'vacant'}</b>${h?' <span class="stars" style="font-size:12px">'+'★'.repeat(h.skill)+'</span>':''}</span>`}).join('');
+  const quiet=memos().filter(m=>!its.some(i=>i.d===m.d));
+  return `<section class="card"><div class="eyebrow-m">Management meeting · ${mlabel(st.m)}</div>
+    <div class="facts" style="margin-top:8px">${att}</div>
+    <div class="kpis k3">${kpi('On the agenda',its.length)}${kpi('Your decision',yours,yours?'down':'')}${kpi('Managers will handle',own)}</div>
+    <p class="muted small" style="margin:12px 0 0">Each head brings their problem and a plan. Within their spending limit, they act on their own at month end unless you stop them. Company policy, big spending, or a vacant head comes to you. Anything you leave undecided is not done.</p></section>
+  ${its.length?its.map(meetCard).join(''):'<section class="help">No one has an urgent problem this month. A quiet meeting is a good meeting.</section>'}
+  ${quiet.length?`<h2>Other updates</h2><section class="card"><ul class="memo">${quiet.map(m=>`<li><div class="rk">${DNAME[m.d]} · ${esc(m.who)}</div><div class="${m.tone==='bad'?'down':''}">${esc(m.t)}</div></li>`).join('')}</ul></section>`:''}
+  <h2>Meeting decisions</h2><section class="card">${memoLog('meet',8)}</section>`;
+}
+function meetSummary(){
+  if(!st.meet)genAgenda();const its=st.meet.items;if(!its.length)return '<p class="muted" style="margin:0">All heads report no urgent issues this month.</p>';
+  return `<ul class="memo">${its.map(it=>`<li class="${it.done!=null?'':it.can?'':'q-bad'}"><div class="rk">${DNAME[it.d]} · ${it.done!=null?'decided':it.can?'manager will handle':'needs your decision'}</div><div>${esc(AG[it.k].title(it.p))}</div></li>`).join('')}</ul>
+    <div class="actions"><button type="button" class="btn primary" data-a="tab" data-v="meeting">Open the meeting${meetPending()?' · '+meetPending()+' for you':''}</button></div>`;
 }
 
 /* ---------- views ---------- */
@@ -1437,7 +1720,7 @@ function vOverview(){
     ${nx?`<p class="muted small" style="margin:14px 0 0">Next level, <b style="color:var(--ink)">${nx.n}</b>: ${nx.ships} ships (now ${st.ships.length+st.orders.length}), ${nx.divs} divisions (now ${st.divs.length}), net worth ${fm(nx.nw)}.</p>`:'<p class="up small" style="margin:14px 0 0"><b>You have reached the top level.</b></p>'}
   </section>
   <h2>Management meeting</h2>
-  <section class="card">${(()=>{const ms=memos();return ms.length?`<ul class="memo">${ms.map(m=>`<li><div class="rk">${DNAME[m.d]} · ${esc(m.who)}</div><div class="${m.tone==='bad'?'down':''}">${esc(m.t)}</div></li>`).join('')}</ul>`:'<p class="muted" style="margin:0">All heads report no urgent issues this month.</p>'})()}</section>
+  <section class="card">${meetSummary()}</section>
   <h2>Management numbers</h2>
   <section class="card">${(()=>{const n=mgmtNums();return `<div class="kpis k3" style="margin-top:0">${kpi('Fleet utilisation',Math.round(n.util*100)+'%',n.util<0.6?'down':'')}${kpi('Ship OPEX per day',n.opexDay?fm(n.opexDay):'–')}${kpi('Overhead per month',fm(n.ga))}${kpi('Overhead vs revenue',n.gaPct==null?'–':Math.round(n.gaPct*100)+'%',n.gaPct>0.25?'down':'')}${kpi('Loan to value',Math.round(n.ltv*100)+'%',n.ltv>0.6?'down':'')}${kpi('Cash runway',n.runway==null?'–':n.runway.toFixed(1)+' mo',n.runway!=null&&n.runway<2.5?'down':'')}</div>
     <p class="muted small" style="margin:12px 0 0">OPEX is crew, stores, insurance and management per ship. Overhead is head office, heads, office staff and department budgets. Healthy owners keep overhead under 15 to 20% of revenue.</p>`})()}</section>
@@ -1480,7 +1763,7 @@ function shipCard(sh){
     <div class="facts" style="margin-top:10px"><span>Crew <b>${crewCount(sh)}</b> / min ${4+minN(sh.cls)}</span><span>Crew competence <b>${crewScore(sh)||'–'}</b></span><span>${g?`<b class="down">${g} certificate gaps</b>`:'<b class="up">Certificates complete</b>'}</span></div>
     <div class="money"><div><small>Last month</small><b class="num ${sh.lastNet<0?'down':'up'}">${fm(sh.lastNet||0)}</b></div><div><small>Profit since joined</small><b class="num ${pr<0?'down':'up'}">${fm(pr)}</b></div><div><small>Avg per day</small><b class="num ${pr<0?'down':''}">${fm(pr/mo/30)}</b></div></div>
     ${sh.status==='voyage'?`<div class="voyage">${sh.c.type==='VC'?`<b>${esc(sh.c.from)} → ${esc(sh.c.to)}</b> · ${esc(sh.c.cargo)}${sh.c.hra?' <span class="tag warn">High risk area</span>':''}<br><span class="muted">Voyage charter for ${esc(sh.c.who)}. Freight ${fm(sh.c.rev)} on arrival.</span>`:`<b>Time charter with ${esc(sh.c.who)}</b>${sh.c.to?' · '+esc(sh.c.to):''}<br><span class="muted">Hire ${fm(sh.c.hire)} a month.</span>`}</div>`:''}
-    <div class="facts" style="margin-top:6px"><span>Next dry dock <b class="${dueIn(sh)<=6?'down':''}">${dueIn(sh)<=0?'overdue':dueLabel(sh)+' ('+dueIn(sh)+' mo)'}</b></span><span>Shore repair limit <b>${shoreCap(sh)}%</b></span></div>
+    <div class="facts" style="margin-top:6px"><span>Next dry dock <b class="${dueIn(sh)<=6?'down':''}">${dueIn(sh)<=0?'overdue':dueLabel(sh)+' ('+dueIn(sh)+' mo)'}</b></span><span>Shore repair limit <b>${shoreCap(sh)}%</b></span><span>Carbon rating (CII) <b class="${['D','E'].includes(sh.cii)?'down':''}">${sh.cii||'not rated yet'}</b> · on track for <b class="${['D','E'].includes(ciiOf(sh))?'down':''}">${ciiOf(sh)}</b> in ${yearOf(st.m)}</span>${sh.slowCii>0?'<span><b>Slow steaming</b> '+sh.slowCii+' mo</span>':''}${sh.pscPrep>0?'<span><b>PSC ready</b></span>':''}</div>
     ${sh.status==='dock'?`<div class="voyage">${sh.emDock?'Emergency repairs in the shipyard after a major breakdown. The 5-year survey is done at the same time.':'5-year special survey: hull blasting and painting, propeller and rudder checks, tank inspections and engine overhaul.'}</div>`:''}
     ${surveyOverdue(sh)&&sh.status==='idle'?`<div class="warnbox">Class requires the 5-year special survey. This ship cannot take new charters until it is dry docked.</div>`:''}
     ${sh.status==='idle'&&f<4?`<div class="voyage">Crewing is recruiting the missing officers. They join at the end of the month.</div>`:''}
@@ -1542,7 +1825,11 @@ function deptCard(d){
     <div class="muted small" style="margin-top:12px">Train missing certificates automatically</div>${polRow('autoTrain',['No','Yes'])}
     <div class="muted small" style="margin-top:12px">Contract length for officers. Shorter contracts mean less fatigue but more crew changes.</div>${polRow('contract',['4 months','6 months','9 months'])}
     <div class="muted small" style="margin-top:12px">Crew rotation. Sending crew back to the same ship keeps teams together, so they work better and tire less. Crew on leave waiting for their ship get standby pay of RM 1,200 a month.</div>${polRow('rotation',['Any ship','Same ship, keep teams'])}
-    <div class="muted small" style="margin-top:12px">Wage above scale Crewing may offer without asking you</div>${polRow('premium',['0%','5%','10%','15%'])}</div>`;
+    <div class="muted small" style="margin-top:12px">Wage above scale Crewing may offer without asking you</div>${polRow('premium',['0%','5%','10%','15%'])}</div>
+    <div class="setting"><h3>Where we recruit</h3><div class="muted small">Tap to add or remove a nationality. Cheaper crew cost less but average skill and English vary. Fewer choices means fewer candidates for each post. Details are in Crewing.</div>
+    <div class="muted small" style="margin-top:12px"><b style="color:var(--ink)">Officers</b> (Master to 4th Engineer)</div>${natPick('off')}
+    <div class="muted small" style="margin-top:12px"><b style="color:var(--ink)">Ratings</b> (Bosun, AB, Oiler, Cook and others)</div>${natPick('rat')}
+    <div class="muted small" style="margin-top:12px">Crew mix on each ship. One nationality per ship means one language on board, so fewer misunderstandings.</div>${polRow('natMix',['Mixed nationalities','Same nationality per ship'])}</div>`;
   if(d==='marine')pol=`<div class="setting"><h3>HSEQ safety programme</h3><div class="muted small">RM 190k a month. Cuts breakdowns 40%, lowers PSC risk and lifts your employer rating.</div><div class="seg"><button type="button" data-a="hseq" data-v="0" aria-pressed="${!st.hseq}">Off</button><button type="button" data-a="hseq" data-v="1" aria-pressed="${st.hseq}">On</button></div></div>`;
   if(d==='technical')pol=`<div class="setting"><h3>Maintenance level</h3>${segRow('maint',st.maint,MAINT.map(m=>m.label))}<div class="muted small" style="margin-top:12px">Call shore technicians automatically when condition falls below</div>${polRow('dockAt',['Manual','60%','65%','70%'])}<div class="muted small" style="margin-top:12px">Book the 5-year special survey dry dock automatically</div>${polRow('autoDock',['No','Yes'])}</div>`;
   if(d==='finance')pol=`<div class="setting"><h3>Credit control</h3><div class="muted small">Relaxed wins slightly better rates but more charterers pay late. Strict cuts bad debts but some clients go elsewhere.</div>${polRow('credit',['Relaxed','Normal','Strict'])}
@@ -1612,6 +1899,7 @@ function vCrewing(){
   <h2>Crew voice</h2>
   <section class="card">${st.voice.length?`<ul class="memo">${st.voice.slice(0,8).map(v=>`<li class="${v.tone==='bad'?'q-bad':v.tone==='good'?'q-good':''}"><div class="rk">${esc(v.rank)} ${esc(v.name)} · ${esc(v.ship)} · ${mlabel(v.m)}</div><div>“${esc(v.t)}”</div></li>`).join('')}</ul>`:'<p class="muted" style="margin:0">Crew messages appear after your first month.</p>'}
     <p class="muted small" style="margin:12px 0 0">Read these like a manager: one complaint is one person, the same complaint from several ships is a pattern.</p></section>
+  <h2>Crew nationalities</h2>${vNatCard()}
   <h2>Crewing activity</h2><section class="card">${memoLog('crew',8)}</section>
   <h2>Full crew and promotions</h2>
   <section class="help">Every ship's full crew list, safe manning, team strength, crew on leave and promotion history are in <b>Crew List</b>. When a post opens, the Master nominates someone from the fleet, the Marine Superintendent reviews them, and you approve or hire from outside.</section>
@@ -1644,7 +1932,7 @@ function vPayroll(){
 
 const SHORT={scrub:'Scrubber',coat:'Silicone hull',esd:'Energy-saving fins',shaft:'Shaft generator',reefer:'Reefer plugs',geared:'Own cranes',coatTank:'Coated tanks',mfm:'Mass flow meter',reliq:'Reliquefaction',dp2:'DP2',fifi:'Fi-Fi 1',freefall:'Free-fall lifeboat',mist:'Water mist',ibs:'Integrated bridge',gasdet:'Gas detection',cms:'Engine monitoring',citadel:'Citadel',cabins:'Single cabins',hosp:'Ship hospital'};
 function specChips(S){
-  if(!S||S===NOSPEC)return '';const items=[];if(S.eng==='eco')items.push('Eco engine');if(S.eng==='lng')items.push('LNG dual-fuel');
+  if(!S||S===NOSPEC)return '';const items=[];if(S.eng==='eco')items.push('Eco engine');if(S.eng==='lng')items.push('LNG dual-fuel');if(S.eng==='meth')items.push('Methanol dual-fuel');
   (S.eq||[]).forEach(k=>{if(SHORT[k])items.push(SHORT[k])});
   return items.length?`<div class="certs">${items.map(t=>`<span class="cert tank">${esc(t)}</span>`).join('')}</div>`:'';
 }
@@ -1669,7 +1957,7 @@ function vDesigner(){
   const d=design,c=CLS[d.cls],seg=c.seg,L=LOA[d.cls],S=buildSpec(d.cls,d),hf=S.k**0.85;
   const eqPrice=e=>'+ '+fm(Math.max(e.min||0,e.c*c.value*hf));
   const groups=EQG.map(([g,label])=>{const items=Object.entries(EQ).filter(([k,e])=>e.g===g&&(!e.segs||e.segs.includes(seg)));if(!items.length)return '';
-    return `<h2>${label}</h2><section class="card"><div class="opt-grid">${items.map(([k,e])=>optBtn('deq',k,d.eq.includes(k),e.t,e.d+(e.no===d.eng?' Not available with LNG.':''),eqPrice(e),e.no===d.eng)).join('')}</div></section>`}).join('');
+    return `<h2>${label}</h2><section class="card"><div class="opt-grid">${items.map(([k,e])=>optBtn('deq',k,d.eq.includes(k),e.t,e.d+(blocked(e,d.eng)?' Not needed with this engine.':''),eqPrice(e),blocked(e,d.eng))).join('')}</div></section>`}).join('');
   const yards=Object.entries(YARDS).filter(([k,y])=>!y.segs||y.segs.includes(seg));
   return `<div id="designer"></div><section class="card">
     <div class="ship-head"><div><span class="chip">${SEG[seg]} · custom newbuild</span><div class="ship-name" style="margin-top:8px">${c.nama}</div></div><button type="button" class="linkbtn" data-a="dcancel">Back to ship types</button></div>
@@ -1760,7 +2048,7 @@ function vFinance(){
   <section class="card">${st.recv.length?`<div class="pl">${st.recv.map(r=>`<div><span>${esc(r.who)} · ${esc(r.ship)}<br><span class="muted small">${r.age} month${r.age===1?'':'s'} overdue</span></span><span class="num">${fm(r.amt)}</span></div>`).join('')}<div class="tot"><span>Total receivables</span><span class="num">${fm(recvSum())}</span></div></div>`:'<p class="muted" style="margin:0">All clients have paid.</p>'}
     <p class="muted small" style="margin:10px 0 0">Late payers are chased by Finance. After four months unpaid, the debt is written off.</p></section>
   <h2>Bank financing</h2>
-  <section class="card"><div class="pl"><div><span>Current loan</span><b class="num">${fm(st.loan)}</b></div><div><span>Interest rate</span><span class="num">${(effRate()*100).toFixed(2)}% a year</span></div><div><span class="muted small">Base ${(st.rate*100).toFixed(2)}%${effRate()>st.rate+0.0001?' + margin for weak finance team'+(st.ltvPen?' + covenant penalty':''):''}</span><span></span></div><div><span>Monthly interest</span><span class="num">${fm(st.loan*effRate()/12)}</span></div><div><span>Loan to value (covenant 65%)</span><span class="num ${ltv()>0.65?'down':''}">${Math.round(ltv()*100)}%</span></div><div><span>Remaining limit (50% of fleet value)</span><span class="num">${fm(cap)}</span></div></div>
+  <section class="card"><div class="pl"><div><span>Current loan</span><b class="num">${fm(st.loan)}</b></div><div><span>Interest rate</span><span class="num">${(effRate()*100).toFixed(2)}% a year</span></div><div><span class="muted small">Base ${(st.rate*100).toFixed(2)}%${effRate()>st.rate+0.0001?' + margin for weak finance team'+(st.ltvPen?' + covenant penalty':''):''}</span><span></span></div><div><span>Monthly interest</span><span class="num">${fm(st.loan*effRate()/12)}</span></div><div><span>Loan to value (covenant 65%)</span><span class="num ${ltv()>0.65?'down':''}">${Math.round(ltv()*100)}%</span></div><div><span>Remaining limit (50% of fleet value)</span><span class="num">${fm(cap)}</span></div><div><span>Scheduled repayment (2.5% each quarter)</span><span class="num">${st.loan>0?fm(r10k(st.loan*0.025))+' in '+MONTHS[(st.m+(2-st.m%3+3)%3)%12]:'–'}</span></div>${st.waiver>0?`<div><span>Covenant waiver</span><span>${st.waiver} mo left</span></div>`:''}<div><span>Insurance (P&I and hull)</span><span class="num">${Math.round((st.insM||1)*100)}% of base${st.deduct?' · high deductible':''}${st.nonIG?' · non-IG club':''}</span></div></div>
     <div class="actions"><button type="button" class="btn primary" data-a="borrow" ${cap<5e5?'disabled':''}>Borrow ${fm(Math.min(step,cap))}</button><button type="button" class="btn" data-a="repay" ${st.loan<=0||st.cash<=0?'disabled':''}>Repay ${fm(Math.min(step,st.loan,Math.max(0,st.cash)))}</button></div></section>`;
 }
 
@@ -1819,6 +2107,16 @@ function vCompany(){
     <dt>Steel cutting</dt><dd>Shipbuilding milestones: steel cutting, keel laying, launching and delivery. The owner pays the yard at each stage.</dd>
     <dt>Flag state</dt><dd>The country where the ship is registered. Its laws apply on board, and it affects cabotage rights and PSC inspections.</dd>
     <dt>LDT</dt><dd>Lightweight tonnage, the weight of the empty ship. Used to price demolition.</dd>
+    <dt>CII</dt><dd>Carbon Intensity Indicator. IMO rates every ship A to E each year on carbon per cargo mile, and the limits tighten every year. A ship rated E once, or D three years in a row, needs a corrective plan.</dd>
+    <dt>P&I club</dt><dd>Protection and indemnity insurance, run by shipowners as mutual clubs. Covers crew injury, pollution and cargo claims. Renews every 20 February.</dd>
+    <dt>IG club</dt><dd>One of the International Group P&I clubs. Oil majors and LNG charterers expect them. Cheaper non-IG clubs exist.</dd>
+    <dt>Deductible</dt><dd>The part of each claim the owner pays before insurance pays the rest.</dd>
+    <dt>Laytime</dt><dd>The time a voyage charterer is allowed for loading and discharging.</dd>
+    <dt>Demurrage</dt><dd>Money the charterer pays the owner for each day the ship waits beyond laytime, for example in port congestion.</dd>
+    <dt>Covenant</dt><dd>A condition in the loan agreement, such as keeping the loan under 65% of fleet value. A waiver lets you breach it for a while.</dd>
+    <dt>Class extension</dt><dd>A short delay of a class survey, granted by the surveyor only if the ship is in good condition.</dd>
+    <dt>Slow steaming</dt><dd>Sailing slower to burn less fuel and cut carbon. Fewer voyages a year, so less income.</dd>
+    <dt>Authority</dt><dd>How much a manager may spend without asking the CEO. Stronger managers get bigger limits.</dd>
   </dl></section>
   <div><button type="button" class="btn ${confirmKey==='reset'?'danger':''}" data-a="reset">${confirmKey==='reset'?'Tap again to start over':'Start a new game'}</button></div>`;
 }
@@ -1946,7 +2244,7 @@ function vStart(){
   return `<div class="wrap start">
     <section class="hero"><svg viewBox="0 0 200 90" aria-hidden="true"><path d="M10 60 L190 60 L170 82 L28 82 Z" fill="#fff"/><rect x="40" y="36" width="22" height="22" fill="#fff"/><rect x="66" y="36" width="22" height="22" fill="#fff"/><rect x="92" y="36" width="22" height="22" fill="#fff"/><rect x="118" y="36" width="22" height="22" fill="#fff"/><rect x="150" y="18" width="20" height="40" fill="#fff"/></svg>
       <h1>FX Shipping</h1>
-      <p>You are the new CEO. Hire department heads and office staff, decide how lean each department runs, set crew and office pay, investigate crew mistakes, buy and name your own ships, design newbuildings down to the LOA and safety gear, and open divisions from container lines to LPG and offshore. Grow from a small owner into an Asian shipping giant. Meet the board's yearly target or get fired.</p></section>
+      <p>You are the new CEO. Chair a monthly meeting where your heads bring problems and solutions, hire department heads and office staff, decide how lean each department runs, choose which countries your seafarers come from, set crew and office pay, investigate crew mistakes, buy and name your own ships, design newbuildings down to the LOA and safety gear, and open divisions from container lines to LPG and offshore. Grow from a small owner into an Asian shipping giant. Meet the board's yearly target or get fired.</p></section>
     <label class="field">Company name<input id="co-name" maxlength="40" placeholder="FX Shipping Sdn Bhd" autocomplete="off" value="${esc(drafts['co-name']||'')}"></label>
     <div><div style="font-weight:600;margin-bottom:8px">Choose your starting fleet</div>
       <div class="plans">${Object.entries(PLANS).map(([k,p])=>`<button type="button" class="plan" data-a="plan" data-v="${k}" aria-pressed="${startPlan===k}"><b>${p.nama}</b><span>${p.desc} Cash ${fm(p.cash)}.</span></button>`).join('')}</div></div>
@@ -1958,12 +2256,13 @@ function render(){
   if(!st){app.innerHTML=vStart();renderModal();return}
   if(!TABS.some(t=>t[0]===tab))tab='overview';
   const vac=st.ships.reduce((a,s)=>a+RK.filter(r=>!s.crew[r]).length,0),noHead=OPS.filter(d=>!st.heads[d]).length;
-  const body={overview:vOverview,fleet:vFleet,map:vMap,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,crew:vCrew,safety:vSafety,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
+  const mp=meetPending();
+  const body={overview:vOverview,meeting:vMeeting,fleet:vFleet,map:vMap,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,crew:vCrew,safety:vSafety,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
   app.innerHTML=`<header class="top"><div class="wrap">
     <div class="top-row"><div class="brand"><div class="co">${esc(st.company)}</div><div class="when">${st.over?'Game over':'Month '+(st.m+1)+' · '+mlabel(st.m)}</div></div>
       <div class="cashpill"><small>Cash</small><b class="${st.cash<0?'neg':''}">${fm(st.cash)}</b></div>
       <button type="button" class="btn-end" data-a="end" ${st.over?'disabled':''}>End month</button></div>
-    <nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" class="tab" role="tab" data-a="tab" data-v="${k}" aria-selected="${tab===k}">${l}${k==='crewing'&&vac?' ('+vac+')':''}${k==='depts'&&noHead?' (!)':''}${k==='hr'&&st.omorale<45?' (!)':''}${k==='safety'&&aboard(st,p=>p.fat>=80).length?' (!)':''}</button>`).join('')}</nav>
+    <nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" class="tab" role="tab" data-a="tab" data-v="${k}" aria-selected="${tab===k}">${l}${k==='meeting'&&mp?' ('+mp+')':''}${k==='crewing'&&vac?' ('+vac+')':''}${k==='depts'&&noHead?' (!)':''}${k==='hr'&&st.omorale<45?' (!)':''}${k==='safety'&&aboard(st,p=>p.fat>=80).length?' (!)':''}</button>`).join('')}</nav>
   </div></header><main class="wrap">${body}</main>`;
   renderModal();
 }
@@ -2000,7 +2299,7 @@ function renderModal(){
 
 function save(){try{if(st)localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
 function load(){try{let s=localStorage.getItem(KEY);if(!s)s=localStorage.getItem(OLDKEY);const o=s?JSON.parse(s):null;return o&&(o.v===3||o.v===4)?o:null}catch(e){return null}}
-function adopt(o){st=o;const wasV3=st.v===3;upgrade(st);if(wasV3){DK().forEach(d=>{if(st.heads[d]===undefined)st.heads[d]=genHead(d,3)});st.omorale=oMoraleTarget();addLog('New departments added: Finance and HR & Admin. Office staff are now managed in HR & Office.','')}}
+function adopt(o){st=o;const wasV3=st.v===3;upgrade(st);if(wasV3){DK().forEach(d=>{if(st.heads[d]===undefined)st.heads[d]=genHead(d,3)});st.omorale=oMoraleTarget();addLog('New departments added: Finance and HR & Admin. Office staff are now managed in HR & Office.','')}if(!st.meet)genAgenda()}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;act(b.dataset.a,b.dataset.v)});
 document.addEventListener('input',e=>{const t=e.target;if(t.id==='d-loa'&&design){design.loa=+t.value;const S=buildSpec(design.cls,design),o=document.getElementById('d-loa-out'),m=document.getElementById('d-sum');if(o)o.innerHTML=loaRead(S,design.cls);if(m)m.innerHTML=designSum(S);return}if(t.id&&(t.id.startsWith('nm-')||t.id==='co-name'))drafts[t.id]=t.value});
 document.addEventListener('change',e=>{if(e.target.id==='d-loa'&&design)render()});
