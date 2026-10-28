@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0A0A0A">
+<meta name="theme-color" content="#0F4AA8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,31 +19,31 @@ img{max-width:100%}
 </style>
 <title>FX Shipping</title>
 <style>
-/* Monochrome: black bridge bar, white chart-paper cards, ink accents; red/green kept only for money and warnings */
+/* Blue and white: navy-blue bar, white cards, blue accents; red/green kept only for money and warnings */
 :root{
-  --bg:#F3F3F1; --surface:#FFFFFF; --ink:#111111; --muted:#6A6A66; --line:#DCDCD8;
-  --accent:#111111; --accent-ink:#FFFFFF; --soft:#ECECE8;
-  --hdr:#0A0A0A; --hdr-ink:#FFFFFF; --hdr-muted:#9C9C98;
+  --bg:#F1F5FB; --surface:#FFFFFF; --ink:#0E1E33; --muted:#5B6B82; --line:#D7E1EE;
+  --accent:#1A5FD0; --accent-ink:#FFFFFF; --soft:#E5EEFB;
+  --hdr:#0F4AA8; --hdr-ink:#FFFFFF; --hdr-muted:#BFD1EE;
   --good:#24764A; --good-soft:#E6F1EA; --warn:#7A5B00; --warn-soft:#F3EEDD; --bad:#B8322A; --bad-soft:#F7E6E4;
-  --sea:#FFFFFF; --land:#E4E4E0; --coast:#8E8E89; --grid:#EFEFEC;
+  --sea:#EEF4FC; --land:#FFFFFF; --coast:#9AB0CC; --grid:#E2EBF6;
   --shade:rgba(0,0,0,.5);
   --f-display:"Space Grotesk","Arial Narrow",system-ui,sans-serif;
   --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-num:"JetBrains Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0B0B0B; --surface:#151515; --ink:#F2F2F0; --muted:#9C9C98; --line:#2B2B29;
-  --accent:#F2F2F0; --accent-ink:#0B0B0B; --soft:#232321;
-  --hdr:#000000; --hdr-ink:#FFFFFF; --hdr-muted:#8E8E8A;
+  --bg:#0A1424; --surface:#111E33; --ink:#EAF1FB; --muted:#93A6C2; --line:#22344F;
+  --accent:#5B9BFF; --accent-ink:#0A1424; --soft:#1A2B47;
+  --hdr:#0B2A5E; --hdr-ink:#FFFFFF; --hdr-muted:#9FB6DA;
   --good:#5CC58C; --good-soft:#14281D; --warn:#D9B44A; --warn-soft:#2D260F; --bad:#F07A6E; --bad-soft:#331816;
-  --sea:#0E0E0E; --land:#262624; --coast:#5A5A56; --grid:#1A1A19;
+  --sea:#0D1A2E; --land:#1C2C45; --coast:#3F5A80; --grid:#13223A;
   --shade:rgba(0,0,0,.65); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0B0B0B; --surface:#151515; --ink:#F2F2F0; --muted:#9C9C98; --line:#2B2B29;
-  --accent:#F2F2F0; --accent-ink:#0B0B0B; --soft:#232321;
-  --hdr:#000000; --hdr-ink:#FFFFFF; --hdr-muted:#8E8E8A;
+  --bg:#0A1424; --surface:#111E33; --ink:#EAF1FB; --muted:#93A6C2; --line:#22344F;
+  --accent:#5B9BFF; --accent-ink:#0A1424; --soft:#1A2B47;
+  --hdr:#0B2A5E; --hdr-ink:#FFFFFF; --hdr-muted:#9FB6DA;
   --good:#5CC58C; --good-soft:#14281D; --warn:#D9B44A; --warn-soft:#2D260F; --bad:#F07A6E; --bad-soft:#331816;
-  --sea:#0E0E0E; --land:#262624; --coast:#5A5A56; --grid:#1A1A19;
+  --sea:#0D1A2E; --land:#1C2C45; --coast:#3F5A80; --grid:#13223A;
   --shade:rgba(0,0,0,.65); color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
@@ -56,7 +56,7 @@ button{cursor:pointer}
 
 /* header */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--hdr);color:var(--hdr-ink)}
-.top-row{display:flex;align-items:center;gap:12px;padding-block:12px 10px}
+.top-row{display:flex;align-items:center;gap:10px;padding-block:12px 10px}
 .brand{flex:1;min-width:0}
 .co{font-family:var(--f-display);font-weight:800;font-size:18px;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .when{font-size:12.5px;color:var(--hdr-muted)}
@@ -64,14 +64,24 @@ button{cursor:pointer}
 .cashpill small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--hdr-muted)}
 .cashpill b{font-family:var(--f-num);font-size:16px}
 .cashpill b.neg{color:#FF9B90}
-.btn-end{background:#FFFFFF;color:#000;border:0;border-radius:999px;padding:9px 16px;font-weight:700;white-space:nowrap}
+.btn-end{background:#FFFFFF;color:#0F4AA8;border:0;border-radius:999px;padding:9px 16px;font-weight:700;white-space:nowrap}
 .btn-end:disabled{opacity:.5;cursor:default}
-.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:0}
+.tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 12px}
 .tabs::-webkit-scrollbar{display:none}
-.tab{background:none;border:0;color:var(--hdr-muted);padding:9px 12px 11px;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap}
-.tab[aria-selected="true"]{color:#FFFFFF;border-bottom-color:#FFFFFF}
+.tab{flex:none;background:rgba(255,255,255,.12);border:0;color:var(--hdr-ink);padding:7px 14px;border-radius:999px;font-weight:600;font-size:14px;white-space:nowrap}
+.tab[aria-selected="true"]{background:#FFFFFF;color:#0F4AA8}
+.tipbtn{background:none;border:1px solid rgba(255,255,255,.45);color:var(--hdr-ink);border-radius:999px;width:30px;height:30px;font-size:14px;font-weight:700;flex:none}
+.tipbtn[aria-pressed="true"]{background:#FFFFFF;color:#0F4AA8;border-color:#FFFFFF}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -4px 16px rgba(15,74,168,.08)}
+.bnav .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.bnav button{background:none;border:0;padding:8px 2px 9px;display:grid;justify-items:center;gap:2px;color:var(--muted);font-size:11.5px;font-weight:600;position:relative}
+.bnav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bnav button[aria-current="page"]{color:var(--accent)}
+.bnav button[aria-current="page"]::before{content:"";position:absolute;top:0;left:30%;right:30%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+.bnav .dot{position:absolute;top:5px;left:calc(50% + 8px);min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:var(--bad);color:#fff;font-size:10px;line-height:16px;font-weight:700}
+body.notips .tip{display:none!important}
 
-main{padding-block:18px 48px;display:grid;gap:16px}
+main{padding-block:18px calc(96px + env(safe-area-inset-bottom,0px));display:grid;gap:16px}
 h2{font-family:var(--f-display);font-weight:700;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);margin:10px 0 -6px;display:flex;align-items:center;gap:10px}
 h2::after{content:"";flex:1;height:1px;background:var(--line)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}
@@ -133,7 +143,7 @@ h2::after{content:"";flex:1;height:1px;background:var(--line)}
 .btn:disabled{opacity:.45;cursor:default}
 
 /* offers */
-.chip{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:transparent;border:1px solid var(--ink);padding:2px 7px;border-radius:3px}
+.chip{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:var(--soft);border:1px solid transparent;padding:2px 7px;border-radius:3px}
 .route{font-family:var(--f-display);font-weight:700;font-size:18px;margin-top:8px;line-height:1.25}
 .money{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
 .money div{background:var(--bg);border-radius:10px;padding:8px 10px}
@@ -184,7 +194,7 @@ main>*{min-width:0}
 .start{padding-block:32px 48px;display:grid;gap:18px}
 .hero{background:var(--hdr);color:#FFFFFF;border-radius:10px;padding:26px 22px;position:relative;overflow:hidden}
 .hero h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,7vw,40px);line-height:1.05;margin:0 0 10px;text-wrap:balance}
-.hero p{margin:0;color:#BDBDB8;max-width:52ch}
+.hero p{margin:0;color:#D6E2F5;max-width:52ch}
 .hero svg{position:absolute;right:-10px;bottom:-6px;width:220px;opacity:.18}
 label.field{display:grid;gap:6px;font-weight:600}
 label.field input{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:11px 12px;font-weight:500}
@@ -1175,7 +1185,7 @@ function manCard(sh){
   const costDiff=(PRI.slice(0,cur).reduce((a,r)=>a+jrWage(r),0)-PRI.slice(0,std).reduce((a,r)=>a+jrWage(r),0))*CLS[sh.cls].scale;
   return `<section class="card"><h3>Safe manning</h3>
     <div class="kpis k3" style="margin-top:10px">${kpi('Min safe manning',4+m)}${kpi('Standard crew',4+std)}${kpi('On board now',4-RK.filter(r=>!sh.crew[r]).length+n,msmOK(sh)?'':'down')}</div>
-    <p class="muted small" style="margin:12px 0 0">The flag state's Minimum Safe Manning Document says the ship must carry at least ${4+m} people: 4 senior officers and ${m} others. Fewer, and the ship is not allowed to sail.</p>
+    <p class="tip muted small" style="margin:12px 0 0">The flag state's Minimum Safe Manning Document says the ship must carry at least ${4+m} people: 4 senior officers and ${m} others. Fewer, and the ship is not allowed to sail.</p>
     <div class="seg seg5">${opts.map(([v,l])=>`<button type="button" data-a="man" data-v="${sh.id}:${v}" aria-pressed="${cur===v}">${l}<br><small class="num">${4+v} crew</small></button>`).join('')}</div>
     <div class="facts" style="margin-top:10px"><span>Fatigue each month at sea <b class="${mm>0.3?'down':mm<-0.3?'up':''}">${mm>0.05?'+':''}${mm.toFixed(1)}</b></span><span>Wages vs standard <b class="num ${costDiff>0?'':'up'}">${costDiff>=0?'+':''}${fm(costDiff)}</b>/mo</span></div>
     ${!msmOK(sh)?'<div class="warnbox">Below Minimum Safe Manning. The ship cannot sail until Crewing fills the missing posts at month end.</div>':cur===m?'<div class="warnbox">Running at the legal minimum. Everyone does two jobs, fatigue builds fast, and any sign-off leaves the ship short.</div>':''}</section>`;
@@ -1197,7 +1207,7 @@ function vCrew(){
   }else if(crewSel==='pool'){
     body=pool.length?`<section class="card">${pool.map(p=>{const ls=p.lastShip&&shipById(p.lastShip);const lim=st.pol.rotation?9:6;return `<div class="jr-row"><div><div class="rk">${RANKS[p.rank].t}</div><b>${esc(p.name)}</b> <span class="muted small">${p.nat}</span><div class="muted small">Competence ${p.comp} · ${ls?'last ship '+esc(ls.name):'no ship yet'} · on leave ${p.exAge||0} mo${p.sour?' · <span class="down">unhappy</span>':''}</div></div><div class="muted small" style="text-align:right">${st.pol.rotation&&ls?'Waiting for '+esc(ls.name):'Available'}<br>Leaves the pool in ${Math.max(0,lim-(p.exAge||0))} mo</div></div>`}).join('')}</section>`
       :'<section class="help">Nobody is on leave right now. Crew who finish their contract and like the company go here and can be rehired.</section>';
-    body+=`<p class="muted small">Crew on leave rejoin faster and cheaper than new hires. With the same-ship rotation they wait for their own ship and get standby pay of RM 1,200 a month.</p>`;
+    body+=`<p class="tip muted small">Crew on leave rejoin faster and cheaper than new hires. With the same-ship rotation they wait for their own ship and get standby pay of RM 1,200 a month.</p>`;
   }else{
     const sh=shipById(+crewSel),c=cohesion(sh),by={};(sh.jr||[]).forEach(p=>(by[p.rank]=by[p.rank]||[]).push(p));
     const need=jrNeed(sh),depts=['Deck','Engine','Catering'];
@@ -1205,7 +1215,7 @@ function vCrew(){
       return ps.map(p=>`<div class="jr-row"><div style="min-width:0"><div class="rk">${RANKS[r].t}</div><b>${esc(p.name)}</b> <span class="muted small">${p.nat}</span><div class="muted small">Competence ${p.comp} · ${p.rankM||0} mo in rank · ${p.left>0?p.left+' mo left':'due for relief'}${p.green>0?' · <span class="down">still learning</span>':''}</div>${eligTag(p)?'<div style="margin-top:4px">'+eligTag(p)+'</div>':''}</div><div class="fatw">${fatMini(p.fat)}<small class="num">${p.fat}</small></div></div>`).join('')
         +Array.from({length:v},()=>`<div class="jr-row"><div><div class="rk">${RANKS[r].t}</div><span class="down" style="font-weight:600">${isHeld(sh,r)?'Promotion waiting for your approval':'Vacant, Crewing hires at month end'}</span></div></div>`).join('')}).join('');
     body=`${manCard(sh)}
-      <section class="card"><h3>Team together</h3>${condBar('Senior officers who know this ship',c*100)}<p class="muted small" style="margin:8px 0 0">A team that has sailed together on this ship for a year makes fewer mistakes, gets less tired and breaks down less. Changing officers resets it.</p></section>
+      <section class="card"><h3>Team together</h3>${condBar('Senior officers who know this ship',c*100)}<p class="tip muted small" style="margin:8px 0 0">A team that has sailed together on this ship for a year makes fewer mistakes, gets less tired and breaks down less. Changing officers resets it.</p></section>
       <h2>Senior officers</h2><section class="card">${RK.map(r=>seniorRow(sh,r)).join('')}</section>
       ${depts.map(d=>{const h=jrRows(d);return h?`<h2>${d}${d==='Catering'?'':' crew'}</h2><section class="card">${h}</section>`:''}).join('')}`;
   }
@@ -1345,7 +1355,9 @@ const loanStep=()=>Math.max(8e6,fleetValue()*0.1);
 const nbPrice=cls=>r10k(CLS[cls].value*1.12*(0.9+0.1*st.idx[segOf(cls)]));
 const inputVal=id=>{const el=document.getElementById(id);return el?el.value:''};
 function act(a,v){
-  if(a==='tab'){tab=v;confirmKey=null;showPool=null;renaming=null;nameMsg=null;render();window.scrollTo(0,0);return}
+  if(a==='tips'){tipsOn=!tipsOn;try{localStorage.setItem('fx-tips',tipsOn?'1':'0')}catch(e){}render();return}
+  if(a==='group'){const g=GROUPS.find(x=>x.k===v);if(!g)return;const last=(window._lastTab||{})[v];tab=last&&g.tabs.includes(last)?last:g.tabs[0];confirmKey=null;showPool=null;renaming=null;nameMsg=null;render();window.scrollTo(0,0);return}
+  if(a==='tab'){tab=v;(window._lastTab=window._lastTab||{})[groupOf(v).k]=v;confirmKey=null;showPool=null;renaming=null;nameMsg=null;render();window.scrollTo(0,0);return}
   if(a==='plan'){startPlan=v;render();return}
   if(a==='begin'){const n=(document.getElementById('co-name').value||'').trim()||'FX Shipping Sdn Bhd';fresh(n.slice(0,40),startPlan);tab='overview';render();return}
   if(!st)return;
@@ -1657,7 +1669,7 @@ function vMeeting(){
   return `<section class="card"><div class="eyebrow-m">Management meeting · ${mlabel(st.m)}</div>
     <div class="facts" style="margin-top:8px">${att}</div>
     <div class="kpis k3">${kpi('On the agenda',its.length)}${kpi('Your decision',yours,yours?'down':'')}${kpi('Managers will handle',own)}</div>
-    <p class="muted small" style="margin:12px 0 0">Each head brings their problem and a plan. Within their spending limit, they act on their own at month end unless you stop them. Company policy, big spending, or a vacant head comes to you. Anything you leave undecided is not done.</p></section>
+    <p class="tip muted small" style="margin:12px 0 0">Each head brings their problem and a plan. Within their spending limit, they act on their own at month end unless you stop them. Company policy, big spending, or a vacant head comes to you. Anything you leave undecided is not done.</p></section>
   ${its.length?its.map(meetCard).join(''):'<section class="help">No one has an urgent problem this month. A quiet meeting is a good meeting.</section>'}
   ${quiet.length?`<h2>Other updates</h2><section class="card"><ul class="memo">${quiet.map(m=>`<li><div class="rk">${DNAME[m.d]} · ${esc(m.who)}</div><div class="${m.tone==='bad'?'down':''}">${esc(m.t)}</div></li>`).join('')}</ul></section>`:''}
   <h2>Meeting decisions</h2><section class="card">${memoLog('meet',8)}</section>`;
@@ -1723,7 +1735,7 @@ function vOverview(){
   <section class="card">${meetSummary()}</section>
   <h2>Management numbers</h2>
   <section class="card">${(()=>{const n=mgmtNums();return `<div class="kpis k3" style="margin-top:0">${kpi('Fleet utilisation',Math.round(n.util*100)+'%',n.util<0.6?'down':'')}${kpi('Ship OPEX per day',n.opexDay?fm(n.opexDay):'–')}${kpi('Overhead per month',fm(n.ga))}${kpi('Overhead vs revenue',n.gaPct==null?'–':Math.round(n.gaPct*100)+'%',n.gaPct>0.25?'down':'')}${kpi('Loan to value',Math.round(n.ltv*100)+'%',n.ltv>0.6?'down':'')}${kpi('Cash runway',n.runway==null?'–':n.runway.toFixed(1)+' mo',n.runway!=null&&n.runway<2.5?'down':'')}</div>
-    <p class="muted small" style="margin:12px 0 0">OPEX is crew, stores, insurance and management per ship. Overhead is head office, heads, office staff and department budgets. Healthy owners keep overhead under 15 to 20% of revenue.</p>`})()}</section>
+    <p class="tip muted small" style="margin:12px 0 0">OPEX is crew, stores, insurance and management per ship. Overhead is head office, heads, office staff and department budgets. Healthy owners keep overhead under 15 to 20% of revenue.</p>`})()}</section>
   <h2>Divisions and market</h2>
   <section class="card mkt">
     <div class="bunker"><div><div class="muted small">VLSFO bunker price, Singapore</div><div class="price">${full(st.bunker)}<span class="muted small"> / tonne</span></div><div class="small">${arrow(st.bunker,st.prevBunker)} vs last month</div></div>${spark(st.bunkerHist,140,48)}</div>
@@ -1787,7 +1799,7 @@ function vFleet(){
   ${fleetSummary(show,fleetTab==='all'?'Whole fleet':SEG[fleetTab]+' fleet')}
   ${ord.length?`<h2>On order</h2><section class="card pl">${ord.map(o=>`<div><span><b>${esc(o.name||'Unnamed')}</b> · ${CLS[o.cls].nama}<br><span class="muted small">${stageNow(o)}</span></span><span class="muted">${o.left} mo</span></div>`).join('')}</section>`:''}
   ${groups.map(([d,ships])=>`<h2>${SEG[d]} · ${ships.length}</h2><div class="ships">${ships.map(shipCard).join('')}</div>`).join('')}
-  <p class="muted small">Ships dry dock once every 5 years for the class special survey (booking opens 12 months before it is due). In between, shore technicians fix wear while the ship trades, up to a limit that drops as the ship goes longer since its last dock. Emergency dry dock is only for major breakdowns or condition below 40%. Tankers and gas carriers stop getting charters at 22 years, other ships at 25. Profit per ship counts voyage revenue against crew, running, fuel, port, repair and dock costs. It leaves out head office overhead.</p>`;
+  <p class="tip muted small">Ships dry dock once every 5 years for the class special survey (booking opens 12 months before it is due). In between, shore technicians fix wear while the ship trades, up to a limit that drops as the ship goes longer since its last dock. Emergency dry dock is only for major breakdowns or condition below 40%. Tankers and gas carriers stop getting charters at 22 years, other ships at 25. Profit per ship counts voyage revenue against crew, running, fuel, port, repair and dock costs. It leaves out head office overhead.</p>`;
 }
 
 function vContracts(){
@@ -1852,7 +1864,7 @@ function deptCard(d){
 }
 function vDepts(){
   const oc=officeCost(),tot=oc.heads+OPS.reduce((a,d)=>a+st.staff[d]*oPay()*1.145+deptBudget(d),0);
-  return `<section class="help">You decide how lean each department runs. Heads with more stars cost more but do better. Each staff member covers a set number of ships. <b>Cutting the budget or headcount</b> saves money now, but the work gets done worse and office morale drops. Office staff are hired and kept by <b>HR & Office</b>.</section>
+  return `<section class="help tip">You decide how lean each department runs. Heads with more stars cost more but do better. Each staff member covers a set number of ships. <b>Cutting the budget or headcount</b> saves money now, but the work gets done worse and office morale drops. Office staff are hired and kept by <b>HR & Office</b>.</section>
   <section class="card"><div class="hbar-list">${OPS.map(d=>{const e=Math.min(1.15,eff(d));return `<div class="hbar"><span><b>${DNAME[d]}</b> · ${BUDGET[st.budget[d]].l.toLowerCase()} budget · ${st.staff[d]} staff</span><span class="v">${Math.round(e*100)}%</span><div class="t"><i style="width:${Math.min(100,e*100)}%"></i></div></div>`}).join('')}</div>
     <p class="muted small" style="margin:6px 0 0">Department running cost (heads, staff, budgets): <b class="num" style="color:var(--ink)">${fm(tot)}</b> a month.</p></section>
   ${OPS.map(deptCard).join('')}`;
@@ -1862,11 +1874,11 @@ function vHR(){
   const tr=n?Math.round(left12/Math.max(1,n)*100):0;
   return `<h2>Office staff</h2>
   <section class="card"><div class="kpis k3" style="margin-top:0">${kpi('Office morale',Math.round(st.omorale)+'/100',st.omorale<45?'down':'')}${kpi('Staff in seat',n+' of '+approved,n<approved?'down':'')}${kpi('Left in last 12 mo',left12+(n?' ('+tr+'%)':''),tr>20?'down':'')}${kpi('Salary each',fm(oPay()))}${kpi('Office payroll',fm(oc.pay+oc.ben)+'/mo')}${kpi('HR effectiveness',Math.round(Math.min(1.15,eff('hr'))*100)+'%')}</div>
-    <p class="muted small" style="margin:12px 0 0">Morale changes how well every department works and how many staff resign. Below 40, department heads may quit too.</p></section>
+    <p class="tip muted small" style="margin:12px 0 0">Morale changes how well every department works and how many staff resign. Below 40, department heads may quit too.</p></section>
   <h2>Headcount plan</h2>
   <section class="card">${DK().map(d=>{const gap=st.hc[d]-st.staff[d],cov=coverage(d);return `<div class="wage-row"><div><b>${DNAME[d]}</b><div class="muted small">${st.staff[d]} in seat${gap>0?` · <span class="down">${gap} vacant</span>`:''}${st.ramp[d]?` · ${st.ramp[d]} new`:''} · coverage <span class="${cov<0.7?'down':''}">${Math.round(cov*100)}%</span></div></div>
     <div class="stepper"><button type="button" data-a="staff" data-v="${d}:-1" aria-label="Lower ${DNAME[d]} headcount">−</button><b>${st.hc[d]}</b><button type="button" data-a="staff" data-v="${d}:1" aria-label="Raise ${DNAME[d]} headcount">+</button></div></div>`}).join('')}
-    <p class="muted small" style="margin:10px 0 0">Raising headcount opens a vacancy that HR fills at month end. Lowering it below the staff in seat is a retrenchment: two months' pay each and a hit to morale.</p></section>
+    <p class="tip muted small" style="margin:10px 0 0">Raising headcount opens a vacancy that HR fills at month end. Lowering it below the staff in seat is a retrenchment: two months' pay each and a hit to morale.</p></section>
   <h2>Salary and benefits</h2>
   <section class="card"><div class="setting" style="margin-top:0"><h3>Office salary level</h3><div class="muted small">Average executive salary. Employer EPF and SOCSO add about 14.5% on top.</div><div class="seg">${OPAY.map((o,i)=>`<button type="button" data-a="opay" data-v="${i}" aria-pressed="${st.opay===i}">${o.l}<br><small class="num">${fm(o.v)}</small></button>`).join('')}</div></div>
     ${OBEN.map(b=>`<div class="setting"><h3>${b.t}</h3><div class="muted small">${b.d}</div><div class="seg">${b.lv.map((l,i)=>`<button type="button" data-a="oben" data-v="${b.k}:${i}" aria-pressed="${st.oben[b.k]===i}">${l}</button>`).join('')}</div></div>`).join('')}</section>
@@ -1898,11 +1910,11 @@ function vCrewing(){
   ${vac.length?`<div class="warnbox">Vacant: ${vac.map(x=>esc(x.s.name)+' '+RANKS[x.r].t).join(' · ')}. Crewing fills these at the end of the month.</div>`:''}
   <h2>Crew voice</h2>
   <section class="card">${st.voice.length?`<ul class="memo">${st.voice.slice(0,8).map(v=>`<li class="${v.tone==='bad'?'q-bad':v.tone==='good'?'q-good':''}"><div class="rk">${esc(v.rank)} ${esc(v.name)} · ${esc(v.ship)} · ${mlabel(v.m)}</div><div>“${esc(v.t)}”</div></li>`).join('')}</ul>`:'<p class="muted" style="margin:0">Crew messages appear after your first month.</p>'}
-    <p class="muted small" style="margin:12px 0 0">Read these like a manager: one complaint is one person, the same complaint from several ships is a pattern.</p></section>
+    <p class="tip muted small" style="margin:12px 0 0">Read these like a manager: one complaint is one person, the same complaint from several ships is a pattern.</p></section>
   <h2>Crew nationalities</h2>${vNatCard()}
   <h2>Crewing activity</h2><section class="card">${memoLog('crew',8)}</section>
   <h2>Full crew and promotions</h2>
-  <section class="help">Every ship's full crew list, safe manning, team strength, crew on leave and promotion history are in <b>Crew List</b>. When a post opens, the Master nominates someone from the fleet, the Marine Superintendent reviews them, and you approve or hire from outside.</section>
+  <section class="help tip">Every ship's full crew list, safe manning, team strength, crew on leave and promotion history are in <b>Crew List</b>. When a post opens, the Master nominates someone from the fleet, the Marine Superintendent reviews them, and you approve or hire from outside.</section>
   <div class="actions" style="margin-top:0"><button type="button" class="btn primary" data-a="tab" data-v="crew">Open Crew List</button></div>`;
 }
 
@@ -1914,7 +1926,7 @@ function vPayroll(){
   return `<h2>Basic wage scale per month</h2>
   <section class="card">${rows.map(([k,t,mk])=>{const w=st.wages[k],pc=Math.round(w/mk*100);return `<div class="wage-row"><div><b>${t}</b><div class="muted small">Market ${full(mk)} · <span class="${pc<95?'down':pc>105?'up':''}">${pc}% of market</span></div></div>
     <div class="stepper"><button type="button" data-a="wage" data-v="${k}:-1" aria-label="Lower ${t} wage">−</button><b>${full(w)}</b><button type="button" data-a="wage" data-v="${k}:1" aria-label="Raise ${t} wage">+</button></div></div>`}).join('')}
-    <p class="muted small" style="margin:10px 0 0">Bunker tankers pay 60% of this scale and offshore vessels 85 to 90%. Officers hired above scale keep their agreed wage.</p></section>
+    <p class="tip muted small" style="margin:10px 0 0">Bunker tankers pay 60% of this scale and offshore vessels 85 to 90%. Officers hired above scale keep their agreed wage.</p></section>
   <h2>Allowances and bonuses</h2>
   <section class="card">${ALLOW.map(a=>{const used=!a.seg||a.seg.some(x=>segs.has(x));return `<div class="setting"><h3>${a.t}</h3><div class="muted small">${a.d}${a.seg?` <span class="tag">${a.seg.map(x=>SEG[x]).join(' / ')}</span>`:''}${a.seg&&!used?' <span class="tag">Not in fleet</span>':''}</div>
     <div class="seg">${a.lv.map((l,i)=>`<button type="button" data-a="allow" data-v="${a.k}:${i}" aria-pressed="${st.allow[a.k]===i}">${l}</button>`).join('')}</div></div>`}).join('')}</section>
@@ -1964,7 +1976,7 @@ function vDesigner(){
     <div class="setting" style="margin-top:14px"><h3>Length overall (LOA)</h3><div class="loa-read" id="d-loa-out">${loaRead(S,d.cls)}</div>
       <input type="range" id="d-loa" min="${L[0]}" max="${L[2]}" step="1" value="${S.loa}" aria-label="Length overall in metres" ${L[0]===L[2]?'disabled':''}>
       <div class="range-ends muted small"><span>${L[0]} m</span><span>Standard ${L[1]} m</span><span>${L[2]} m</span></div>
-      <p class="muted small" style="margin:8px 0 0">A longer ship carries more cargo and earns more per voyage, but costs more to build and burns more fuel. ${LOANOTE[d.cls]||''}</p></div></section>
+      <p class="tip muted small" style="margin:8px 0 0">A longer ship carries more cargo and earns more per voyage, but costs more to build and burns more fuel. ${LOANOTE[d.cls]||''}</p></div></section>
   <h2>Main engine</h2><section class="card"><div class="opt-grid">${Object.entries(ENG).map(([k,e])=>optBtn('deng',k,d.eng===k,e.t,e.d,e.c?'+ '+fm(e.c*c.value*hf):'Included')).join('')}</div></section>
   ${groups}
   <h2>Shipyard</h2><section class="card"><div class="opt-grid">${yards.map(([k,y])=>optBtn('dyard',k,d.yard===k,y.n,y.d,fm(nbPrice(d.cls)*hf*y.pm)+' · '+(y.mo+(S.k>1.06?1:0))+' months')).join('')}</div></section>
@@ -1998,7 +2010,7 @@ function vSP(){
       ${st.cash>=tot?nameInput('nm-m'+m.id,'Leave blank for an FX name','buy|m'+m.id+'|'+m.id):''}
       <div class="actions"><button type="button" class="btn primary" data-a="buy" data-v="${m.id}" ${st.cash<tot?'disabled':''}>${st.cash<tot?'Not enough cash':'Buy ship'}</button></div></article>`}).join('')}</div>`
       :`<section class="help">No ${spTab==='all'?'':SEG[spTab].toLowerCase()+' '}ships for sale this month. Brokers bring new listings every month.</section>`;
-    body+=`<p class="muted small">Only ships for your open divisions are listed. Open new divisions in <b>Company</b>. Equipment shown is already fitted on board.</p>`;
+    body+=`<p class="tip muted small">Only ships for your open divisions are listed. Open new divisions in <b>Company</b>. Equipment shown is already fitted on board.</p>`;
   }
   if(spMode==='sell'){
     body=`<div class="offers">${mine.length?mine.map(sh=>{const b=bidFor(sh),scrap=scrapVal(sh),ks='sell'+sh.id,kd='scrap'+sh.id,idle=sh.status==='idle';
@@ -2014,7 +2026,7 @@ function vSP(){
       const types=Object.keys(CLS).filter(k=>st.divs.includes(segOf(k))&&inSeg(k));
       body=`${ord.length?`<h2>Under construction</h2><div class="offers">${ord.map(orderCard).join('')}</div>`:''}
       <h2>Design a new ship</h2>
-      <section class="help">Pick a ship type, then choose its length, engine, cargo gear, safety equipment, shipyard and flag. Every choice changes the price and how the ship performs.</section>
+      <section class="help tip">Pick a ship type, then choose its length, engine, cargo gear, safety equipment, shipyard and flag. Every choice changes the price and how the ship performs.</section>
       ${types.length?`<div class="offers">${types.map(k=>{const c=CLS[k],L=LOA[k];return `<article class="card"><span class="chip">${SEG[c.seg]}</span><div class="route">${c.nama}</div>
         <div class="facts"><span>Standard <b>${capTxt(k,1)}</b></span><span>LOA <b>${L[0]===L[2]?L[1]+' m':L[0]+' to '+L[2]+' m'}</b></span><span>From <b class="num">${fm(nbPrice(k)*([...Object.values(YARDS)].filter(y=>!y.segs||y.segs.includes(c.seg)).reduce((a,y)=>Math.min(a,y.pm),9)))}</b></span></div>
         <div class="actions"><button type="button" class="btn primary" data-a="design" data-v="${k}">Design and order</button></div></article>`}).join('')}</div>`
@@ -2046,7 +2058,7 @@ function vFinance(){
     <div><span>Ships bought (capital)</span><span class="num">${fm(yBuy)}</span></div><div><span>Ships sold (capital)</span><span class="num">${fm(ySell)}</span></div></section>
   <h2>Money owed to you</h2>
   <section class="card">${st.recv.length?`<div class="pl">${st.recv.map(r=>`<div><span>${esc(r.who)} · ${esc(r.ship)}<br><span class="muted small">${r.age} month${r.age===1?'':'s'} overdue</span></span><span class="num">${fm(r.amt)}</span></div>`).join('')}<div class="tot"><span>Total receivables</span><span class="num">${fm(recvSum())}</span></div></div>`:'<p class="muted" style="margin:0">All clients have paid.</p>'}
-    <p class="muted small" style="margin:10px 0 0">Late payers are chased by Finance. After four months unpaid, the debt is written off.</p></section>
+    <p class="tip muted small" style="margin:10px 0 0">Late payers are chased by Finance. After four months unpaid, the debt is written off.</p></section>
   <h2>Bank financing</h2>
   <section class="card"><div class="pl"><div><span>Current loan</span><b class="num">${fm(st.loan)}</b></div><div><span>Interest rate</span><span class="num">${(effRate()*100).toFixed(2)}% a year</span></div><div><span class="muted small">Base ${(st.rate*100).toFixed(2)}%${effRate()>st.rate+0.0001?' + margin for weak finance team'+(st.ltvPen?' + covenant penalty':''):''}</span><span></span></div><div><span>Monthly interest</span><span class="num">${fm(st.loan*effRate()/12)}</span></div><div><span>Loan to value (covenant 65%)</span><span class="num ${ltv()>0.65?'down':''}">${Math.round(ltv()*100)}%</span></div><div><span>Remaining limit (50% of fleet value)</span><span class="num">${fm(cap)}</span></div><div><span>Scheduled repayment (2.5% each quarter)</span><span class="num">${st.loan>0?fm(r10k(st.loan*0.025))+' in '+MONTHS[(st.m+(2-st.m%3+3)%3)%12]:'–'}</span></div>${st.waiver>0?`<div><span>Covenant waiver</span><span>${st.waiver} mo left</span></div>`:''}<div><span>Insurance (P&I and hull)</span><span class="num">${Math.round((st.insM||1)*100)}% of base${st.deduct?' · high deductible':''}${st.nonIG?' · non-IG club':''}</span></div></div>
     <div class="actions"><button type="button" class="btn primary" data-a="borrow" ${cap<5e5?'disabled':''}>Borrow ${fm(Math.min(step,cap))}</button><button type="button" class="btn" data-a="repay" ${st.loan<=0||st.cash<=0?'disabled':''}>Repay ${fm(Math.min(step,st.loan,Math.max(0,st.cash)))}</button></div></section>`;
@@ -2057,11 +2069,11 @@ function vSafety(){
   const right=st.invs.filter(x=>x.right).length,last=st.incLog.length?st.m-st.incLog[st.incLog.length-1].m:null;
   const fx=Object.entries(st.fixes).filter(x=>x[1]>0),tired=[...all].sort((a,b)=>b.p.fat-a.p.fat).slice(0,5);
   return `<section class="card"><div class="kpis k3" style="margin-top:0">${kpi('Safety culture',Math.round(st.culture)+'/100',st.culture<40?'down':st.culture>=65?'up':'')}${kpi('Near misses (12 mo)',nm12)}${kpi('Incidents (12 mo)',in12,in12>=4?'down':'')}${kpi('Root causes found',st.invs.length?right+' of '+st.invs.length:'–',st.invs.length&&right/st.invs.length<0.5?'down':'')}${kpi('Avg officer fatigue',af,af>=60?'down':'')}${kpi('Since last incident',last==null?'–':last+' mo')}</div>
-    <p class="muted small" style="margin:12px 0 0">Safety culture rises when you find real root causes, back your Masters and reward honest reporting. It falls when you blame people for system problems or push crews to cut corners.</p></section>
-  <section class="help"><b>The safety pyramid.</b> For every serious accident there are many near misses that nobody got hurt from. A fleet that reports lots of near misses learns early and has fewer accidents. When an incident happens, the easy answer is to blame the person. A good CEO asks <b>why</b> that person made the mistake.</section>
+    <p class="tip muted small" style="margin:12px 0 0">Safety culture rises when you find real root causes, back your Masters and reward honest reporting. It falls when you blame people for system problems or push crews to cut corners.</p></section>
+  <section class="help tip"><b>The safety pyramid.</b> For every serious accident there are many near misses that nobody got hurt from. A fleet that reports lots of near misses learns early and has fewer accidents. When an incident happens, the easy answer is to blame the person. A good CEO asks <b>why</b> that person made the mistake.</section>
   <h2>Fatigue watch</h2>
   <section class="card">${tired.length?tired.map(x=>`<div class="hbar"><span><b>${esc(x.p.name)}</b> · ${RANKS[x.r].t}, ${esc(x.sh.name)} · ${x.p.onb} mo on board</span><span class="v ${x.p.fat>=75?'down':''}">${x.p.fat}</span><div class="t"><i style="width:${x.p.fat}%;${x.p.fat>=75?'background:var(--bad)':''}"></i></div></div>`).join(''):'<p class="muted" style="margin:0">No officers on board.</p>'}
-    <p class="muted small" style="margin:8px 0 0">Fatigue builds every month at sea, fastest on bunker tankers. It drops when the ship is idle and resets when the officer goes home. Contract length is set in Departments, under Crewing.</p></section>
+    <p class="tip muted small" style="margin:8px 0 0">Fatigue builds every month at sea, fastest on bunker tankers. It drops when the ship is idle and resets when the officer goes home. Contract length is set in Departments, under Crewing.</p></section>
   ${fx.length?`<h2>Active safety actions</h2><section class="card pl">${fx.map(([k,v])=>`<div><span>${CAUSES[k].t}</span><span class="muted">${v} months left</span></div>`).join('')}</section>`:''}
   <h2>Your investigations</h2>
   <section class="card">${st.invs.length?`<ul class="memo">${st.invs.slice(0,10).map(x=>`<li class="${x.right?'q-good':'q-bad'}"><div class="rk">${mlabel(x.m)} · ${x.right?'Root cause found':'Missed the root cause'}</div><div><b>${esc(x.t)}</b></div><div class="muted small">You chose: ${x.pick==='attitude'?'dismiss the officer':ACT[x.pick].l.toLowerCase()}. Real cause: ${CAUSES[x.cause].t.toLowerCase()}.</div></li>`).join('')}</ul>`:'<p class="muted" style="margin:0">No incidents yet. When one happens, you read the findings and decide the root cause.</p>'}</section>
@@ -2237,7 +2249,7 @@ function vMap(){
     <div class="mlegend"><span><i class="mk mk-sea"></i>At sea ${atSea}</span><span><i class="mk mk-tc"></i>On charter ${tc}</span><span><i class="mk mk-idle"></i>In port ${idle}</span><span><i class="mk mk-dock"></i>Dry dock ${dock}</span>${st.orders.length?`<span><i class="mk mk-yard"></i>Being built ${st.orders.length}</span>`:''}</div></section>
   ${card}
   <h2>Where every ship is</h2>${list}
-  <p class="muted small">Positions update when you end the month. Ships follow the main sea lanes: the Strait of Malacca, the Sunda and Lombok straits, the Strait of Hormuz and the Red Sea. Houston cargoes come in from the Pacific, off the right edge of the map.</p>`;
+  <p class="tip muted small">Positions update when you end the month. Ships follow the main sea lanes: the Strait of Malacca, the Sunda and Lombok straits, the Strait of Hormuz and the Red Sea. Houston cargoes come in from the Pacific, off the right edge of the map.</p>`;
 }
 
 function vStart(){
@@ -2251,19 +2263,35 @@ function vStart(){
     <button type="button" class="btn primary" style="padding:13px" data-a="begin">Start as CEO</button></div>`;
 }
 
+const GROUPS=[
+  {k:'home',l:'Home',tabs:['overview','meeting'],i:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>'},
+  {k:'fleet',l:'Fleet',tabs:['fleet','map','contracts','sp'],i:'<path d="M3 16l2 4h14l2-4z"/><path d="M6 16V9h12v7"/><path d="M12 9V4"/><path d="M9 6h6"/>'},
+  {k:'crew',l:'Crew',tabs:['crewing','crew','payroll','safety'],i:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c2.9.4 5 2.8 5 5.8"/>'},
+  {k:'office',l:'Office',tabs:['depts','hr'],i:'<rect x="4" y="3" width="11" height="18" rx="1"/><path d="M15 9h5v12h-5"/><path d="M7.5 7h4M7.5 11h4M7.5 15h4"/>'},
+  {k:'money',l:'Money',tabs:['finance','company'],i:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14.5" r="1.5"/>'}
+];
+const TABLABEL={overview:'Summary',meeting:'Meeting',fleet:'Ships',map:'Map',contracts:'Cargo',sp:'Buy & sell',crewing:'Crewing',crew:'Crew list',payroll:'Crew pay',safety:'Safety',depts:'Departments',hr:'HR & office',finance:'Finance',company:'Company'};
+const groupOf=t=>GROUPS.find(g=>g.tabs.includes(t))||GROUPS[0];
+let tipsOn=(()=>{try{return localStorage.getItem('fx-tips')==='1'}catch(e){return false}})();
 function render(){
   const app=document.getElementById('app');
+  document.body.classList.toggle('notips',!tipsOn);
   if(!st){app.innerHTML=vStart();renderModal();return}
   if(!TABS.some(t=>t[0]===tab))tab='overview';
-  const vac=st.ships.reduce((a,s)=>a+RK.filter(r=>!s.crew[r]).length,0),noHead=OPS.filter(d=>!st.heads[d]).length;
+  const vac=st.ships.reduce((a,s)=>a+RK.filter(r=>!s.crew[r]).length,0),noHead=OPS.filter(d=>!st.heads[d]).length,exh=aboard(st,p=>p.fat>=80).length;
   const mp=meetPending();
+  const flag={meeting:mp,crewing:vac,depts:noHead,hr:st.omorale<45?1:0,safety:exh};
+  const gdot=g=>g.tabs.reduce((a,t)=>a+(flag[t]||0),0);
   const body={overview:vOverview,meeting:vMeeting,fleet:vFleet,map:vMap,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,crew:vCrew,safety:vSafety,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
+  const G=groupOf(tab);
   app.innerHTML=`<header class="top"><div class="wrap">
-    <div class="top-row"><div class="brand"><div class="co">${esc(st.company)}</div><div class="when">${st.over?'Game over':'Month '+(st.m+1)+' · '+mlabel(st.m)}</div></div>
+    <div class="top-row"><div class="brand"><div class="co">${esc(st.company)}</div><div class="when">${st.over?'Game over':mlabel(st.m)}</div></div>
       <div class="cashpill"><small>Cash</small><b class="${st.cash<0?'neg':''}">${fm(st.cash)}</b></div>
+      <button type="button" class="tipbtn" data-a="tips" aria-pressed="${tipsOn}" aria-label="${tipsOn?'Hide':'Show'} tips">?</button>
       <button type="button" class="btn-end" data-a="end" ${st.over?'disabled':''}>End month</button></div>
-    <nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" class="tab" role="tab" data-a="tab" data-v="${k}" aria-selected="${tab===k}">${l}${k==='meeting'&&mp?' ('+mp+')':''}${k==='crewing'&&vac?' ('+vac+')':''}${k==='depts'&&noHead?' (!)':''}${k==='hr'&&st.omorale<45?' (!)':''}${k==='safety'&&aboard(st,p=>p.fat>=80).length?' (!)':''}</button>`).join('')}</nav>
-  </div></header><main class="wrap">${body}</main>`;
+    ${G.tabs.length>1?`<nav class="tabs" role="tablist">${G.tabs.map(k=>`<button type="button" class="tab" role="tab" data-a="tab" data-v="${k}" aria-selected="${tab===k}">${TABLABEL[k]}${flag[k]?' ('+(flag[k]>9?'9+':flag[k])+')':''}</button>`).join('')}</nav>`:'<div style="height:6px"></div>'}
+  </div></header><main class="wrap">${body}</main>
+  <nav class="bnav" aria-label="Main menu"><div class="in">${GROUPS.map(g=>{const d=gdot(g);return `<button type="button" data-a="group" data-v="${g.k}" ${g===G?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${g.i}</svg>${g.l}${d?`<span class="dot">${d>9?'9+':d}</span>`:''}</button>`}).join('')}</div></nav>`;
   renderModal();
 }
 
