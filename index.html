@@ -2555,6 +2555,637 @@ document.addEventListener('input',e=>{const t=e.target;if(t.id==='d-loa'&&design
 document.addEventListener('change',e=>{if(e.target.id==='d-loa'&&design)render();if(e.target.id==='bo-cls'&&bo){bo.cls=e.target.value;bo.quote=null;confirmKey=null;render()}});
 document.addEventListener('keydown',e=>{const t=e.target;if(e.key!=='Enter'||!t.dataset||!t.dataset.enter)return;e.preventDefault();const [a,,v]=t.dataset.enter.split('|');act(a,v)});
 function start(data){const d=data&&data.st&&(data.st.v===3||data.st.v===4)?data.st:null;const o=d||load();if(o)adopt(o);else st=null;if(data&&data.tab)tab=data.tab;if(data&&data.fleetTab)fleetTab=data.fleetTab;if(data&&data.spTab)spTab=data.spTab;if(data&&data.spMode)spMode=data.spMode;if(data&&data.design)design=data.design;if(data&&data.mapReg)mapReg=data.mapReg;if(data&&data.mapSel)mapSel=data.mapSel;if(data&&data.crewSel)crewSel=data.crewSel;if(data&&data.fleetType)fleetType=data.fleetType;if(data&&data.fleetView)fleetView=data.fleetView;if(data&&data.fleetFilt)fleetFilt=data.fleetFilt;render();syncClock()}
+/* =====================================================================
+   v5 — career ladder (Executive → CEO), staff grades, leadership team,
+   IT department and IMO compliance with a regulation timeline.
+   ===================================================================== */
+
+/* ---------- IT department ---------- */
+DEPTS.it={t:'IT Manager',job:'Runs ship and office systems, cyber security, satellite links and crew internet, and the noon-report data behind CII and IMO DCS.',pay:[18e3,38e3],
+  notes:['Former cyber security lead at a port operator','Rolled out ECDIS and maintenance software across a 20-ship fleet','Ex-VSAT engineer at a satellite provider','Solid on the helpdesk, still learning ship systems','Fresh from a bank IT team, new to ships']};
+DPER.it=5;DNAME.it='IT';
+BUDGET_WHY.it='Software licences, cyber monitoring, laptops and spare satellite terminals.';
+BUDGET_LOW.it='Old software, slow fixes and a higher chance of a cyber attack.';
+if(!OPS.includes('it'))OPS.push('it');
+EXP.it='IT systems, cyber security and satellite';EXP.imo='Statutory surveys, audits and IMO compliance';EXP.ghg='IMO greenhouse gas remedial units';
+EXP.staff='Department heads, leadership team and your salary';
+const IT_CYB=[{l:'Antivirus only',c:1500,r:1.7},{l:'Cyber plan in the SMS',c:4500,r:1},{l:'24/7 security centre',c:9000,r:0.45}];
+const IT_SYS=[{l:'Paper and spreadsheets',c:0,f:0.96,cii:1.02},{l:'Fleet software',c:3000,f:1.02,cii:1},{l:'Integrated, with weather routing',c:6500,f:1.05,cii:0.97}];
+
+/* ---------- office staff grades ---------- */
+const GR=[{k:'ex',t:'Executive',p:0.8,w:0.85},{k:'sx',t:'Senior Executive',p:1.1,w:1},{k:'mg',t:'Manager',p:1.7,w:1.2}];
+function gradeInit(n){const mg=n>=4?1:0,sx=Math.round((n-mg)*0.4);return {ex:n-mg-sx,sx,mg}}
+function syncGrades(){if(!st)return;st.grade=st.grade||{};DK().forEach(d=>{let g=st.grade[d];if(!g)g=st.grade[d]=gradeInit(st.staff[d]||0);const n=st.staff[d]||0;let t=g.ex+g.sx+g.mg;while(t<n){g.ex++;t++}while(t>n){if(g.ex)g.ex--;else if(g.sx)g.sx--;else g.mg--;t--}})}
+function gradeUnits(d){const g=st.grade&&st.grade[d];if(!g)return st.staff[d]||0;return g.ex*0.8+g.sx*1.1+g.mg*1.7}
+
+/* ---------- leadership team ---------- */
+const CX={
+  coo:{t:'Chief Operating Officer',s:'COO',depts:['chartering','crewing','marine'],pay:[55e3,95e3],notes:['Ran operations for a 60-ship Asian owner','Former fleet director at a tanker pool','Ex-Master who built a commercial team','Steady operator, light on commercial deals','Promoted early, still finding his feet']},
+  cfo:{t:'Chief Financial Officer',s:'CFO',depts:['finance','hr'],pay:[50e3,90e3],notes:['Led a ship finance desk at a regional bank','Took a shipping group through an IPO','Chartered accountant with shipping audits','Good on controls, weak with bankers','Moved over from a property company']},
+  cto:{t:'Chief Technical Officer',s:'CTO',depts:['technical','it'],pay:[50e3,90e3],notes:['Former technical director at a gas carrier owner','Delivered 15 newbuildings from Korean yards','Ex-class society principal surveyor','Strong engineer, poor at budgets','Recently came ashore as a Chief Engineer']}
+};
+const CXOF=d=>Object.keys(CX).find(k=>CX[k].depts.includes(d));
+function genCx(k,mean){const skill=clamp(Math.round((mean??3)+gauss()*0.8),1,5),P=CX[k].pay,nat=Math.random()<0.7?'Malaysian':pick(Object.keys(PEOPLE));
+  return {id:st.nid++,name:NAMES[nat](),nat,skill,pay:Math.round((P[0]+(P[1]-P[0])*(skill-1)/4)*rnd(0.92,1.08)/1000)*1000,yrs:Math.round(14+skill*3+rnd(0,6)),note:CX[k].notes[5-skill]}}
+function cxBoost(d){if(!st||!st.cx)return 0;const k=CXOF(d);if(!k)return 0;const h=st.cx[k];if(!h)return st.cxOn?-0.03:0;return (h.skill-3)*0.03}
+function cxPay(){if(!st||!st.cx)return 0;return Object.values(st.cx).reduce((a,h)=>a+(h?h.pay:0),0)}
+
+/* ---------- career ladder ---------- */
+const LADDER=[
+  {k:'ex',t:'Executive',pay:4500,min:6,n:3},
+  {k:'sx',t:'Senior Executive',pay:7500,min:9,n:3},
+  {k:'mg',t:'Manager',pay:13000,min:12,n:2},
+  {k:'hod',t:'Head of Department',pay:24000,min:12,n:2},
+  {k:'cx',t:'C-suite',pay:65000,min:18,n:1},
+  {k:'ceo',t:'Chief Executive Officer',pay:0,min:0,n:0}];
+const CDEPTS=['chartering','crewing','marine','technical','finance','hr','it'];
+const CDESC={chartering:'Find cargo and fix ships. Leads to COO.',crewing:'Recruit officers and keep crew legal under STCW and MLC. Leads to COO.',marine:'Safety, PSC, ISM audits and incidents. Leads to COO.',technical:'Maintenance, class, dry docks and fuel. Leads to CTO.',finance:'Cash, banks, invoices and insurance. Leads to CFO.',hr:'Office people, payroll, EPF and policies. Leads to CFO.',it:'Ship and office systems and cyber security. Leads to CTO.'};
+let startMode='career',startDept='crewing',cxPoolOpen=null,toastMsg=null,toastT=0;
+const career=()=>!!(st&&st.me);
+const isCareer=()=>!!(st&&st.me&&st.me.rank<5);
+const myTrack=()=>st.me?CXOF(st.me.dept):null;
+const myDepts=()=>!st.me||st.me.rank>=5?DK():st.me.rank===4?CX[myTrack()].depts:[st.me.dept];
+function myTitle(){const m=st&&st.me;if(!m||m.rank>=5)return 'Chief Executive Officer';if(m.rank===4)return CX[myTrack()].t;if(m.rank===3)return 'Head of '+DNAME[m.dept];return LADDER[m.rank].t+', '+DNAME[m.dept]}
+function myShort(){const m=st&&st.me;if(!m||m.rank>=5)return 'CEO';if(m.rank===4)return CX[myTrack()].s;if(m.rank===3)return 'Head of '+DNAME[m.dept];return LADDER[m.rank].t+' · '+DNAME[m.dept]}
+function myPay(){const m=st&&st.me;if(!m||m.rank>=3)return 0;return Math.round(LADDER[m.rank].pay*(1+0.04*Math.floor(m.mInRank/12)))}
+function meSkill(){return clamp(Math.round((st.me.perf||60)/20),1,5)}
+function meHead(){const m=st.me;return {id:-1,me:true,name:m.name,nat:'Malaysian',skill:meSkill(),pay:Math.round(LADDER[3].pay*(1+0.04*Math.floor(m.mInRank/12))),yrs:Math.max(1,Math.round((st.m-m.joined)/12)),note:'That is you.'}}
+function meCx(){const m=st.me;return {id:-2,me:true,name:m.name,nat:'Malaysian',skill:meSkill(),pay:Math.round(LADDER[4].pay*(1+0.04*Math.floor(m.mInRank/12))),yrs:Math.max(1,Math.round((st.m-m.joined)/12)),note:'That is you.'}}
+function bossOf(){const m=st.me;if(!m||m.rank>=5)return {name:'Board of directors',t:'Chairman '+(st.chair||'of the board')};
+  if(m.rank===4)return {name:st.ceo?st.ceo.name:'The CEO',t:'Chief Executive Officer'};
+  if(m.rank===3){const k=myTrack(),h=st.cx&&st.cx[k];return {name:h?h.name:(st.ceo?st.ceo.name:'The CEO'),t:h?CX[k].t:'Chief Executive Officer'}}
+  const h=st.heads[m.dept];return {name:h?h.name:'Acting head',t:DEPTS[m.dept].t}}
+/* seat the player as head / C-suite when they hold that rank */
+function ensureSeat(){if(!st||!st.me)return;const m=st.me;
+  DK().forEach(d=>{const h=st.heads[d];if(h&&h.me&&!(m.rank===3&&m.dept===d)){st.heads[d]=genHead(d,3)}});
+  if(st.cx)Object.keys(CX).forEach(k=>{const h=st.cx[k];if(h&&h.me&&!(m.rank===4&&myTrack()===k))st.cx[k]=genCx(k,3)});
+  if(m.rank===3)st.heads[m.dept]=meHead();
+  if(m.rank===4){st.cx=st.cx||{};st.cx[myTrack()]=meCx()}}
+
+/* ---------- who may do what ---------- */
+const POLD={autoCharter:'chartering',mode:'chartering',minRep:'crewing',needStcw:'crewing',autoTrain:'crewing',contract:'crewing',rotation:'crewing',premium:'crewing',natMix:'crewing',dockAt:'technical',autoDock:'technical',credit:'finance',hire:'hr',cyber:'it',itsys:'it',autoSvy:'marine'};
+const UI_ACTS=new Set(['tips','group','tab','plan','begin','end','rtToggle','next','again','ffilt','fopen','ftab','ftype','fview','mapfocus','mapreg','mapsel','sptab','spmode','pool','crewsel','meetopen','renameCancel','design','deng','deq','dyard','dflag','dcancel','boOpen','boClose','boBand','boN','boQuote','bsel','bselAll','bselClear','gosell','reset','choose','flag','cmode','cdept','task','cAccept','cStay','cxPool','imoTab']);
+const EV_DOM={premium:'crewing',pscCert:'marine',psc:'marine',vetting:'marine',misconduct:'marine',incident:'marine',promo:'crewing',promoR:'crewing',survey:'crewing',audit:'finance',boom:'chartering',bunkerSpike:'chartering',cii:'technical',claim:'marine',conflict:'crewing',customs:'chartering',cyber:'it',drop:'chartering',family:'crewing',keyStaff:'hr',medevac:'marine',oRaise:'hr',poach:'hr',redsea:'chartering',refi:'finance',rescue:'marine',robbery:'marine',squeeze:'finance',tender:'chartering',typhoon:'marine',union:'crewing',yardDelay:'technical',bigBreak:'technical',ciiPlan:'technical',pandi:'finance',pscImo:'marine',docAudit:'marine',nzfNews:'any'};
+function rankName(r,d){return r>=5?'the CEO':r===4?'the '+CX[CXOF(d)||'coo'].s:r===3?'the Head of '+DNAME[d]:'a '+LADDER[r].t+' in '+DNAME[d]}
+function can(d,minR){if(!career())return true;const m=st.me;if(m.rank>=5)return true;if(d==='ceo')return false;return myDepts().includes(d)&&m.rank>=minR}
+function cfo(){return st.me&&st.me.rank===4&&myTrack()==='cfo'}
+function needMsg(d,minR){const m=st.me;return d==='ceo'||minR>=5?'Only the CEO can decide this. You are '+myShort()+'.':'This needs '+rankName(minR,d)+'. You are '+myShort()+'.'}
+function whyBlocked(a,v){
+  if(!st||!isCareer()||UI_ACTS.has(a))return null;
+  const chk=(d,r)=>can(d,r)?null:needMsg(d,r);
+  switch(a){
+    case 'accept':return chk('chartering',1);
+    case 'man':case 'train':case 'rush':return chk('crewing',1);
+    case 'wage':case 'nat':return chk('crewing',2);
+    case 'allow':return chk('crewing',3);
+    case 'shore':return chk('technical',1);
+    case 'maint':return chk('technical',2);
+    case 'dock':return chk('technical',3);
+    case 'hseq':return chk('marine',3);
+    case 'pol':{const k=(v||'').split(':')[0];return chk(POLD[k]||'ceo',2)}
+    case 'budget':case 'staff':{const d=(v||'').split(':')[0];if(cfo())return null;return chk(d,3)}
+    case 'opay':case 'oben':if(cfo())return null;return chk('hr',3);
+    case 'borrow':case 'repay':return cfo()?null:needMsg('finance',4);
+    case 'appoint':case 'dismiss':{const d=(v||'').split(':')[0];if(st.heads[d]&&st.heads[d].me)return 'You cannot replace yourself.';return chk(d,4)}
+    case 'meet':{const [id]=(v||'').split(':');const it=st.meet&&st.meet.items.find(x=>x.id===+id);return it&&canMeet(it)?null:'The CEO chairs this meeting. You can decide items for '+andList(myDepts().map(x=>DNAME[x]))+' once you are Head of Department.'}
+    case 'renameStart':case 'rename':return st.me.rank===4&&myTrack()==='coo'?null:needMsg('ceo',5);
+    case 'svy':return chk('marine',1);
+    case 'prep':{const r=REGS.find(x=>x.id===v);return r&&r.act?chk(r.act.d,r.act.r):null}
+    case 'gPromote':{const d=(v||'').split(':')[0];if(cfo()||can('hr',3))return null;return chk(d,3)}
+    case 'cxHire':case 'cxDismiss':return needMsg('ceo',5);
+  }
+  return needMsg('ceo',5);
+}
+function canMeet(it){if(!career())return true;const m=st.me;return m.rank>=5||(m.rank>=3&&myDepts().includes(it.d))}
+function canEvent(id){if(!career())return true;const d=EV_DOM[id]||'ceo';if(d==='any')return true;return can(d,2)}
+function toast(t){toastMsg=t;toastT=Date.now();let el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';el.className='toast';el.setAttribute('role','status');document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(window._toastTO);window._toastTO=setTimeout(()=>{el.hidden=true},3800)}
+
+/* ---------- your monthly work: realistic tasks per department ---------- */
+function tctx(){const ships=st.ships.filter(s=>s.status!=='delivery'),sh=ships.length?pick(ships):null,crew=sh?aboard(st,(p,x)=>x===sh):[],c=crew.length?pick(crew):null;
+  return {sh,sn:sh?sh.name:'MV Seri Laut',p:c?c.p:null,pn:c?c.p.name:'the Second Officer',rt:c?RANKS[c.r].t:'Second Officer',port:(sh&&sh.port)||'Singapore',k:[0.4,0.6,1,1.6,2.5,3][st.me?st.me.rank:5]}}
+const fx={
+  rep:n=>{st.rep+=n},mor:n=>{st.morale+=n},emp:n=>{st.empRep+=n},om:n=>{st.oShock+=n},board:n=>{st.board+=n},
+  cost:(cat,x)=>spend(cat,r10k(x)>0?r10k(x):Math.round(x/100)*100),
+  tb:(d,x)=>{st.tb=st.tb||{};st.tb[d]=(st.tb[d]||0)+x},
+  risk:n=>{st.cRisk=clamp((st.cRisk||0)+n,0,60)},
+  cond:(sh,n)=>{if(sh)sh.cond=clamp(sh.cond+n,20,100)},
+  prep:(sh,n)=>{if(sh)sh.pscPrep=Math.max(sh.pscPrep||0,n)}
+};
+const T=(t,b,c)=>({t,b,c});
+const TASKS={
+chartering:[
+  x=>T('Laytime dispute at '+x.port,`The charter party for ${x.sn} says laytime counts in "weather working days". Our draft statement counts every hour. The charterer's agent says six hours of heavy rain should be left out.`,[
+    ['Leave the rain hours out','That is what weather working days means.',92,()=>{fx.rep(1);fx.tb('chartering',0.03);return ['Statement corrected and agreed in a day. The charterer paid the demurrage without argument.','good']}],
+    ['Ask the broker what is usual','Slower, but safe.',60,()=>['The broker confirmed rain is excluded. You lost a week, but the claim was settled.','']],
+    ['Keep claiming all hours','More demurrage if they give in.',20,()=>{fx.rep(-2);fx.cost('penalty',30000*x.k);return ['The charterer rejected the claim and lawyers got involved. You paid legal fees and dropped the extra hours anyway.','bad']}]]),
+  x=>T('Voyage estimate for a new cargo',`You are preparing the voyage estimate for ${x.sn}. Your template still uses last month's bunker price, but prices in Singapore have moved by about 8%.`,[
+    ['Update bunker and port costs first','Takes a few hours longer.',90,()=>{fx.tb('chartering',0.04);return ['Your estimate was accurate. The fixture made the profit you forecast.','good']}],
+    ['Send it with last month\'s price','Faster.',30,()=>{fx.cost('fuel',60000*x.k);return ['The voyage cost more than forecast. Your manager asked why the estimate was off.','bad']}]]),
+  x=>T('Charterer wants full speed',`A charterer wants ${x.sn} to sail at full speed. Its carbon rating (CII) is already heading towards D. BIMCO has a standard CII clause that shares responsibility between owner and charterer.`,[
+    ['Fix with the BIMCO CII clause','Speed is agreed, carbon responsibility is shared.',88,()=>{if(x.sh)x.sh.slowCii=Math.max(x.sh.slowCii||0,4);fx.rep(1);return ['Clause agreed. The charterer will adjust speed if the rating is at risk.','good']}],
+    ['Agree to full speed, no clause','Happy client today.',40,()=>{if(x.sh)x.sh.ciiBad=6;fx.rep(1);return ['The client is happy, but the ship\'s carbon rating will suffer this year.','']}],
+    ['Refuse to sail fast','Protects the rating.',55,()=>{fx.rep(-1);return ['The charterer took another ship. Rating protected, cargo lost.','']}]]),
+  x=>T('New client fails sanctions check',`A new charterer offers a good rate for ${x.sn}. Your KYC check shows the cargo has a history of ship-to-ship transfers near a sanctioned area.`,[
+    ['Decline and record the check','Compliance first.',95,()=>{fx.rep(1);fx.risk(-3);return ['You declined. Two months later the same cargo was seized elsewhere. Legal thanked you.','good']}],
+    ['Ask Legal before deciding','A safe middle step.',75,()=>['Legal advised you to decline. You lost a week but stayed clean.','']],
+    ['Accept the fixture','The rate is good.',10,()=>{fx.rep(-6);fx.cost('penalty',400000*x.k);fx.risk(8);return ['The P&I club warned the cargo breached sanctions. The fixture was cancelled with costs and your bank asked questions.','bad']}]]),
+  x=>T('Freight short-paid',`A charterer paid 3.75% less freight than invoiced for ${x.sn}'s last voyage. They say it is "address commission".`,[
+    ['Check the charter party first','Address commission is only due if it was agreed.',88,()=>{earn('freight',20000*x.k);return ['The charter party had no address commission. The charterer paid the balance.','good']}],
+    ['Write it off','Keeps the client happy.',35,()=>['The money is gone and Finance asked why nobody checked.','bad']]]),
+  x=>T('Weekly market report',`Your manager needs the weekly freight market report for Monday's meeting.`,[
+    ['Write it with your own view','Broker reports plus what you think rates will do.',85,()=>{fx.tb('chartering',0.04);return ['Your view on rates was quoted in the management meeting.','good']}],
+    ['Copy last week\'s report','Nobody reads it anyway.',20,()=>['Your manager noticed the numbers had not changed.','bad']]])
+],
+crewing:[
+  x=>T('Certificate expiring on board',`${x.rt} ${x.pn} on ${x.sn} has an STCW certificate expiring in two months. The ship calls ${x.port} next week.`,[
+    ['Book the refresher course at port','Small cost, fully compliant.',92,()=>{fx.cost('train',3500);fx.risk(-2);return ['Course done during the port stay. Certificate renewed.','good']}],
+    ['Ask the flag for a dispensation','Possible, but not guaranteed.',50,()=>{fx.risk(2);return ['The flag gave three months only. You will need to deal with it again.','']}],
+    ['Leave it for later','No cost now.',10,()=>{fx.risk(6);fx.prep(x.sh,0);return ['The certificate lapsed. Port State Control could detain the ship.','bad']}]]),
+  x=>T('Rest hours breached',`Rest-hour records from ${x.sn} show an officer had only 8 hours of rest in 24 hours twice last week. STCW and MLC require at least 10.`,[
+    ['Fix the watch plan with the Master','Add a rating to the watch or change port routines.',90,()=>{fx.mor(2);fx.risk(-2);return ['Watch plan changed. The records are now compliant.','good']}],
+    ['Just note it','Remind the Master by email.',40,()=>{fx.risk(2);return ['It happened again the next week.','']}],
+    ['Ask the Master to "tidy up" the records','Make the problem disappear on paper.',0,()=>{fx.risk(10);if(Math.random()<0.5){fx.cost('penalty',150000*x.k);fx.rep(-4);return ['A PSC inspector compared the records with the logbook. Falsified records are a serious offence. Fine and detention.','bad']}return ['Nobody noticed this time, but your manager is uneasy.','bad']}]]),
+  x=>T('Crew change flights',`Four crew are signing off ${x.sn} at ${x.port}. The cheapest flights have a 30-hour layover. A direct flight costs RM 9,000 more.`,[
+    ['Direct flights with a hotel','Crew are rested and happy.',85,()=>{fx.cost('recruit',9000);fx.mor(2);fx.emp(1);return ['The crew got home quickly and thanked you.','good']}],
+    ['Cheapest flights','Saves money.',50,()=>{fx.mor(-2);return ['Two crew complained about sleeping at the airport.','']}],
+    ['Postpone the crew change','Saves the cost this month.',25,()=>{fx.mor(-4);fx.risk(2);return ['Contracts went over the limit. The crew are tired and unhappy.','bad']}]]),
+  x=>T('Unverified officer from an agent',`A manning agent offers a Third Officer for ${x.sn}. His certificate of competency cannot be found on the flag state's online check.`,[
+    ['Reject until it is verified','Never sail with an unverified CoC.',95,()=>{fx.risk(-2);return ['The certificate turned out to be fake. You reported the agent.','good']}],
+    ['Hire him, check later','The ship needs an officer now.',5,()=>{fx.risk(12);fx.rep(-4);fx.cost('penalty',200000*x.k);return ['The certificate was fake. The flag state opened an investigation.','bad']}]]),
+  x=>T('Late home allotment',`A seafarer on ${x.sn} says his monthly allotment to his family is a week late. MLC says wages must be paid on time.`,[
+    ['Chase the bank and pay the delay','Pay it today, fix the cause.',88,()=>{fx.emp(2);fx.mor(1);return ['Money arrived the same day. Word spread that the office cares.','good']}],
+    ['Tell him to wait for the next run','The batch runs next week.',30,()=>{fx.emp(-3);fx.mor(-2);return ['He complained to the union. The office looked careless.','bad']}]]),
+  x=>T('Medical certificate expiring',`The cook on ${x.sn} has a seafarer medical certificate that expires next month. Without it he cannot stay on board.`,[
+    ['Arrange a medical at the next port','Approved doctor, small cost.',88,()=>{fx.cost('train',1200);return ['Medical done. Certificate renewed for two years.','good']}],
+    ['Plan a relief cook instead','Costs more, but simple.',70,()=>{fx.cost('recruit',8000);return ['A relief cook joined. It cost more than a medical.','']}]])
+],
+marine:[
+  x=>T('PSC inspection coming',`${x.sn} arrives in ${x.port} next week. The Tokyo MOU is running a concentrated inspection campaign on fire safety this quarter.`,[
+    ['Send a superintendent for a pre-check','Costs a visit, but finds problems first.',92,()=>{fx.cost('budget',15000);fx.prep(x.sh,4);return ['Superintendent found two fire door defects. Fixed before PSC boarded.','good']}],
+    ['Email the checklist to the Master','Cheap, partly effective.',65,()=>{fx.prep(x.sh,2);return ['The Master completed the checklist on board.','']}],
+    ['Do nothing special','Hope for the best.',25,()=>['The ship is less prepared than it could be.','']]]),
+  x=>T('Near-miss report',`The Master of ${x.sn} reported a near miss: a mooring line nearly snapped back during berthing.`,[
+    ['Share a lesson fleet-wide','Toolbox talk on every ship.',90,()=>{fx.mor(1);fx.risk(-3);fx.tb('marine',0.03);return ['Every ship held a toolbox talk on snap-back zones.','good']}],
+    ['File it','It was only a near miss.',35,()=>['Filed. The same mistake could happen on another ship.','']]]),
+  x=>T('Missed drill',`${x.sn} missed its enclosed space entry drill. SOLAS requires one every two months.`,[
+    ['Order the drill and check the report','Do it properly.',90,()=>{fx.risk(-2);return ['Drill done. The crew found the rescue tripod was faulty and replaced it.','good']}],
+    ['Let them record it as done','Paperwork only.',0,()=>{fx.risk(8);return ['A record of a drill that never happened. If something goes wrong, the company is liable.','bad']}]]),
+  x=>T('Oil sheen during bunkering',`The crew of ${x.sn} saw a small oil sheen near the ship during bunkering at ${x.port}.`,[
+    ['Report to the port authority now','MARPOL Annex I: report every spill.',95,()=>{fx.cost('penalty',20000*x.k);fx.rep(1);return ['Reported and cleaned. A small fine, but the port praised the quick report.','good']}],
+    ['Clean it quietly','No report, no fine.',10,()=>{if(Math.random()<0.6){fx.cost('penalty',500000*x.k);fx.rep(-6);fx.risk(8);return ['Satellite images showed the sheen. Fine for not reporting.','bad']}fx.risk(6);return ['Nobody noticed this time.','bad']}]]),
+  x=>T('Internal ISM audit',`You must plan the internal ISM audit for ${x.sn} this year.`,[
+    ['Full audit on board','Two days with the crew.',88,()=>{fx.cost('budget',12000);fx.risk(-4);fx.tb('marine',0.03);return ['Audit found three non-conformities. All closed before the external audit.','good']}],
+    ['Paper audit from the office','Quick and cheap.',35,()=>{fx.risk(2);return ['The paper audit missed real problems on board.','']}]]),
+  x=>T('Ballast record mismatch',`The ballast water record book of ${x.sn} does not match the ballast system log for one port call.`,[
+    ['Investigate and correct','Find out what really happened.',90,()=>{fx.risk(-2);return ['It was a recording mistake by a new officer. Corrected and he was coached.','good']}],
+    ['Leave it','Probably a typo.',30,()=>{fx.risk(4);return ['Ballast records are a common PSC check. This could cause a detention.','']}]])
+],
+technical:[
+  x=>T('Spare parts request',`${x.sn} requests new main engine fuel injectors. Genuine parts cost RM ${Math.round(80*x.k)}k. A compatible brand costs 35% less.`,[
+    ['Genuine parts','Most reliable.',80,()=>{fx.cost('stores',80000*x.k);fx.cond(x.sh,4);return ['Injectors fitted. Engine running smoothly.','good']}],
+    ['Compatible brand','Saves money, still approved by class.',70,()=>{fx.cost('stores',52000*x.k);fx.cond(x.sh,2);return ['Parts fitted. Fine for now.','']}],
+    ['Defer the order','Save the cash this month.',25,()=>{fx.cond(x.sh,-4);return ['The engine kept losing power. The Chief Engineer is unhappy.','bad']}]]),
+  x=>T('Class recommendation',`The class society gave ${x.sn} a recommendation on hull corrosion in a ballast tank. It must be fixed within three months.`,[
+    ['Repair at the next port','Plan it with the yard.',90,()=>{fx.cost('repair',90000*x.k);fx.cond(x.sh,3);fx.risk(-2);return ['Repaired and class cleared the item.','good']}],
+    ['Ask class for an extension','Possible once.',55,()=>{fx.risk(2);return ['Class gave one extra month. You still need to fix it.','']}],
+    ['Ignore it','Hope nobody checks.',10,()=>{fx.risk(8);return ['An overdue recommendation can suspend class. Without class the ship cannot trade.','bad']}]]),
+  x=>T('Ballast treatment system fault',`The ballast water treatment system on ${x.sn} has failing UV lamps. The ship must deballast at the next port.`,[
+    ['Order lamps and tell the port state','Follow the BWM contingency plan.',92,()=>{fx.cost('stores',40000);fx.risk(-2);return ['Port state agreed a contingency measure. Lamps fitted next port.','good']}],
+    ['Deballast untreated water','Quick and free.',5,()=>{fx.cost('penalty',300000*x.k);fx.rep(-4);fx.risk(10);return ['Breach of the Ballast Water Management Convention. Large fine.','bad']}]]),
+  x=>T('Dry dock quotation',`${x.sn} is due for dry docking. One yard sent a quote. You can tender to three yards first.`,[
+    ['Tender to three yards','A few extra weeks of work.',90,()=>{fx.tb('technical',0.05);return ['The tender saved about 12% on the yard bill.','good']}],
+    ['Accept the single quote','Fast.',50,()=>['Booked. The price was on the high side.','']]]),
+  x=>T('High sulphur bunker',`The fuel sample for ${x.sn} tested at 0.53% sulphur. MARPOL Annex VI allows 0.50%.`,[
+    ['Protest, inform flag and port, ask the supplier to take it back','The full IMO procedure.',92,()=>{fx.risk(-2);return ['The supplier took the fuel back and paid the costs.','good']}],
+    ['Burn it anyway','Small difference.',10,()=>{fx.risk(8);fx.cost('penalty',120000*x.k);return ['PSC tested the fuel in use. Fine for burning non-compliant fuel.','bad']}]]),
+  x=>T('Fuel use going up',`Performance data shows ${x.sn} burning 6% more fuel than last year. The hull is likely fouled.`,[
+    ['Underwater hull cleaning','Costs now, saves fuel and CII.',88,()=>{fx.cost('repair',60000*x.k);if(x.sh)x.sh.slowCii=Math.max(x.sh.slowCii||0,6);return ['Hull cleaned. Fuel use and carbon rating improved.','good']}],
+    ['Wait for the next dry dock','No cost now.',40,()=>{if(x.sh)x.sh.ciiBad=6;return ['The ship keeps burning extra fuel.','']}]])
+],
+finance:[
+  x=>T('Overdue freight',`A charterer is 60 days late paying freight for ${x.sn}.`,[
+    ['Send a formal demand, pause new fixtures','Firm but fair.',85,()=>{earn('freight',30000*x.k);return ['They paid within a week.','good']}],
+    ['Keep waiting politely','Keep the relationship.',40,()=>['Still unpaid. The ageing report looks worse.','']],
+    ['Write it off','Clean the books.',15,()=>{fx.cost('bad',30000*x.k);return ['Money lost that could have been collected.','bad']}]]),
+  x=>T('Bank covenant certificate',`The quarterly loan covenant certificate is due. Loan-to-value is ${Math.round(ltv()*100)}%.`,[
+    ['Prepare it accurately and on time','Banks value honesty.',92,()=>{fx.board(1);return ['The bank accepted the certificate without questions.','good']}],
+    ['Ask the bank for more time','A small delay.',45,()=>['The bank agreed, but asked why.','']]]),
+  x=>T('Master\'s cash request',`The Master of ${x.sn} asks for USD 20,000 cash to master. Last month's ship cash account is not reconciled.`,[
+    ['Reconcile first, then send','Proper control.',88,()=>{fx.tb('finance',0.03);return ['Account reconciled. Cash sent two days later.','good']}],
+    ['Send it now','The ship needs it.',50,()=>['Cash sent. The audit trail is weak.','']]]),
+  x=>T('Currency risk',`Freight is earned in US dollars but most costs are in ringgit. The dollar has been volatile.`,[
+    ['Hedge half of next quarter','Lower risk.',80,()=>{fx.board(1);return ['Hedge placed. Cash flow is more predictable.','good']}],
+    ['Do not hedge','Take the risk.',55,()=>{if(Math.random()<0.5){earn('freight',40000*x.k);return ['The dollar rose. A small gain.','good']}fx.cost('penalty',40000*x.k);return ['The dollar fell. A small loss.','bad']}]]),
+  x=>T('P&I insurance renewal',`The P&I club wants a 7% general increase on renewal.`,[
+    ['Negotiate through the broker','Show our clean record.',85,()=>{fx.tb('finance',0.03);return ['The increase came down to 4%.','good']}],
+    ['Accept the increase','Quick.',55,()=>['Renewed at the full increase.','']],
+    ['Switch to a cheap unrated insurer','Saves a lot.',10,()=>{fx.rep(-4);fx.risk(6);return ['Charterers and ports question the cover. Some refuse to deal with the ship.','bad']}]]),
+  x=>T('Invoice without a PO',`A supplier sent a RM ${Math.round(45*x.k)}k invoice for spares with no purchase order.`,[
+    ['Hold it until a PO is raised','Basic internal control.',90,()=>{fx.tb('finance',0.03);return ['It was a duplicate invoice. You saved the company money.','good']}],
+    ['Pay it','The ship probably ordered it.',30,()=>{fx.cost('stores',45000*x.k);return ['Paid. It was a duplicate.','bad']}]])
+],
+hr:[
+  x=>T('Bullying complaint',`An office executive reports repeated bullying by a senior colleague.`,[
+    ['Formal investigation, kept confidential','Follow the policy.',95,()=>{fx.om(2);return ['Investigation done. The senior was warned and coached. Staff trust HR more.','good']}],
+    ['Informal mediation','Faster.',55,()=>['Things are calmer, but the complainant is not satisfied.','']],
+    ['Tell them to sort it out','Not HR\'s job.',5,()=>{fx.om(-5);return ['The complainant resigned and posted about the company online.','bad']}]]),
+  x=>T('EPF and SOCSO payment due',`Monthly EPF, SOCSO and EIS contributions are due by the 15th.`,[
+    ['Submit on time','Required by law.',90,()=>['Paid on time.','good']],
+    ['Submit next week','Payroll is busy.',20,()=>{fx.cost('penalty',5000*x.k);return ['Late payment charge applied.','bad']}]]),
+  x=>T('Annual training plan',`Department heads want the training budget split for next year.`,[
+    ['Mix of skills and leadership','Balanced plan.',85,()=>{fx.om(2);fx.tb('hr',0.04);return ['Staff liked the plan. Two juniors started a leadership course.','good']}],
+    ['Cut training this year','Save money.',35,()=>{fx.om(-3);return ['Staff noticed. Some started looking elsewhere.','bad']}]]),
+  x=>T('Hiring an executive',`Your best candidate for an executive role asks for 15% above the salary scale.`,[
+    ['Offer the top of the scale plus a review at 6 months','Fair and consistent.',85,()=>['Candidate accepted. Salary scale protected.','good']],
+    ['Pay what she asks','Get her now.',55,()=>{fx.om(-1);return ['She joined. Others in the team heard about it.','']}],
+    ['Let her go','Stick to the scale.',45,()=>['She took another offer. The post stays vacant.','']]]),
+  x=>T('Exit interviews',`Three staff left in two months. Exit interviews mention long hours.`,[
+    ['Report the pattern to management','Back it with data.',88,()=>{fx.om(2);return ['Management agreed to review workloads.','good']}],
+    ['File the forms','Routine.',30,()=>['The pattern continues.','']]]),
+  x=>T('Flexible work request',`Staff ask for one work-from-home day a week.`,[
+    ['Run a 3-month trial with clear rules','Test it properly.',85,()=>{fx.om(3);return ['Trial started. Morale went up.','good']}],
+    ['Refuse','Everyone in the office.',40,()=>{fx.om(-2);return ['Staff are disappointed.','']}]])
+],
+it:[
+  x=>T('Phishing on board',`The Master of ${x.sn} clicked a link in a fake "port agent" email and typed his password.`,[
+    ['Isolate the PC, reset passwords, follow the cyber plan','By the book.',95,()=>{fx.risk(-2);fx.tb('it',0.04);return ['Contained in an hour. No systems affected.','good']}],
+    ['Run an antivirus scan','Quick check.',45,()=>{fx.risk(3);return ['The scan found nothing, but the password was already stolen.','bad']}],
+    ['Ignore it','Probably nothing.',5,()=>{st.cyberRisk=(st.cyberRisk||0)+0.15;fx.risk(5);return ['The attackers now have access to company email.','bad']}]]),
+  x=>T('Electronic chart permits expiring',`The electronic chart (ENC) permits on ${x.sn}'s ECDIS expire next week.`,[
+    ['Renew the permits now','Keep the ECDIS legal.',92,()=>{fx.cost('it',6000);return ['Permits renewed and charts updated.','good']}],
+    ['Renew next month','Save this month\'s budget.',15,()=>{fx.risk(6);return ['Outdated charts are a detainable SOLAS deficiency.','bad']}]]),
+  x=>T('Critical server patch',`A critical security patch needs the office servers down for four hours.`,[
+    ['Patch this weekend','Short downtime.',90,()=>{fx.tb('it',0.04);st.cyberRisk=Math.max(0,(st.cyberRisk||0)-0.1);return ['Patched with no problems.','good']}],
+    ['Wait until next month','No disruption now.',35,()=>{st.cyberRisk=(st.cyberRisk||0)+0.1;return ['Servers stay exposed for another month.','bad']}]]),
+  x=>T('Crew internet down',`Crew on ${x.sn} say the internet has been down for two weeks. They cannot call home.`,[
+    ['Courier a spare modem to the next port','Fix it fast.',88,()=>{fx.cost('it',5000);fx.mor(3);return ['Internet back. The crew called home that night.','good']}],
+    ['Wait for the technician at the next port','Cheaper.',40,()=>{fx.mor(-3);return ['Two more weeks without contact. Morale on board dropped.','bad']}]]),
+  x=>T('Noon report data mismatch',`Fuel figures in ${x.sn}'s noon reports do not match the bunker delivery notes. The data goes into IMO DCS and CII.`,[
+    ['Investigate and fix the source','Accurate IMO data.',90,()=>{fx.risk(-3);return ['A sounding table error was found and corrected.','good']}],
+    ['Adjust the numbers to match','Make it tidy.',5,()=>{fx.risk(10);return ['Changing emissions data is a serious compliance breach.','bad']}]]),
+  x=>T('Backup restore test',`Nobody has tested restoring the office backups this year.`,[
+    ['Run a full restore test','Half a day of work.',88,()=>{st.backupOk=st.m+12;return ['Restore worked in 3 hours. Backups are proven.','good']}],
+    ['Skip it','Backups run every night.',30,()=>['You still do not know if the backups work.','']]])
+]};
+function genTasks(){const m=st.me;if(!m||m.rank>=5){if(m)m.tasks=[];return}
+  const pool=m.rank===4?CX[myTrack()].depts:[m.dept],n=LADDER[m.rank].n,used=new Set(),out=[];let guard=0;
+  while(out.length<n&&guard++<40){const d=pick(pool),L=TASKS[d],i=Math.floor(Math.random()*L.length);if(used.has(d+i)||(m.last||[]).includes(d+i))continue;used.add(d+i);const x=tctx(),tk=L[i](x),ord=tk.c.map((_,j)=>j).sort(()=>Math.random()-0.5);out.push({id:st.nid++,d,key:d+i,t:tk.t,b:tk.b,ord,c:ord.map(j=>[tk.c[j][0],tk.c[j][1]]),x:{sid:x.sh?x.sh.id:null},done:null})}
+  m.last=out.map(t=>t.key);m.tasks=out}
+function doTask(id,i){const m=st.me,tk=m&&m.tasks.find(t=>t.id===id);if(!tk||tk.done!=null)return;
+  const [d,ix]=[tk.key.replace(/\d+$/,''),+tk.key.match(/\d+$/)[0]];const x=tctx();x.sh=tk.x.sid!=null?shipById(tk.x.sid):x.sh;if(x.sh)x.sn=x.sh.name;
+  const tpl=TASKS[d][ix](x),ch=tpl.c[tk.ord?tk.ord[i]:i];if(!ch)return;const [res,tone]=ch[3](st,x);tk.done=i;tk.score=ch[2];tk.res=res;tk.tone=tone;fix();addLog('My job · '+tk.t+': '+res,tone,'me')}
+
+/* ---------- IMO compliance ---------- */
+const mlab=m=>MONTHS[((m%12)+12)%12]+' '+yearOf(m);
+const CONV=[
+  ['SOLAS','Safety of Life at Sea. Ship construction, fire safety, life-saving appliances, radio, navigation. The most important safety convention.'],
+  ['MARPOL','Pollution from ships. Annex I oil, II noxious liquids, III packaged goods, IV sewage, V garbage, VI air pollution, energy efficiency and CII.'],
+  ['STCW','Training, certification and watchkeeping. Every officer needs the right Certificate of Competency and courses for their rank and ship type.'],
+  ['MLC 2006','Maritime Labour Convention (ILO). Contracts, wages, rest hours, food, accommodation, medical care, repatriation and shore leave.'],
+  ['ISM Code','International Safety Management. The company needs a Document of Compliance (DOC), each ship a Safety Management Certificate (SMC). Includes cyber risk since 2021.'],
+  ['ISPS Code','Ship and port security. Ship Security Plan, Ship Security Officer and the International Ship Security Certificate (ISSC).'],
+  ['BWM','Ballast Water Management. Ships must treat ballast water (D-2 standard) so they do not move marine species between regions.'],
+  ['Load Lines','Sets how deep a ship may load. The load line marks on the hull are checked at every annual survey.'],
+  ['COLREG','Collision regulations. The rules of the road at sea: lights, shapes, sound signals and who gives way.'],
+  ['Hong Kong Convention','Safe ship recycling. Ships need an Inventory of Hazardous Materials (IHM) and must be recycled at authorised yards.'],
+  ['AFS','Anti-fouling systems. Bans harmful hull paints such as TBT and cybutryne.']];
+const SHIPCERTS=[['SOLAS','Safety Construction, Equipment and Radio'],['Load Lines','International Load Line'],['MARPOL I','IOPP (oil)'],['MARPOL IV','Sewage'],['MARPOL VI','IAPP and IEE (air, energy)'],['ISM','Safety Management (SMC)'],['ISPS','Ship Security (ISSC)'],['MLC','Maritime Labour Certificate'],['BWM','Ballast Water Management'],['HKC','Inventory of Hazardous Materials']];
+/* m = game month index; Jan 2027 is 0. kind: in = in force, exp = expected date, sc = game scenario */
+const REGS=[
+  {id:'sox20',m:-84,conv:'MARPOL VI',t:'Global 0.50% sulphur limit (IMO 2020)',d:'All ships burn fuel with at most 0.50% sulphur, or use an approved scrubber.',kind:'in'},
+  {id:'cyber21',m:-72,conv:'ISM Code',t:'Cyber risk in the Safety Management System',d:'IMO Resolution MSC.428(98). Your SMS must cover cyber risk. IT\'s cyber policy decides whether you comply.',kind:'in',live:()=>st.pol.cyber>=1},
+  {id:'bwm24',m:-28,conv:'BWM',t:'Ballast water D-2 standard for all ships',d:'Every ship needs an approved ballast water treatment system.',kind:'in'},
+  {id:'med25',m:-20,conv:'MARPOL VI',t:'Mediterranean Sea emission control area',d:'0.10% sulphur fuel inside the Mediterranean.',kind:'in'},
+  {id:'hkc25',m:-19,conv:'Hong Kong Convention',t:'Ship recycling convention in force',d:'Ships carry an Inventory of Hazardous Materials. Old ships may only be recycled at authorised yards.',kind:'in'},
+  {id:'jan26',m:-12,conv:'SOLAS / STCW',t:'January 2026 package',d:'Lifting appliance and anchor-handling winch rules, fuel flashpoint declaration before bunkering, lost container reporting, PFOS foam ban, and STCW training on harassment and bullying.',kind:'in'},
+  {id:'arc26',m:-10,conv:'MARPOL VI',t:'Canadian Arctic and Norwegian Sea ECAs in force',d:'New emission control areas. NOx Tier III applies to qualifying new ships there.',kind:'in'},
+  {id:'cii27',m:0,conv:'MARPOL VI',t:'CII reduction factor 13.625% for 2027',d:'Carbon intensity ratings get stricter. The required reduction rises by about 2.6 points every year to 21.5% in 2030.',kind:'in'},
+  {id:'arcS27',m:2,conv:'MARPOL VI',t:'0.10% sulphur in Canadian Arctic and Norwegian Sea ECAs',d:'Affects ships trading to Arctic Canada or northern Norway. Your current Asian trades are not affected.',kind:'in'},
+  {id:'nox27',m:2,conv:'MARPOL VI',t:'NOx Technical Code: multiple engine profiles',d:'New engines can be certified for several operating profiles. Matters when you order newbuildings.',kind:'in'},
+  {id:'nea27',m:8,conv:'MARPOL VI',t:'North-East Atlantic ECA enters into force',d:'Covers waters off Ireland, the UK, France, Spain, Portugal, Iceland, the Faroes and Greenland. 0.10% sulphur applies from September 2028.',kind:'in'},
+  {id:'mlc25',m:11,conv:'MLC 2006',t:'MLC 2025 amendments',d:'Shore leave without a visa, repatriation regardless of flag, seafarers as key workers, and stronger rules against bullying and harassment. Your DMLC Part II and crew procedures must be updated.',kind:'exp',
+    act:{l:'Update DMLC Part II and crew procedures',d:'crewing',r:2,cost:()=>40000+5000*st.ships.length}},
+  {id:'cii28',m:12,conv:'MARPOL VI',t:'CII reduction factor 16.25% for 2028',d:'Ratings tighten again. Older ships slide towards D and E.',kind:'in'},
+  {id:'bwm28',m:15,conv:'BWM',t:'BWM Convention amendments',d:'Expected spring 2028 after adoption at MEPC 85. The experience-building phase ends, so ballast system faults are no longer treated leniently. Ballast Water Management Plans must be updated.',kind:'exp',
+    act:{l:'Update Ballast Water Management Plans',d:'technical',r:2,cost:()=>15000*Math.max(1,st.ships.length)}},
+  {id:'neaS28',m:20,conv:'MARPOL VI',t:'0.10% sulphur in the North-East Atlantic ECA',d:'Ships trading to north-west Europe must switch to low-sulphur fuel there.',kind:'in'},
+  {id:'cii29',m:24,conv:'MARPOL VI',t:'CII reduction factor 18.875% for 2029',d:'Ratings tighten again.',kind:'in'},
+  {id:'lsa29',m:24,conv:'SOLAS',t:'Lifeboat ventilation (LSA Code)',d:'Totally enclosed lifeboats installed from 2029 need ventilation. Applies to newbuildings and replacements.',kind:'in'},
+  {id:'cii30',m:36,conv:'MARPOL VI',t:'CII reduction factor 21.5% for 2030',d:'The last agreed step. IMO reviews CII after 2028.',kind:'in'},
+  {id:'nzf',m:null,conv:'MARPOL VI',t:'IMO Net-Zero Framework',d:'Global fuel GHG intensity limits with a price on emissions above the target (remedial units of about USD 100 and 380 per tonne CO2e). In real life adoption was postponed in October 2025 and talks continue in 2026. In this game, IMO votes each October.',kind:'sc',
+    act:{l:'Set up fuel GHG intensity reporting',d:'it',r:2,cost:()=>30000*Math.max(1,st.ships.length)}}
+];
+const regDate=r=>r.id==='nzf'?(st.nzf&&st.nzf.state==='adopted'?st.nzf.eif:null):r.m;
+const regLive=r=>{const m=regDate(r);return m!=null&&st.m>=m};
+const unprepared=r=>r.act&&!(st.ready&&st.ready[r.id]);
+function svyCost(sh){return r10k(25000+CLS[sh.cls].value*0.0004)}
+function annInit(sh){if(sh.annDue==null)sh.annDue=st.m+2+Math.floor(Math.random()*10)}
+function svyState(sh){annInit(sh);if(sh.status==='delivery')return {k:'new',l:'New ship',c:''};if(sh.lapsed)return {k:'lapsed',l:'Certificates invalid',c:'down'};const d=sh.annDue-st.m;if(d<0)return {k:'over',l:'Annual survey overdue',c:'down'};if(d<=3)return {k:'window',l:'Annual survey due '+mlab(sh.annDue),c:'warn'};return {k:'ok',l:'Valid · next survey '+mlab(sh.annDue),c:'up'}}
+function compParts(){
+  const p=[['Base',72]],e=Math.min(1.1,eff('marine'));p.push(['Marine department',Math.round((e-0.8)*40)]);
+  if(st.hseq)p.push(['HSEQ programme',6]);
+  p.push(['Cyber plan (ISM)',[-12,0,5][st.pol.cyber??1]]);
+  const ships=st.ships.filter(s=>s.status!=='delivery');let lap=0,ov=0,eS=0;ships.forEach(sh=>{annInit(sh);if(sh.lapsed)lap++;else if(sh.annDue<st.m)ov++;if(sh.cii==='E')eS++});
+  if(lap)p.push(['Ships with invalid certificates',-Math.min(36,lap*12)]);if(ov)p.push(['Annual surveys overdue',-ov*3]);if(eS)p.push(['Ships rated CII E',-eS*4]);
+  let up=0,soon=0;REGS.forEach(r=>{if(!unprepared(r))return;const m=regDate(r);if(m==null)return;if(st.m>=m)up++;else if(m-st.m<=3)soon++});
+  if(up)p.push(['New rules in force, not prepared',-up*8]);if(soon)p.push(['New rules due soon, not prepared',-soon*3]);
+  if((st.cRisk||0)>=1)p.push(['Shortcuts and loose records',-Math.round(st.cRisk*0.6)]);
+  if(st.docWarn)p.push(['ISM audit warning on file',-5]);
+  return p.filter(x=>x[1]!==0||x[0]==='Base')}
+function compScore(){if(!st)return 0;return clamp(Math.round(compParts().reduce((a,x)=>a+x[1],0)),0,100)}
+function compRisk(){return clamp((100-compScore())/100*0.9,0.03,0.8)}
+function ghgCost(sh,y){const f=(CLS[sh.cls].fuel||0)*12*3.2,eng=({conv:1,eco:0.85,lng:0,meth:0.6})[sp(sh).eng]??1,first=yearOf(st.nzf.first),def=0.04+0.025*Math.max(0,y-first);return r10k(f*def*700*eng)}
+function cyberRisk(){const ie=Math.min(1,eff('it'));return clamp(0.05*IT_CYB[st.pol.cyber??1].r*(1.3-0.6*ie)*(st.budget.it<=1?1.3:1)+(st.cyberRisk||0)*0.2,0.005,0.5)}
+/* new events */
+function rollOnce(k,p){st._rolls=st._rolls||{};const r=st._rolls[k];if(r&&r.m===st.m&&r.n===st.nid)return r.v;const v=Math.random()<p;st._rolls[k]={m:st.m,n:st.nid,v};return v}
+EVENTS.pscImo={elig:s=>{const sh=s.ships.filter(x=>!['delivery','dock'].includes(x.status));if(!sh.length)return [];return rollOnce('psc',compRisk())?sh:[]},
+  make:sh=>{const why=[];if(sh.lapsed)why.push(['Annual survey overdue, so the ship\'s SOLAS, Load Line and MARPOL certificates are invalid.','lapsed']);
+    REGS.forEach(r=>{if(regLive(r)&&unprepared(r))why.push([r.id==='mlc25'?'MLC deficiency: crew procedures not updated for the 2025 amendments (shore leave, repatriation, complaints).':r.id==='bwm28'?'BWM deficiency: Ballast Water Management Plan not updated for the amended convention.':'GHG reporting is not in place for the IMO Net-Zero Framework.',r.id])});
+    if((st.pol.cyber??1)===0)why.push(['ISM deficiency: no cyber risk assessment in the Safety Management System.','cyber']);
+    if(!why.length)why.push([pick(['Rest-hour records do not match the deck logbook (MLC/STCW).','Fire dampers in the engine room do not close (SOLAS II-2).','The oily water separator alarm is not working (MARPOL I).','ECDIS charts are not up to date (SOLAS V).','Enclosed space drill records are missing (SOLAS III/19).','Garbage record book is incomplete (MARPOL V).']),'gen']);
+    const w=pick(why);return {ship:sh.id,extra:{k:w[1]},title:'PSC detention: '+sh.name,body:`Port State Control inspected ${sh.name} at ${sh.port||'Singapore'}. ${w[0]} The ship is detained until the deficiency is fixed.`}},
+  choices:[['Fix it and pay the costs','About RM 250k. Ship released in days.',(s,sh,q)=>{spend('penalty',250000);s.rep-=1;s.cRisk=Math.max(0,(s.cRisk||0)-5);if(q.extra.k==='lapsed'&&sh){spend('imo',svyCost(sh)*2);sh.lapsed=false;sh.annDue=s.m+12}if(['mlc25','bwm28','nzf'].includes(q.extra.k)){s.ready=s.ready||{};s.ready[q.extra.k]=true;const r=REGS.find(x=>x.id===q.extra.k);spend('imo',r.act.cost())}if(q.extra.k==='cyber')s.pol.cyber=1;return ['Deficiency rectified and the ship was released.','']}],
+    ['Appeal the detention','RM 120k legal cost, ship held a month, reputation drops.',(s,sh)=>{spend('penalty',120000);s.rep-=4;if(sh&&sh.status==='voyage')sh.left+=1;return ['The appeal failed. The ship was held for a month and lands on the PSC watch list.','bad']}]]};
+EVENTS.docAudit={elig:()=>[],choices:q=>{const t=q.extra.tier;
+  if(t==='A')return [['Thank the team','No cost.',s=>{s.rep+=1;s.board+=1;s.docWarn=0;return ['DOC endorsed with no findings. Charterers like a clean record.','good']}]];
+  if(t==='B')return [['Close the observations properly','RM 80k.',s=>{spend('imo',80000);s.cRisk=Math.max(0,(s.cRisk||0)-6);s.docWarn=0;return ['Observations closed. DOC endorsed.','good']}],['Close them slowly','No cost now.',s=>{s.cRisk=(s.cRisk||0)+4;return ['DOC endorsed, but the auditor will check again next year.','']}]];
+  return [['Corrective action with an outside consultant','RM 400k. Fixes the system properly.',s=>{spend('imo',400000);s.cRisk=Math.max(0,(s.cRisk||0)-15);s.board-=2;s.docWarn=0;return ['Major non-conformity closed within 3 months. DOC kept.','']}],
+    ['Do the minimum','RM 100k. The flag may suspend the DOC if it happens again.',s=>{spend('imo',100000);s.board-=8;s.rep-=5;if(s.docWarn){s.docWarn=0;spend('penalty',1000000);s.rep-=8;s.board-=10;s.ships.forEach(sh=>{if(sh.status==='voyage')sh.left+=1});return ['The flag state suspended the company DOC for a month. Every ship was delayed and fined.','bad']}s.docWarn=1;return ['DOC kept with a warning on file.','bad']}]]}};
+EVENTS.nzfNews={elig:()=>[],choices:q=>[[q.extra.adopted?'Plan for it':'Noted','',()=>[q.extra.adopted?'IT and Technical can prepare GHG reporting from the IMO page.':'The current rules (CII, DCS) still apply.','']]]};
+if(EVENTS.cyber){EVENTS.cyber.elig=s=>rollOnce('cyber',cyberRisk()*6)?[true]:[];
+  EVENTS.cyber.choices[0]=['Restore from backups','Cost depends on IT\'s cyber plan and budget. A few days lost.',s=>{const good=(s.pol.cyber??1)>=1&&s.budget.it>=2||((s.backupOk||-1)>=s.m);const c=good?150000:550000;spend('repair',c);if(!good){s.rep-=2;s.oShock-=3}s.cyberRisk=0;return [good?'Backups were tested and up to date. Systems back in three days for '+fm(c)+'.':'Backups were old. Recovery took two weeks and cost '+fm(c)+'.',good?'good':'bad']}]}
+
+/* runs inside the month close, so costs land in this month's accounts */
+function imoMonth(note,mStart){
+  const s=st;s.ready=s.ready||{};const n=s.ships.length,next=mStart+1;
+  const itc=(IT_CYB[s.pol.cyber??1].c+IT_SYS[s.pol.itsys??1].c)*n;if(itc)spend('it',itc);
+  s.ships.forEach(sh=>{annInit(sh);
+    if(sh.status==='dock'){sh.annDue=Math.max(sh.annDue,mStart+12);sh.lapsed=false;return}
+    if(sh.status==='delivery')return;
+    if(sh.lapsed){if(s.pol.autoSvy){if(Math.random()<0.4+0.5*Math.min(1,eff('marine'))){spend('imo',svyCost(sh)*2);spend('penalty',60000);sh.lapsed=false;sh.annDue=mStart+12;note(sh.name+' had an overdue annual survey. Certificates restored after a fine of RM 60k.','bad','marine')}}return}
+    if(mStart>=sh.annDue-1&&s.pol.autoSvy&&Math.random()<0.3+0.55*Math.min(1,eff('marine'))){const c=svyCost(sh);spend('imo',c);sh.annDue+=12;note(sh.name+' passed its annual statutory survey ('+fm(c)+'). Certificates endorsed until '+mlab(sh.annDue)+'.','','marine');return}
+    if(mStart>sh.annDue+3){sh.lapsed=true;note(sh.name+'\'s annual survey window closed. Its SOLAS, MARPOL and Load Line certificates are now invalid, so PSC can detain it.','bad','marine')}
+  });
+  s.cRisk=Math.max(0,(s.cRisk||0)*0.9-0.5);if(s.cyberRisk)s.cyberRisk*=0.8;
+  REGS.forEach(r=>{const m=regDate(r);if(m==null)return;
+    if(m===next)note('New IMO rule in force from '+mlab(next)+': '+r.t+'.',unprepared(r)?'bad':'','imo');
+    if(!unprepared(r))return;
+    const auth=!career()||can(r.act.d,r.act.r);
+    if(!auth&&mStart>=m-6&&Math.random()<0.25+0.4*Math.min(1,eff(r.act.d))){spend('imo',r.act.cost());s.ready[r.id]=true;note(DNAME[r.act.d]+' completed: '+r.act.l+' ('+r.t+').','good','imo')}
+    else if(auth&&m-mStart===4)note('Reminder for you: '+r.act.l+' before '+mlab(m)+'. Open the IMO page.','bad','imo')});
+  if(s.nzf&&s.nzf.state==='pending'&&mStart%12===9){const ad=Math.random()<0.5;if(ad){s.nzf.state='adopted';s.nzf.eif=mStart+17;s.nzf.first=Math.ceil((s.nzf.eif+1)/12)*12}
+    s.queue.push({kind:'event',id:'nzfNews',extra:{adopted:ad},title:ad?'IMO adopts the Net-Zero Framework':'IMO postpones the Net-Zero Framework',body:ad?`Member states voted to adopt the Net-Zero Framework. It enters into force in ${mlab(s.nzf.eif)} and the first compliance year is ${yearOf(s.nzf.first)}. Ships above 5,000 GT must meet fuel GHG intensity targets or buy remedial units.`:'Member states could not agree, so the vote moves to next October. CII and the IMO data collection system still apply.'})}
+  if(s.nzf&&s.nzf.state==='adopted'&&mStart%12===11&&mStart>=s.nzf.first){const y=yearOf(mStart);let c=0;s.ships.filter(x=>x.status!=='delivery').forEach(sh=>c+=ghgCost(sh,y));if(!s.ready.nzf){c=Math.round(c*1.5);s.rep-=3}if(c){spend('ghg',c);note('IMO Net-Zero Framework '+y+': remedial units for ships above the fuel GHG intensity target cost '+fm(c)+(s.ready.nzf?'.':', including penalties for missing GHG reports.'),'bad','imo')}}
+  if(mStart%12===2&&n){const sc=compScore(),tier=sc>=75?'A':sc>=55?'B':'C';
+    s.queue.push({kind:'event',id:'docAudit',extra:{tier,sc},title:'ISM audit of the company DOC',body:tier==='A'?`The flag state auditor reviewed the Safety Management System. Compliance score ${sc}/100. No findings.`:tier==='B'?`The auditor raised observations on drills, records and follow-up of near misses. Compliance score ${sc}/100.`:`The auditor raised a major non-conformity: the Safety Management System is not working in practice. Compliance score ${sc}/100.`,ask:'How do you respond?'})}
+}
+
+/* ---------- performance, appraisals and promotion ---------- */
+function careerScore(note,mStart){const m=st.me;if(!m||m.rank>=5)return;
+  const T=m.tasks||[],undone=T.filter(t=>t.done==null).length,ta=T.length?T.reduce((a,t)=>a+(t.done!=null?t.score:20),0)/T.length:60;
+  const D=myDepts(),k=D.reduce((a,d)=>a+Math.min(1.1,eff(d)),0)/D.length,ks=clamp(k*85,0,100);
+  const sc=m.rank>=3?ta*0.5+ks*0.5:ta*0.75+ks*0.25;m.perf=clamp(m.perf*0.65+sc*0.35,0,100);m.mInRank++;m.hist=(m.hist||[]).concat({m:mStart,sc:Math.round(sc)}).slice(-24);
+  note('Your month as '+myShort()+': score '+Math.round(sc)+'/100'+(undone?', '+undone+' task'+(undone>1?'s':'')+' left undone':'')+'. Performance now '+Math.round(m.perf)+'/100.',sc>=70?'good':sc<45?'bad':'','me')}
+function appraisal(m0){const m=st.me;if(!m||m.rank>=5||m0%6!==5)return;const L=LADDER[m.rank],p=Math.round(m.perf);m.apps=(m.apps||[]);
+  if(p<40){m.warn=(m.warn||0)+1;m.apps.unshift({m:m0,p,r:'Warning'});
+    if(m.warn>=2){st.over={type:'sacked',why:'Two appraisals in a row below 40. HR ended your contract.'};st.queue.push({kind:'end'});return}
+    st.queue.push({kind:'career',sub:'warn',p});return}
+  if(p>=48)m.warn=0;
+  const ready=(m.mInRank>=L.min&&p>=70)||(m.mInRank>=Math.max(3,L.min-3)&&p>=85);
+  if(ready){m.apps.unshift({m:m0,p,r:'Promotion offered'});st.queue.push({kind:'career',sub:'promo',p,to:m.rank+1});return}
+  m.apps.unshift({m:m0,p,r:'Meets expectations'});st.queue.push({kind:'career',sub:'review',p,need:Math.max(0,L.min-m.mInRank)});m.apps=m.apps.slice(0,12)}
+function promote(){const m=st.me,to=m.rank+1;
+  if(to===3){const o=st.heads[m.dept];if(o&&!o.me)addLog(o.name+' moved to a sister company. You are now Head of '+DNAME[m.dept]+'.','good','me')}
+  if(to===4){const k=myTrack(),o=st.cx&&st.cx[k];addLog((o&&!o.me?o.name+' retired. ':'')+'You are now '+CX[k].t+', in charge of '+andList(CX[k].depts.map(d=>DNAME[d]))+'.','good','me')}
+  if(to===5){addLog((st.ceo?st.ceo.name+' retired. ':'')+'The board appointed you Chief Executive Officer of '+st.company+'. Every decision is now yours.','good','me');st.board=Math.max(st.board,65)}
+  m.rank=to;m.mInRank=0;m.warn=0;m.perf=Math.max(55,m.perf-8);ensureSeat();if(to<5)addLog('Promoted to '+myTitle()+'.','good','me');genTasks()}
+function npcQueue(){if(!isCareer())return;
+  st.queue.forEach(q=>{if(q.kind!=='event'||q.result||canEvent(q.id))return;const e=EVENTS[q.id];if(!e)return;
+    try{const sh=q.ship!=null?shipById(q.ship):null,ch=typeof e.choices==='function'?e.choices(q):e.choices;if(!ch||!ch.length)return;const [res,tone]=ch[0][2](st,sh,q);q.result=res;q.tone=tone;q.npc=deciderFor(q.id)+' chose: '+ch[0][0]+'.';addLog(q.title+'. '+res,tone)}catch(err){}});fix()}
+function deciderFor(id){const d=EV_DOM[id]||'ceo',m=st.me;if(d!=='ceo'&&DEPTS[d]){if(m.rank<2&&m.dept===d&&st.heads[d]&&!st.heads[d].me)return st.heads[d].name+' ('+DEPTS[d].t+')';const k=CXOF(d),h=st.cx&&st.cx[k];if(h&&!h.me)return h.name+' ('+CX[k].s+')'}return (st.ceo?st.ceo.name:'The CEO')+' (CEO)'}
+
+/* ---------- office grades yearly review ---------- */
+function gradeMonth(note,mStart){if(mStart%12!==11||!st.grade)return;const hrE=Math.min(1,eff('hr'));let up=0;
+  DK().forEach(d=>{const g=st.grade[d],cap=Math.max(1,Math.ceil((st.staff[d]||0)/3));let a=0,b=0;for(let i=0;i<g.ex;i++)if(Math.random()<0.12+0.15*hrE)a++;for(let i=0;i<g.sx;i++)if(g.mg+b<cap&&Math.random()<0.05+0.08*hrE)b++;g.ex-=a;g.sx+=a-b;g.mg+=b;up+=a+b});
+  if(up){st.oShock+=Math.min(4,up*0.5);note('Year-end review: '+up+' office staff promoted to the next grade. Their pay goes up.','good','hr')}}
+
+/* ---------- views ---------- */
+function rungTitle(i){const m=st.me;if(i>=5)return 'Chief Executive Officer';if(i===4)return CX[myTrack()].t;if(i===3)return 'Head of '+DNAME[m.dept];return LADDER[i].t+', '+DNAME[m.dept]}
+function nextAppraisal(){let a=st.m;while(a%6!==5)a++;return a}
+function authList(){const m=st.me,D=andList(myDepts().map(d=>DNAME[d]));
+  return [m.rank<1?'Do your monthly tasks. Your head of department decides everything else.':'Day-to-day work in '+D+(m.dept==='chartering'||m.rank>=4?', such as fixing cargo':'')+'.',
+    m.rank>=2?'Set the policies of '+D+'.':'From Manager: set department policies.',
+    m.rank>=2?'Decide events and incidents in '+D+'.':'From Manager: decide events in your department.',
+    m.rank>=3?'Budget, headcount and meeting items for '+D+'.':'From Head of Department: budget, headcount and meeting items.',
+    m.rank>=4?'Appoint and replace the heads of '+D+(cfo()?', borrow and repay loans, and set budgets company-wide':'')+'.':'From C-suite: appoint heads'+(myTrack()==='cfo'?', run the bank loans':'')+'.',
+    'Buying, selling, newbuildings, divisions and offices stay with the CEO.']}
+function taskCard(tk){return `<section class="card task"><div class="ship-head"><div><span class="chip">${DNAME[tk.d]}</span><h3 style="margin-top:8px">${esc(tk.t)}</h3></div>${tk.done!=null?`<span class="pill ${tk.score>=70?'up':tk.score<45?'down':''}">${tk.score>=70?'Well done':tk.score<45?'Poor call':'OK'}</span>`:''}</div>
+  <p class="small" style="margin:8px 0 0">${esc(tk.b)}</p>
+  ${tk.done!=null?`<div class="result ${tk.tone==='bad'?'down':tk.tone==='good'?'up':''}" style="margin-top:10px"><b>${esc(tk.c[tk.done][0])}.</b> ${esc(tk.res)}</div>`:`<div class="choices" style="margin-top:10px">${tk.c.map((c,i)=>`<button type="button" class="choice" data-a="task" data-v="${tk.id}:${i}"><b>${esc(c[0])}</b><span>${esc(c[1])}</span></button>`).join('')}</div>`}</section>`}
+function vCareer(){
+  if(!st.me)return `<section class="card"><h3>You are the CEO</h3><p class="small">This company was started in classic mode, so you run everything from day one. To climb the ladder from Executive, start a new game and pick <b>Career</b>.</p></section>${vLead()}`;
+  const m=st.me,b=bossOf(),pay=m.rank<3?myPay():m.rank===3?st.heads[m.dept].pay:m.rank===4?st.cx[myTrack()].pay:0,undone=(m.tasks||[]).filter(t=>t.done==null).length;
+  const steps=[0,1,2,3,4,5].map(i=>`<li class="${i<m.rank?'done':i===m.rank?'now':''}"><span class="dotc">${i<m.rank?'✓':i+1}</span><span><b>${esc(rungTitle(i))}</b>${i===m.rank&&i<5?`<span class="muted small" style="display:block">${m.mInRank} of ${LADDER[i].min} months minimum</span>`:''}</span></li>`).join('');
+  return `<section class="card me-card"><div class="ship-head"><div><div class="eyebrow">Your career</div><div class="ship-name">${esc(m.name)}</div><div class="facts"><span><b>${esc(myTitle())}</b></span><span>Reports to ${esc(b.name)}, ${esc(b.t)}</span></div></div></div>
+    <div class="kpis k3">${kpi('Performance',Math.round(m.perf)+'/100',m.perf<45?'down':m.perf>=70?'up':'')}${kpi('In this role',m.mInRank+' mo')}${m.rank<5?kpi('Next appraisal',mlab(nextAppraisal())):kpi('Board confidence',Math.round(st.board)+'/100')}${pay?kpi('Your salary',fm(pay)+'/mo'):''}${kpi('Years at '+esc(st.company.split(' ')[0]),Math.floor((st.m-m.joined)/12))}${m.warn?kpi('Warnings',m.warn,'down'):''}</div>
+    ${condBar('Performance',m.perf)}
+    <p class="tip muted small" style="margin:10px 0 0">Appraisals happen every June and December. You need the minimum months in the role and a score of 70 to be promoted (85 lets you go up to 3 months early). Two appraisals below 40 and HR lets you go.</p></section>
+  ${m.rank<5?`<h2>This month's tasks${undone?' · '+undone+' to do':''}</h2>${(m.tasks||[]).length?(m.tasks||[]).map(taskCard).join(''):'<section class="card"><p class="muted small" style="margin:0">No tasks this month.</p></section>'}`:`<section class="card"><h3>You made it to CEO</h3><p class="small">You started as an Executive in ${DNAME[m.dept]}. Every tab is now yours to run. Meet the board's target each year or they will replace you.</p></section>`}
+  <h2>Career ladder</h2><section class="card"><ol class="ladder">${steps}</ol></section>
+  ${m.rank<5?`<h2>What you can decide</h2><section class="card"><ul class="notes">${authList().map(t=>`<li>${esc(t)}</li>`).join('')}</ul><p class="muted small" style="margin:6px 0 0">Anything outside your authority is decided by your bosses, and you will see what they chose.</p></section>`:''}
+  ${(m.apps||[]).length?`<h2>Appraisals</h2><section class="card pl">${m.apps.slice(0,8).map(a=>`<div><span>${mlab(a.m)} · ${esc(a.r)}</span><span class="num">${a.p}/100</span></div>`).join('')}</section>`:''}
+  <h2>Your activity</h2><section class="card">${memoLog('me',8)}</section>`}
+function vLead(){
+  const ceoMe=!st.me||st.me.rank>=5,ceoName=ceoMe?(st.me?st.me.name+' (you)':'You'):(st.ceo?st.ceo.name:'CEO');
+  const row=k=>{const C=CX[k],h=st.cx&&st.cx[k],me=h&&h.me,pool=cxPoolOpen===k&&st.cxPool&&st.cxPool[k];
+    return `<div class="crew-row"><div class="ship-head"><div><div class="muted small">${C.t} · ${andList(C.depts.map(d=>DNAME[d]))}</div><div class="who">${h?esc(h.name)+(me?' (you)':''):'<span class="down">Vacant</span>'}</div>${h?`<div class="facts"><span><b>${h.yrs} yrs</b> experience</span><span>Salary <b class="num">${fm(h.pay)}</b>/mo</span></div>`:''}</div>${h?stars(h.skill):''}</div>
+    ${h&&!me?`<p class="muted small remark">“${esc(h.note)}”</p>`:''}
+    <p class="muted small" style="margin:6px 0 0">${h?'Lifts '+andList(C.depts.map(d=>DNAME[d]))+' by '+Math.round(cxBoost(C.depts[0])*100)+'%.':st.cxOn?'Vacant: those departments run 3% worse.':'Optional. A strong '+C.s+' lifts their departments.'}</p>
+    ${ceoMe&&!me?`<div class="actions"><button type="button" class="btn" data-a="cxPool" data-v="${k}">${cxPoolOpen===k?'Hide candidates':h?'Replace':'Recruit'}</button>${h?`<button type="button" class="btn" data-a="cxDismiss" data-v="${k}">Let go · ${fm(h.pay*3)}</button>`:''}</div>`:''}
+    ${pool?pool.map((c,i)=>`<div class="crew-row"><div class="ship-head"><div><div class="who">${esc(c.name)}</div><div class="facts"><span>${c.nat}</span><span><b>${c.yrs} yrs</b></span><span>Salary <b class="num">${fm(c.pay)}</b>/mo</span></div></div>${stars(c.skill)}</div><p class="muted small remark">“${esc(c.note)}”</p><div class="actions"><button type="button" class="btn primary" data-a="cxHire" data-v="${k}:${i}">Appoint · RM 80k fee</button></div></div>`).join(''):''}</div>`};
+  return `<h2>Leadership team</h2><section class="card"><div class="crew-row" style="border-top:0"><div class="muted small">Chief Executive Officer</div><div class="who">${esc(ceoName)}</div></div>${Object.keys(CX).map(row).join('')}</section>`}
+function vGrades(){
+  return `<h2>Staff grades</h2><section class="card"><p class="tip muted small" style="margin:0 0 6px">Office staff grow from Executive to Senior Executive to Manager. Higher grades cost more but get more done. Teams of five or more need at least one Manager, or they work 7% worse. HR promotes people at the year-end review, and heads can promote earlier.</p>
+  <div class="kpis k3" style="margin-top:0">${GR.map(g=>kpi(g.t,fm(oPay()*g.p)+'/mo')).join('')}</div>
+  ${DK().map(d=>{const g=st.grade[d],n=st.staff[d]||0,cap=Math.max(1,Math.ceil(n/3));return `<div class="wage-row"><div style="flex:1"><b>${DNAME[d]}</b><div class="muted small">${n?`${g.ex} Executive · ${g.sx} Senior Exec · ${g.mg} Manager`:'No staff'}${n>=5&&!g.mg?' · <span class="down">needs a Manager</span>':''}</div>
+    ${n?`<div class="gbar" aria-hidden="true"><i class="g0" style="flex:${g.ex}"></i><i class="g1" style="flex:${g.sx}"></i><i class="g2" style="flex:${g.mg}"></i></div>`:''}</div>
+    <div class="gbtns">${g.ex?`<button type="button" class="btn sm" data-a="gPromote" data-v="${d}:ex">Promote Exec</button>`:''}${g.sx&&g.mg<cap?`<button type="button" class="btn sm" data-a="gPromote" data-v="${d}:sx">Promote Sr Exec</button>`:''}</div></div>`}).join('')}</section>`}
+function itPol(){return `<div class="setting"><h3>Cyber security</h3><div class="muted small">IMO requires cyber risk in every company's Safety Management System. Per ship per month: ${IT_CYB.map(x=>x.l.toLowerCase()+' '+fm(x.c)).join(', ')}.</div>${polRow('cyber',IT_CYB.map(x=>x.l))}
+  <div class="muted small" style="margin-top:12px">Fleet systems. Better software helps Technical, Marine and Chartering, and weather routing improves CII.</div>${polRow('itsys',IT_SYS.map(x=>x.l))}
+  <div class="facts" style="margin-top:10px"><span>Chance of a cyber attack this month <b>${Math.round(cyberRisk()*100)}%</b></span><span>IT running cost <b>${fm((IT_CYB[st.pol.cyber??1].c+IT_SYS[st.pol.itsys??1].c)*st.ships.length)}</b>/mo</span></div></div>`}
+function vImo(){
+  const sc=compScore(),parts=compParts(),ships=st.ships;let a=st.m;while(a%12!==2)a++;
+  const upcoming=REGS.filter(r=>{const m=regDate(r);return m==null?(r.kind==='sc'&&st.nzf&&st.nzf.state!=='adopted'):m>=st.m}).sort((x,y)=>(regDate(x)??999)-(regDate(y)??999));
+  const live=REGS.filter(r=>{const m=regDate(r);return m!=null&&m<st.m}).sort((x,y)=>regDate(y)-regDate(x));
+  const rcard=r=>{const m=regDate(r),need=unprepared(r),c=r.act?r.act.cost():0,ok=!need&&r.act;
+    return `<div class="reg"><div class="ship-head"><div><span class="chip">${esc(r.conv)}</span> <span class="muted small">${m==null?(st.nzf&&st.nzf.state==='pending'?'Vote each October':'Postponed'):(r.kind==='exp'&&m>=st.m?'Expected ':'')+mlab(m)}</span><div style="font-weight:700;margin-top:6px">${esc(r.t)}</div></div>${r.act?`<span class="pill ${ok?'up':m!=null&&st.m>=m?'down':''}">${ok?'Ready':'Action needed'}</span>`:''}</div>
+      <p class="muted small" style="margin:6px 0 0">${esc(r.d)}</p>
+      ${r.id==='cyber21'?`<p class="small ${st.pol.cyber>=1?'up':'down'}" style="margin:6px 0 0">${st.pol.cyber>=1?'Compliant: IT runs a cyber plan.':'Not compliant: set IT cyber security to at least "Cyber plan in the SMS".'}</p>`:''}
+      ${need?`<div class="actions"><button type="button" class="btn primary" data-a="prep" data-v="${r.id}">${esc(r.act.l)} · ${fm(c)}</button></div><p class="muted small" style="margin:4px 0 0">Owner: ${DNAME[r.act.d]}, Manager or above.</p>`:''}</div>`};
+  return `<section class="help tip">Every ship must hold valid IMO certificates, pass an annual survey each year and keep up with new rules. The company itself is audited under the ISM Code every March. A low score means more Port State Control detentions.</section>
+  <section class="card"><div class="kpis k3" style="margin-top:0">${kpi('Compliance score',sc+'/100',sc<55?'down':sc>=75?'up':'')}${kpi('Next ISM audit',mlab(a))}${kpi('Ships with invalid certificates',ships.filter(s=>s.lapsed).length,ships.some(s=>s.lapsed)?'down':'')}${kpi('Detention risk',Math.round(compRisk()*100)+'%')}${kpi('Company DOC',st.docWarn?'Warning':'Valid',st.docWarn?'down':'')}${kpi('Net-Zero Framework',st.nzf?({pending:'Pending',adopted:'Adopted'})[st.nzf.state]||'Pending':'Pending')}</div>${condBar('Compliance',sc)}</section>
+  <h2>What drives the score</h2><section class="card pl">${parts.map(([l,v])=>`<div><span>${esc(l)}</span><span class="num ${l==='Base'?'':v<0?'down':'up'}">${l==='Base'?v:(v>0?'+':'')+v}</span></div>`).join('')}<div class="tot"><span>Score</span><span class="num">${sc}/100</span></div></section>
+  <h2>Fleet certificates</h2><section class="card">${ships.length?ships.map(sh=>{const s=svyState(sh),open=!sh.lapsed&&sh.status!=='delivery'&&st.m>=sh.annDue-3;return `<div class="wage-row"><div><b>${esc(sh.name)}</b><div class="muted small"><span class="${s.c}">${s.l}</span>${sh.cii?' · CII '+sh.cii:''}</div></div>${sh.lapsed||open?`<button type="button" class="btn sm ${sh.lapsed?'primary':''}" data-a="svy" data-v="${sh.id}">Book survey · ${fm(svyCost(sh)*(sh.lapsed?2:1)+(sh.lapsed?60000:0))}</button>`:''}</div>`}).join(''):'<p class="muted small" style="margin:0">No ships yet.</p>'}
+    <details class="gloss-d"><summary>Certificates each ship carries</summary><ul class="notes">${SHIPCERTS.map(c=>`<li><b>${c[0]}</b>: ${c[1]}</li>`).join('')}</ul></details>
+    <div class="setting"><h3>Annual surveys</h3><div class="muted small">Automatic means Marine books surveyors in the window (3 months either side of the anniversary). A weak Marine team may miss one.</div>${polRow('autoSvy',['Manual','Automatic'])}</div></section>
+  <h2>Coming up</h2><section class="card">${upcoming.length?upcoming.map(rcard).join(''):'<p class="muted small" style="margin:0">No new rules scheduled.</p>'}</section>
+  <h2>In force</h2><section class="card">${live.map(rcard).join('')}</section>
+  <h2>IMO conventions in brief</h2><section class="card"><dl class="gloss">${CONV.map(c=>`<dt>${c[0]}</dt><dd>${c[1]}</dd>`).join('')}</dl><p class="muted small" style="margin:8px 0 0">Dates follow IMO and ILO decisions up to October 2026. "Expected" dates may move. The Net-Zero Framework vote is a game scenario because the real decision is still pending.</p></section>`}
+
+/* ---------- hooks into the existing game ---------- */
+const _eff=eff;
+eff=function(d){let e=_eff(d);if(!st||!st.heads)return e;
+  if(d!=='it'&&st.staff&&st.staff.it!=null){const ie=Math.min(1,_eff('it'));e*=0.94+0.08*ie;if(['technical','chartering','marine'].includes(d))e*=IT_SYS[st.pol.itsys??1].f}
+  e*=1+cxBoost(d)+((st.tb&&st.tb[d])||0);
+  const g=st.grade&&st.grade[d];if(g&&(st.staff[d]||0)>=5&&!g.mg)e*=0.93;
+  return Math.min(1.2,e)};
+const _effStaff=effStaff;
+effStaff=function(d){const g=st.grade&&st.grade[d];if(!g)return _effStaff(d);const t=g.ex+g.sx+g.mg,avg=t?(g.ex*0.85+g.sx+g.mg*1.2)/t:1;return Math.max(0,(st.staff[d]||0)*avg-0.5*((st.ramp&&st.ramp[d])||0))};
+const _officeCost=officeCost;
+officeCost=function(){const o=_officeCost();if(st.grade)o.pay=DK().reduce((a,d)=>a+gradeUnits(d),0)*oPay()*1.145;o.heads+=cxPay()+myPay();return o};
+const _officeMonth=officeMonth;
+officeMonth=function(note,mStart){_officeMonth(note,mStart);syncGrades();ensureSeat();gradeMonth(note,mStart);imoMonth(note,mStart);careerScore(note,mStart)};
+const _endMonth=endMonth;
+endMonth=function(){if(!st||st.over||st.queue.length)return _endMonth();const m0=st.m;_endMonth();if(!st||st.m===m0)return;
+  st.tb={};
+  if(career()&&!st.over){npcQueue();appraisal(m0);if(isCareer()&&st.me.rank<3)st.queue=st.queue.filter(q=>q.kind!=='board');genTasks()}
+  syncGrades();ensureSeat();save();render()};
+const _meetClose=meetClose;
+meetClose=function(note){if(isCareer()&&st.meet&&st.meet.m===st.m){st.meet.items.forEach(it=>{if(it.done!=null||it.can||canMeet(it))return;meetDo(it,it.best);note((st.ceo?st.ceo.name:'The CEO')+' (CEO) decided on '+DNAME[it.d]+': '+it.res,it.tone,'meet')})}_meetClose(note)};
+const _genAgenda=genAgenda;
+genAgenda=function(){_genAgenda();if(career()&&st&&st.meet)st.meet.items.forEach(it=>{const h=st.heads[it.d];if(h&&h.me){it.can=false;it.rec=null}})};
+const _ar=annualReview,_br=boardReview;
+function ceoSwap(){if(isCareer()&&st.over&&st.over.type==='fired'&&st.neg<2){const old=st.ceo;st.over=null;st.ceo={name:NAMES.Malaysian()};st.board=60;addLog('The board replaced CEO '+(old?old.name:'')+' with '+st.ceo.name+'.','bad')}}
+annualReview=function(){_ar();ceoSwap()};boardReview=function(){_br();ceoSwap()};
+const ZF=y=>y<=2026?0.11:y<=2030?[0.13625,0.1625,0.18875,0.215][y-2027]:0.215+0.02625*(y-2030);
+const _ciiRatio=ciiRatio;
+ciiRatio=function(sh,y){const yy=y??yearOf(st.m);return _ciiRatio(sh,y)*(1-0.02*(yy-2027))*(1-ZF(2027))/(1-ZF(yy))*IT_SYS[(st.pol&&st.pol.itsys)??1].cii};
+const _autoCharter=autoCharter;
+autoCharter=function(cb){const L=st?st.ships.filter(s=>s.lapsed&&s.status==='idle'):[];L.forEach(s=>s.status='held');try{return _autoCharter(cb)}finally{L.forEach(s=>s.status='idle')}};
+const _fresh=fresh;
+fresh=function(company,plan){const el=document.getElementById('me-name'),nm=((el&&el.value)||drafts['me-name']||'').trim().slice(0,30);
+  _fresh(company,plan);const s=st;
+  s.staff.it=1;s.hc.it=1;if(!s.heads.it)s.heads.it=genHead('it',3);s.pol.cyber=1;s.pol.itsys=1;s.pol.autoSvy=1;s.ready={};s.nzf={state:'pending'};s.v5=1;
+  s.grade={};DK().forEach(d=>s.grade[d]=gradeInit(s.staff[d]||0));s.ships.forEach(annInit);
+  if(startMode==='career'){
+    s.cx={coo:genCx('coo',3),cfo:genCx('cfo',3),cto:genCx('cto',3)};s.cxOn=true;s.chair=NAMES.Malaysian();s.ceo={name:NAMES.Malaysian()};
+    s.me={name:nm||'Mel',dept:startDept,rank:0,mInRank:0,perf:60,warn:0,joined:0,tasks:[],hist:[],apps:[]};
+    s.log.forEach(l=>{if(/appointed CEO/.test(l.t))l.t='You joined '+company+' as '+myTitle()+'. '+s.ceo.name+' is the CEO. Board target for 2027: net worth of '+fm(s.target)+'.'});
+    genTasks();s.queue.push({kind:'career',sub:'welcome'})}
+  else{s.cx={coo:null,cfo:null,cto:null};s.cxOn=false;s.me=null}
+  save()};
+function migrate5(){const s=st;if(!s)return;
+  ['it'].forEach(d=>{if(s.staff[d]==null||isNaN(s.staff[d]))s.staff[d]=0;if(s.hc[d]==null||isNaN(s.hc[d]))s.hc[d]=s.staff[d];if(s.budget[d]==null)s.budget[d]=2});
+  if(!s.v5){s.v5=1;if(!s.heads.it)s.heads.it=genHead('it',3);s.staff.it=Math.max(s.staff.it,1);s.hc.it=Math.max(s.hc.it,1);
+    s.pol.cyber=s.pol.cyber??1;s.pol.itsys=s.pol.itsys??1;s.pol.autoSvy=s.pol.autoSvy??1;s.ready={};REGS.forEach(r=>{const m=regDate(r);if(r.act&&m!=null&&m<=s.m+4)s.ready[r.id]=true});s.nzf={state:'pending'};
+    s.cx=s.cx||{coo:null,cfo:null,cto:null};s.cxOn=false;s.grade={};DK().forEach(d=>s.grade[d]=gradeInit(s.staff[d]||0));
+    addLog('Update: new IT department, office staff grades, a leadership team (COO, CFO, CTO) you can appoint, and an IMO page with surveys, audits and new rules.','')}
+  s.pol.cyber=s.pol.cyber??1;s.pol.itsys=s.pol.itsys??1;s.pol.autoSvy=s.pol.autoSvy??1;s.ready=s.ready||{};s.nzf=s.nzf||{state:'pending'};
+  s.ships.forEach(annInit);syncGrades();ensureSeat();if(s.me&&!s.me.tasks)genTasks()}
+const _adopt=adopt;
+adopt=function(o){_adopt(o);migrate5()};
+
+/* tabs */
+TABS.push(['career','My job'],['imo','IMO']);TABLABEL.career='My job';TABLABEL.imo='IMO';
+GROUPS.find(g=>g.k==='crew').tabs.push('imo');
+
+const _vStart=vStart;
+vStart=function(){let h=_vStart();const car=startMode==='career';
+  if(car)h=h.replace(/You are the new CEO\.[^<]*/,'Start your career as an Executive at a Malaysian shipping company. Do real office work every month, get appraised every June and December, and climb to Senior Executive, Manager, Head of Department, COO, CFO or CTO, and finally CEO. Every ship must stay legal under SOLAS, MARPOL, STCW, MLC, ISM and the new IMO rules as they arrive.');
+  const block=`<label class="field">Your name<input id="me-name" maxlength="30" placeholder="Mel" autocomplete="off" value="${esc(drafts['me-name']||'')}"></label>
+    <div><div style="font-weight:600;margin-bottom:8px">How do you want to play?</div><div class="plans">
+      <button type="button" class="plan" data-a="cmode" data-v="career" aria-pressed="${car}"><b>Career</b><span>Start as an Executive and work your way up to CEO.</span></button>
+      <button type="button" class="plan" data-a="cmode" data-v="classic" aria-pressed="${!car}"><b>Classic</b><span>Start as CEO with full control from day one.</span></button></div></div>
+    ${car?`<div><div style="font-weight:600;margin-bottom:8px">Choose your first department</div><div class="plans">${CDEPTS.map(d=>`<button type="button" class="plan" data-a="cdept" data-v="${d}" aria-pressed="${startDept===d}"><b>${DNAME[d]}</b><span>${CDESC[d]}</span></button>`).join('')}</div></div>`:''}`;
+  h=h.replace('<div><div style="font-weight:600;margin-bottom:8px">Choose your starting fleet</div>',block+'<div><div style="font-weight:600;margin-bottom:8px">Choose the company\'s starting fleet</div>');
+  return h.replace('>Start as CEO<','>'+(car?'Start my career':'Start as CEO')+'<')};
+const _deptCard=deptCard;
+deptCard=function(d){let h=_deptCard(d);
+  if(d==='it')h=h.replace('<div class="actions">',itPol()+'<div class="actions">');
+  if(st.heads[d]&&st.heads[d].me)h=h.replace(/<div class="actions"><button type="button" class="btn[^"]*" data-a="pool"[\s\S]*?<\/div>/,'<p class="small up" style="margin:12px 0 0">This is you. Your performance score sets this department\'s leadership stars.</p>');
+  return h};
+const _vDepts=vDepts;vDepts=function(){return vLead()+'<h2>Departments</h2>'+_vDepts()};
+const _vHR=vHR;vHR=function(){return _vHR().replace('<h2>Salary and benefits</h2>',vGrades()+'<h2>Salary and benefits</h2>')};
+
+render=function(){
+  const app=document.getElementById('app');
+  document.body.classList.toggle('notips',!tipsOn);
+  if(!st){app.innerHTML=vStart();renderModal();return}
+  GROUPS[0].tabs=isCareer()?['career','overview','meeting']:['overview','meeting','career'];
+  if(!TABS.some(t=>t[0]===tab))tab='overview';
+  const vac=st.ships.reduce((a,s)=>a+RK.filter(r=>!s.crew[r]).length,0),noHead=OPS.filter(d=>!st.heads[d]).length,exh=aboard(st,p=>p.fat>=80).length;
+  const mp=meetPending(),todo=st.me?(st.me.tasks||[]).filter(t=>t.done==null).length:0,imoF=st.ships.filter(s=>s.lapsed).length+REGS.filter(r=>{const m=regDate(r);return unprepared(r)&&m!=null&&m-st.m<=3&&(!career()||can(r.act.d,r.act.r))}).length;
+  const flag={meeting:isCareer()&&!st.meet?.items?.some(canMeet)?0:mp,crewing:vac,depts:noHead,hr:st.omorale<45?1:0,safety:exh,career:todo,imo:imoF};
+  const gdot=g=>g.tabs.reduce((a,t)=>a+(flag[t]||0),0);
+  const body=(tab==='overview'?liveCard():'')+{overview:vOverview,meeting:vMeeting,fleet:vFleet,map:vMap,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,crew:vCrew,safety:vSafety,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany,career:vCareer,imo:vImo}[tab]();
+  const G=groupOf(tab),role=st.me?`<div class="role">${esc(st.me.name)} · ${esc(myShort())}</div>`:'';
+  app.innerHTML=`<header class="top"><div class="wrap">
+    <div class="top-row"><div class="brand"><div class="co">${esc(st.company)}</div><div class="when">${whenTxt()}</div>${role}</div>
+      <div class="cashpill"><small>Cash</small><b class="${st.cash<0?'neg':''}">${fm(st.cash)}</b></div>
+      <button type="button" class="tipbtn" data-a="tips" aria-pressed="${tipsOn}" aria-label="${tipsOn?'Hide':'Show'} tips">?</button>
+      <button type="button" class="btn-end" data-a="end" ${st.over?'disabled':''}>End month</button></div>
+    ${G.tabs.length>1?`<nav class="tabs" role="tablist">${G.tabs.map(k=>`<button type="button" class="tab" role="tab" data-a="tab" data-v="${k}" aria-selected="${tab===k}">${TABLABEL[k]}${flag[k]?' ('+(flag[k]>9?'9+':flag[k])+')':''}</button>`).join('')}</nav>`:'<div style="height:6px"></div>'}
+  </div></header><main class="wrap">${isCareer()&&!['career','imo'].includes(tab)?`<div class="rolebar">You are ${esc(myTitle())}. You can view everything, but only decide what your role allows.</div>`:''}${body}</main>
+  <nav class="bnav" aria-label="Main menu"><div class="in">${GROUPS.map(g=>{const d=gdot(g);return `<button type="button" data-a="group" data-v="${g.k}" ${g===G?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${g.i}</svg>${g.l}${d?`<span class="dot">${d>9?'9+':d}</span>`:''}</button>`}).join('')}</div></nav>`;
+  renderModal();
+};
+const _renderModal=renderModal;
+renderModal=function(){const el=document.getElementById('modal');
+  if(!st||!st.queue.length||!career())return _renderModal();
+  const q=st.queue[0],m=st.me;let h='';
+  if(q.kind==='career'){
+    if(q.sub==='welcome')h=`<div class="eyebrow">Day one</div><h3>Welcome to ${esc(st.company)}, ${esc(m.name)}</h3><p>You start as an <b>Executive in ${DNAME[m.dept]}</b>, reporting to ${esc(bossOf().name)}. ${esc(st.ceo.name)} is the CEO and runs the company.</p><ul class="notes"><li>Each month you get tasks in <b>My job</b>. Good, honest decisions raise your performance.</li><li>Appraisals are every June and December. Score 70+ with enough months in the role and you are offered a promotion.</li><li>Each step up lets you decide more. From Head of Department you control a budget, at C-suite you appoint heads, and as CEO you run everything.</li><li>Watch the <b>IMO</b> page. Shortcuts with certificates, records or reporting come back to hurt the company.</li></ul><button type="button" class="btn primary" data-a="next">Start work</button>`;
+    else if(q.sub==='promo')h=`<div class="eyebrow">Appraisal · ${mlab(st.m-1)}</div><h3>You are offered a promotion</h3><p>Your performance score is <b>${q.p}/100</b>. Management wants you to become <b>${esc(rungTitle(q.to))}</b>.</p><ul class="notes"><li>${q.to===3?'You take over the department: its head moves on and the budget and team become yours.':q.to===4?'You join the leadership team and run '+andList(CX[myTrack()].depts.map(d=>DNAME[d]))+'.':q.to===5?'The CEO retires. You will run the whole company and answer to the board.':'More authority over '+DNAME[m.dept]+' and a higher salary.'}</li><li>Your score resets a little while you settle into the new role.</li></ul><div class="choices"><button type="button" class="choice" data-a="cAccept"><b>Accept the promotion</b><span>${q.to<5?'New salary '+fm(q.to<3?LADDER[q.to].pay:LADDER[q.to].pay)+' a month.':'Lead the company.'}</span></button><button type="button" class="choice" data-a="cStay"><b>Stay in my current role</b><span>You can be offered it again at the next appraisal.</span></button></div>`;
+    else if(q.sub==='review')h=`<div class="eyebrow">Appraisal · ${mlab(st.m-1)}</div><h3>${q.p>=70?'Strong appraisal':'Appraisal: meets expectations'}</h3><p>Your performance score is <b>${q.p}/100</b>.</p><p class="muted">${q.need>0?'You need '+q.need+' more month'+(q.need>1?'s':'')+' in this role'+(q.p<70?' and a score of at least 70':'')+' before a promotion.':'To be promoted you need a score of at least 70.'}</p><button type="button" class="btn primary" data-a="next">Continue</button>`;
+    else if(q.sub==='warn')h=`<div class="eyebrow">Appraisal · ${mlab(st.m-1)}</div><h3>Formal warning</h3><p>Your performance score is <b class="down">${q.p}/100</b>. HR has put you on a performance plan. Another appraisal below 40 and your contract ends.</p><p class="muted">Do every task, choose the compliant option, and keep your department's effectiveness up.</p><button type="button" class="btn primary" data-a="next">Continue</button>`;
+    el.hidden=false;el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${h}</div>`;return}
+  if(q.kind==='end'&&st.over&&(st.over.type==='sacked'||m&&m.rank<5)){const sacked=st.over.type==='sacked';
+    h=`<div class="eyebrow">Game over</div><h3>${sacked?'Your contract has ended':'The company collapsed'}</h3><p>${esc(st.over.why)}</p><div class="pl" style="margin-bottom:14px"><div><span>Highest role</span><b>${esc(myTitle())}</b></div><div><span>Months at the company</span><span class="num">${st.m}</span></div><div><span>Final performance</span><span class="num">${Math.round(m.perf)}/100</span></div><div><span>Company net worth</span><span class="num">${fm(netWorth())}</span></div></div><button type="button" class="btn primary" data-a="again">Play again</button>`;
+    el.hidden=false;el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${h}</div>`;return}
+  _renderModal();
+  if(q.kind==='event'){let x=el.innerHTML;if(q.npc)x=x.replace(/<div class="eyebrow">[^<]*<\/div>/,'<div class="eyebrow">Decided by your bosses</div>').replace('<div class="result','<p class="muted small" style="margin:0 0 8px">'+esc(q.npc)+'</p><div class="result');else if(isCareer())x=x.replace('>CEO decision needed<','>Your decision<');el.innerHTML=x}
+  if(q.kind==='board'&&isCareer())el.innerHTML=el.innerHTML.replace('you will be fired','the board will replace the CEO')};
+const _act=act;
+act=function(a,v){
+  if(a==='cmode'){startMode=v;render();return}
+  if(a==='cdept'){startDept=v;render();return}
+  if(a==='begin'){_act(a,v);if(isCareer()){tab='career';render()}return}
+  if(!st)return _act(a,v);
+  if(a==='task'){const [id,i]=v.split(':');doTask(+id,+i);save();render();return}
+  if(a==='cAccept'){st.queue.shift();promote();if(st.me.rank>=5)tab='overview';save();render();return}
+  if(a==='cStay'){st.queue.shift();addLog('You turned down a promotion to stay in your role.','','me');save();render();return}
+  const why=whyBlocked(a,v);if(why){toast(why);return}
+  if(a==='accept'){const sel=document.getElementById('sel-'+v),sh=sel&&shipById(+sel.value);if(sh&&sh.lapsed){toast(sh.name+' has invalid certificates. Book its annual survey on the IMO page first.');return}}
+  if(a==='svy'){const sh=shipById(+v);if(!sh||sh.status==='delivery')return;const lap=sh.lapsed,c=svyCost(sh)*(lap?2:1);if(st.cash<c)return toast('Not enough cash.');spend('imo',c);if(lap)spend('penalty',60000);sh.lapsed=false;sh.annDue=Math.max(sh.annDue,st.m)+12;addLog(sh.name+(lap?' had its overdue survey done and certificates restored':' passed its annual statutory survey')+'. Next due '+mlab(sh.annDue)+'.',lap?'':'good','marine');save();render();return}
+  if(a==='prep'){const r=REGS.find(x=>x.id===v);if(!r||!unprepared(r))return;const c=r.act.cost();if(st.cash<c)return toast('Not enough cash.');spend('imo',c);st.ready[r.id]=true;addLog(r.act.l+' done for '+r.t+'.','good','imo');save();render();return}
+  if(a==='gPromote'){const [d,k]=v.split(':'),g=st.grade[d],nx=k==='ex'?'sx':'mg';if(!g||!g[k])return;if(nx==='mg'&&g.mg>=Math.max(1,Math.ceil((st.staff[d]||0)/3)))return toast('This team already has enough Managers.');g[k]--;g[nx]++;st.oShock+=0.6;addLog('Promoted a '+DNAME[d]+' '+GR.find(x=>x.k===k).t+' to '+GR.find(x=>x.k===nx).t+'.','good','hr');save();render();return}
+  if(a==='cxPool'){cxPoolOpen=cxPoolOpen===v?null:v;st.cxPool=st.cxPool||{};if(!st.cxPool[v])st.cxPool[v]=[genCx(v,2),genCx(v,3),genCx(v,4)];render();return}
+  if(a==='cxHire'){const [k,i]=v.split(':'),c=st.cxPool&&st.cxPool[k]&&st.cxPool[k][+i];if(!c)return;spend('recruit',80000);const old=st.cx[k];st.cx[k]=c;st.cxPool[k]=null;cxPoolOpen=null;addLog('Appointed '+c.name+' as '+CX[k].t+(old?', replacing '+old.name:'')+'.','good');save();render();return}
+  if(a==='cxDismiss'){const h=st.cx[v];if(!h)return;spend('sever',h.pay*3);st.cx[v]=null;addLog(h.name+' left the leadership team.','bad');save();render();return}
+  _act(a,v);if(st){syncGrades();ensureSeat();if(a==='staff')render()}
+};
+document.addEventListener('input',e=>{if(e.target.id==='me-name')drafts['me-name']=e.target.value});
+(function(){const css=document.createElement('style');css.textContent=`
+.role{font-size:12px;color:var(--hdr-ink);opacity:.92;margin-top:2px;font-weight:600}
+.rolebar{background:var(--soft);color:var(--ink);border-radius:12px;padding:8px 12px;font-size:13px;margin:12px 0 0}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--hdr);color:var(--hdr-ink);padding:10px 16px;border-radius:12px;font-size:13.5px;max-width:min(92vw,460px);z-index:60;box-shadow:0 6px 24px rgba(0,0,0,.25);text-align:center}
+.ladder{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.ladder li{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line);color:var(--muted)}
+.ladder li:first-child{border-top:0}
+.ladder .dotc{flex:0 0 28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--soft);color:var(--accent)}
+.ladder li.done{color:var(--ink)}.ladder li.done .dotc{background:var(--accent);color:var(--accent-ink)}
+.ladder li.now{color:var(--ink)}.ladder li.now .dotc{background:var(--hdr);color:var(--hdr-ink);box-shadow:0 0 0 4px var(--soft)}
+.me-card .ship-name{margin-top:6px}
+.task h3{margin:0;font-size:16px}
+.reg{padding:12px 0;border-top:1px solid var(--line)}.reg:first-child{border-top:0;padding-top:0}
+.gbar{display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--soft);margin-top:6px;max-width:260px}
+.gbar i{display:block}.gbar .g0{background:#A9C4EE}.gbar .g1{background:#4F86DD}.gbar .g2{background:var(--hdr)}
+.gbtns{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.btn.sm{padding:6px 10px;font-size:12.5px}
+.reg .btn,.gbtns .btn{white-space:normal;text-align:left;max-width:100%}
+.gloss-d{margin-top:10px}.gloss-d summary{cursor:pointer;font-weight:600;font-size:13.5px;color:var(--accent)}
+`;document.head.appendChild(css)})();
+
 window.claude?.hot?.snapshot?.(()=>({st,tab,fleetTab,spTab,spMode,design,mapReg,mapSel,crewSel,fleetType,fleetView,fleetFilt}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 </script>
