@@ -199,6 +199,12 @@ main>*{min-width:0}
 label.field{display:grid;gap:6px;font-weight:600}
 label.field input{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:11px 12px;font-weight:500}
 .plans{display:grid;gap:10px}
+.art{display:block;width:100%;height:auto;aspect-ratio:320/140;background:#DCE8F8}
+.card>.art.banner{width:calc(100% + 32px);margin:-16px -16px 14px;border-radius:8px 8px 0 0;max-height:150px;aspect-ratio:auto;height:130px}
+.sheet>.art.pop{width:calc(100% + 40px);margin:-20px -20px 16px;border-radius:18px 18px 0 0;height:140px;aspect-ratio:auto}
+.art.plan-art{border-radius:10px;height:84px;aspect-ratio:auto;margin:-4px 0 10px}
+.hero svg.art.hero-art{position:static;opacity:1;width:100%;right:auto;bottom:auto;border-radius:10px;height:150px;aspect-ratio:auto;margin:16px 0 0;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.art.mini{width:64px;height:40px;border-radius:6px;aspect-ratio:auto;flex:0 0 auto}
 .plan{text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:14px 16px}
 .plan[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
 .plan b{font-family:var(--f-display);font-size:17px;display:block}
@@ -1754,7 +1760,7 @@ function vMeeting(){
   if(!st.meet)genAgenda();const its=st.meet.items,yours=its.filter(i=>!i.can&&i.done==null).length,own=its.filter(i=>i.can&&i.done==null).length;
   const att=DK().map(d=>{const h=st.heads[d];return `<span>${DNAME[d]} <b class="${h?'':'down'}">${h?esc(h.name):'vacant'}</b>${h?' <span class="stars" style="font-size:12px">'+'★'.repeat(h.skill)+'</span>':''}</span>`}).join('');
   const quiet=memos().filter(m=>!its.some(i=>i.d===m.d));
-  return `<section class="card"><div class="eyebrow-m">Management meeting · ${mlabel(st.m)}</div>
+  return `<section class="card">${ART.scene('office','banner')}<div class="eyebrow-m">Management meeting · ${mlabel(st.m)}</div>
     <div class="facts" style="margin-top:8px">${att}</div>
     <div class="kpis k3">${kpi('On the agenda',its.length)}${kpi('Your decision',yours,yours?'down':'')}${kpi('Managers will handle',own)}</div>
     <p class="tip muted small" style="margin:12px 0 0">Small things your managers handle. Big things wait for you.</p></section>
@@ -1767,6 +1773,47 @@ function meetSummary(){
   return `<ul class="memo">${its.map(it=>`<li class="${it.done!=null?'':it.can?'':'q-bad'}"><div class="rk">${DNAME[it.d]} · ${it.done!=null?'decided':it.can?'manager will handle':'needs your decision'}</div><div>${esc(AG[it.k].title(it.p))}</div></li>`).join('')}</ul>
     <div class="actions"><button type="button" class="btn primary" data-a="tab" data-v="meeting">Open the meeting${meetPending()?' · '+meetPending()+' for you':''}</button></div>`;
 }
+
+/* ---------- illustrations: blue-and-white vector scenes ---------- */
+const ART=(()=>{
+  const C={sky1:'#CFE0F7',sky2:'#F3F8FE',sea1:'#2E6FD1',sea2:'#123E86',hull:'#0E2A57',band:'#1A5FD0',deck:'#FFFFFF',sup:'#F7FAFF',win:'#173B73',line:'#9DB8DE'};
+  let n=0;
+  const defs=(id,night)=>`<defs><linearGradient id="s${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${night?'#2A3F66':C.sky1}"/><stop offset="1" stop-color="${night?'#5E7AA6':C.sky2}"/></linearGradient><linearGradient id="w${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${night?'#1F4E99':C.sea1}"/><stop offset="1" stop-color="${C.sea2}"/></linearGradient></defs>`;
+  const sky=(id,night)=>`<rect width="320" height="140" fill="url(#s${id})"/>${night?'':'<circle cx="262" cy="30" r="13" fill="#FFFFFF" opacity=".85"/>'}<path d="M20 34c8-7 20-7 26 0 6-4 16-2 18 5H14c0-3 2-5 6-5z" fill="#fff" opacity=".7"/><path d="M168 22c6-5 15-5 20 0 5-3 12-1 13 4h-38c0-2 2-4 5-4z" fill="#fff" opacity=".55"/>`;
+  const sea=id=>`<rect y="98" width="320" height="42" fill="url(#w${id})"/><path d="M0 104q10-4 20 0t20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.4"/><path d="M10 118q12-3 24 0t24 0M150 124q12-3 24 0t24 0M240 114q10-3 20 0t20 0" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.2"/>`;
+  const hull=(x0,x1,deckY,keel,bowRise)=>`<path d="M${x0} ${deckY}H${x1-14}L${x1} ${deckY-bowRise}L${x1-12} ${keel}H${x0+10}L${x0} ${keel-8}Z" fill="${C.hull}"/><path d="M${x0+2} ${keel-12}H${x1-8}L${x1-11} ${keel}H${x0+10}Z" fill="${C.band}"/><path d="M${x0} ${deckY}H${x1-14}L${x1} ${deckY-bowRise}" fill="none" stroke="#fff" stroke-width="1.5" stroke-opacity=".8"/>`;
+  const bridge=(x,top,deckY,w)=>{w=w||30;let r='';for(let i=0;i<3;i++)r+=`<rect x="${x+4}" y="${top+8+i*9}" width="${w-8}" height="3" rx="1" fill="${C.win}" opacity=".85"/>`;
+    return `<rect x="${x}" y="${top}" width="${w}" height="${deckY-top}" fill="${C.sup}" stroke="${C.line}"/><rect x="${x-3}" y="${top}" width="${w+6}" height="4" fill="#fff" stroke="${C.line}"/>${r}<rect x="${x+w/2-4}" y="${top-14}" width="9" height="14" fill="${C.band}"/><rect x="${x+w/2-4}" y="${top-14}" width="9" height="3" fill="${C.hull}"/>`};
+  const boxes=(x0,x1,deckY,rows)=>{const P=['#1A5FD0','#5B8FE0','#FFFFFF','#0E2A57','#A9C6EE','#2E6FD1'];let g='',k=0;for(let x=x0;x<x1-10;x+=13){const h=rows-((x/13)%3===0?1:0);for(let r=0;r<h;r++){g+=`<rect x="${x}" y="${deckY-(r+1)*8}" width="12" height="7.4" fill="${P[(k++*7+r*3)%P.length]}" stroke="${C.hull}" stroke-width=".4"/>`}}return g};
+  const ships={
+    container:()=>hull(26,300,80,106,9)+bridge(40,38,80,28)+boxes(76,286,80,4),
+    bulk:()=>{let g=hull(26,298,82,106,8)+bridge(38,42,82,28);for(let i=0;i<5;i++){const x=82+i*42;g+=`<rect x="${x}" y="76" width="32" height="6" rx="1.5" fill="#E7EEF9" stroke="${C.line}"/>`;if(i<4)g+=`<rect x="${x+34}" y="52" width="3" height="30" fill="${C.hull}"/><path d="M${x+35} 54L${x+58} 70" stroke="${C.hull}" stroke-width="2.2"/><path d="M${x+58} 70v8" stroke="${C.hull}" stroke-width=".8"/>`}return g},
+    tanker:()=>{let g=hull(22,302,84,106,7)+bridge(34,46,84,30);g+=`<path d="M72 80H288" stroke="#E7EEF9" stroke-width="2"/><path d="M72 77H288" stroke="${C.line}" stroke-width="1"/>`;for(let x=80;x<288;x+=16)g+=`<path d="M${x} 77v7" stroke="${C.line}" stroke-width="1"/>`;g+=`<rect x="168" y="66" width="18" height="14" fill="#fff" stroke="${C.line}"/><path d="M177 66V54l14 6" stroke="${C.hull}" stroke-width="2" fill="none"/>`;return g},
+    bunker:()=>{let g=hull(78,252,86,106,6)+bridge(88,56,86,24);g+=`<path d="M120 82H240" stroke="#E7EEF9" stroke-width="2"/><rect x="172" y="70" width="12" height="12" fill="#fff" stroke="${C.line}"/><path d="M178 70V52l22 10" stroke="${C.hull}" stroke-width="2.4" fill="none"/><path d="M200 62q8 10 2 22" stroke="${C.band}" stroke-width="2.4" fill="none"/>`;
+      g+=`<path d="M246 88h40v-22h12v34h-58z" fill="#E7EEF9" opacity=".0"/>`;return g},
+    gas:()=>{let g=hull(22,302,84,106,7)+bridge(34,44,84,30);for(let i=0;i<3;i++){const x=82+i*68;g+=`<rect x="${x}" y="62" width="58" height="22" rx="11" fill="#fff" stroke="${C.line}"/><path d="M${x+8} 66H${x+50}" stroke="${C.line}"/>`}g+=`<path d="M78 60H286" stroke="${C.hull}" stroke-width="1"/>`;return g},
+    lng:()=>{let g=hull(20,304,84,106,7)+bridge(32,40,84,30);for(let i=0;i<4;i++){const cx=96+i*52;g+=`<path d="M${cx-22} 84a22 22 0 0 1 44 0z" fill="#fff" stroke="${C.line}"/><path d="M${cx-22} 84h44" stroke="${C.band}" stroke-width="3"/><path d="M${cx-12} 70a14 8 0 0 1 24 0" fill="none" stroke="${C.line}"/>`}return g},
+    offshore:()=>{let g=`<path d="M60 86H276L300 60L292 106H66L58 96Z" fill="${C.hull}"/><path d="M62 94H294L292 106H66Z" fill="${C.band}"/>`;g+=`<rect x="226" y="40" width="50" height="46" fill="${C.sup}" stroke="${C.line}"/><path d="M226 40h58l-8 12h-50z" fill="#fff" stroke="${C.line}"/>`;for(let i=0;i<2;i++)g+=`<rect x="232" y="${54+i*10}" width="38" height="3" fill="${C.win}"/>`;g+=`<rect x="248" y="22" width="4" height="18" fill="${C.hull}"/><path d="M240 26h20" stroke="${C.hull}" stroke-width="2"/><rect x="92" y="76" width="22" height="10" fill="#A9C6EE"/><rect x="118" y="78" width="30" height="8" fill="#5B8FE0"/><rect x="152" y="74" width="16" height="12" fill="#fff" stroke="${C.line}"/><path d="M60 86v-8h4" stroke="#fff" stroke-width="1.5" fill="none"/>`;return g}
+  };
+  const segOfK=k=>CLS[k]?CLS[k].seg:k;
+  function ship(k,cls){const seg=ships[k]?k:segOfK(k),id='a'+(n++);
+    return `<svg class="art${cls?' '+cls:''}" viewBox="0 0 320 140" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(SEG[seg]||'Ship')} ship illustration">${defs(id)}${sky(id)}${(ships[seg]||ships.container)()}${sea(id)}</svg>`}
+  const scenes={
+    storm:id=>`${defs(id,1)}<rect width="320" height="140" fill="url(#s${id})"/><path d="M30 30c10-12 34-12 42 0 14-6 32 2 30 14H18c-2-8 4-14 12-14zM180 22c12-12 38-10 46 2 14-4 30 4 28 14H170c-2-8 2-14 10-16z" fill="#C9D6EA" opacity=".9"/><path d="M118 40l-10 22h10l-8 20 22-28h-11l9-14z" fill="#FFFFFF"/><g transform="rotate(-8 160 90)">${ships.container().replace(/<\/?svg[^>]*>/g,'')}</g><path d="M0 96q20-18 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0V140H0z" fill="url(#w${id})"/><path d="M0 108q20-12 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>`,
+    port:id=>{let g=`${defs(id)}${sky(id)}<rect y="86" width="320" height="14" fill="#E3EAF5"/>`;for(let i=0;i<3;i++){const x=40+i*92;g+=`<path d="M${x} 86V30h8v56M${x-6} 30h70M${x+4} 30l20-12h4v12" stroke="#0E2A57" stroke-width="3" fill="none"/><path d="M${x+40} 30v22" stroke="#0E2A57" stroke-width="1"/><rect x="${x+34}" y="52" width="12" height="7" fill="#1A5FD0"/>`}let k=0;const P=['#1A5FD0','#FFFFFF','#5B8FE0','#0E2A57','#A9C6EE'];for(let x=10;x<310;x+=13)for(let r=0;r<((x/13)%2?2:3);r++)g+=`<rect x="${x}" y="${78-r*8}" width="12" height="7.4" fill="${P[(k++*3)%5]}" stroke="#0E2A57" stroke-width=".4"/>`;return g+sea(id)},
+    office:id=>{let g=`${defs(id)}${sky(id)}`;const B=[[20,60,40],[64,40,30],[98,74,46],[176,62,36],[236,50,40],[280,70,34]];B.forEach(([x,y,w])=>{g+=`<rect x="${x}" y="${y}" width="${w}" height="${140-y}" fill="#DDE7F6" stroke="#9DB8DE"/>`;for(let yy=y+8;yy<130;yy+=10)for(let xx=x+5;xx<x+w-5;xx+=9)g+=`<rect x="${xx}" y="${yy}" width="5" height="5" fill="#A9C6EE"/>`});
+      g+=`<path d="M138 140V44l9-14 9 14v96zM160 140V44l9-14 9 14v96z" fill="#0E2A57"/><rect x="152" y="70" width="12" height="4" fill="#1A5FD0"/><path d="M147 30v-14M169 30v-14" stroke="#0E2A57" stroke-width="2"/>`;for(let yy=50;yy<138;yy+=8)g+=`<path d="M141 ${yy}h12M163 ${yy}h12" stroke="#5B8FE0" stroke-width="1.2"/>`;return g},
+    crew:id=>`${defs(id)}${sky(id)}${sea(id)}<g transform="translate(0 -6)"><circle cx="160" cy="70" r="40" fill="#fff" stroke="#0E2A57" stroke-width="3"/><circle cx="160" cy="70" r="24" fill="url(#s${id})" stroke="#0E2A57" stroke-width="3"/>${[0,1,2,3].map(i=>`<path d="M${160+31*Math.cos(i*Math.PI/2+Math.PI/4)} ${70+31*Math.sin(i*Math.PI/2+Math.PI/4)}l${12*Math.cos(i*Math.PI/2+Math.PI/4)} ${12*Math.sin(i*Math.PI/2+Math.PI/4)}" stroke="#1A5FD0" stroke-width="10"/>`).join('')}</g><path d="M40 98c0-20 30-20 30 0zM250 98c0-20 30-20 30 0z" fill="#0E2A57"/><circle cx="55" cy="66" r="9" fill="#F3D9C2"/><path d="M44 64a11 9 0 0 1 22 0z" fill="#FFFFFF" stroke="#0E2A57"/><circle cx="265" cy="66" r="9" fill="#C99B76"/><path d="M254 64a11 9 0 0 1 22 0z" fill="#FFFFFF" stroke="#0E2A57"/>`,
+    yard:id=>{let g=`${defs(id)}${sky(id)}<rect y="100" width="320" height="40" fill="#C7D4E6"/><rect x="20" y="92" width="280" height="8" fill="#9DB8DE"/>`;for(let x=40;x<290;x+=30)g+=`<rect x="${x}" y="98" width="14" height="10" fill="#5B6B82"/>`;g+=`<g transform="translate(0 6)">${ships.tanker()}</g><path d="M290 100V16h8v84M220 16h96M296 16l-14-10h-6v10" stroke="#1A5FD0" stroke-width="4" fill="none"/><path d="M240 16v34" stroke="#0E2A57"/><path d="M30 100V40h6v60M10 40h70" stroke="#1A5FD0" stroke-width="3" fill="none"/>`;return g},
+    money:id=>{let g=`${defs(id)}${sky(id)}<rect x="30" y="118" width="260" height="2" fill="#0E2A57"/>`;[38,52,46,64,72,88].forEach((h,i)=>{g+=`<rect x="${48+i*40}" y="${118-h}" width="24" height="${h}" rx="3" fill="${i===5?'#1A5FD0':'#A9C6EE'}"/>`});g+=`<path d="M56 74L100 58 140 66 180 46 220 38 262 20" stroke="#0E2A57" stroke-width="3" fill="none"/><circle cx="262" cy="20" r="5" fill="#0E2A57"/>`;return g},
+    market:id=>{let g=`${defs(id)}${sky(id)}<path d="M20 110L60 90 100 98 140 70 180 80 220 52 260 60 300 34" stroke="#1A5FD0" stroke-width="3" fill="none"/><path d="M20 110L60 90 100 98 140 70 180 80 220 52 260 60 300 34V140H20z" fill="#1A5FD0" opacity=".12"/>`;for(let x=20;x<=300;x+=40)g+=`<path d="M${x} 20v100" stroke="#9DB8DE" stroke-dasharray="2 4"/>`;return g},
+    inspect:id=>`${defs(id)}${sky(id)}${ships.bulk()}${sea(id)}<g transform="translate(232 18)"><rect width="58" height="70" rx="5" fill="#fff" stroke="#0E2A57" stroke-width="2"/><rect x="18" y="-6" width="22" height="10" rx="3" fill="#1A5FD0"/>${[0,1,2,3].map(i=>`<path d="M10 ${16+i*13}l4 4 7-8" stroke="#1A5FD0" stroke-width="2.4" fill="none"/><path d="M26 ${16+i*13}h22" stroke="#9DB8DE" stroke-width="3"/>`).join('')}</g>`
+  };
+  function scene(k,cls){const id='a'+(n++);return `<svg class="art${cls?' '+cls:''}" viewBox="0 0 320 140" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustration">${(scenes[k]||scenes.port)(id)}</svg>`}
+  const EVSCENE={typhoon:'storm',bigBreak:'yard',yardDelay:'yard',bargain:'yard',psc:'inspect',pscCert:'inspect',vetting:'inspect',audit:'money',refi:'money',customs:'port',claim:'port',robbery:'storm',cyber:'office',oRaise:'office',keyStaff:'office',poach:'office',union:'crew',family:'crew',misconduct:'crew',medevac:'crew',rescue:'crew',conflict:'crew',whistle:'crew',squeeze:'crew',fatigue:'crew',incident:'inspect',promo:'crew',promoR:'crew',survey:'crew',award:'crew',yearEnd:'office',bunkerSpike:'market',redsea:'market',drop:'market',boom:'market',cii:'yard',ciiPlan:'yard',pandi:'money',premium:'crew',tender:'port'};
+  function forEvent(q){if(q.ship!=null){const sh=shipById(q.ship);if(sh&&!['typhoon','bigBreak','robbery'].includes(q.id))return ship(sh.cls,'pop')}if(q.extra&&q.extra.cls)return ship(q.extra.cls,'pop');return scene(EVSCENE[q.id]||'port','pop')}
+  return {ship,scene,forEvent};
+})();
 
 /* ---------- views ---------- */
 function spark(vals,w,h){
@@ -1813,7 +1860,7 @@ function vOverview(){
   const nw=netWorth(),t=tierIdx(),nx=TIERS[t+1],L=st.hist[st.hist.length-1];
   const pct=clamp((nw-st.yearNW)/Math.max(1,st.target-st.yearNW)*100,0,100);
   const divRows=st.divs.map(d=>{const sh=st.ships.filter(s=>segOf(s.cls)===d);return `<div><div class="idx-row"><span>${SEG[d]}</span><div class="idx-track"><i style="width:${(st.idx[d]-0.6)*100}%"></i><u></u></div><span class="num" style="text-align:right">${Math.round(st.idx[d]*100)}</span></div><div class="muted small">${sh.length} ships · ${sh.filter(s=>s.status==='voyage').length} trading</div></div>`}).join('');
-  return `<section class="card">
+  return `<section class="card">${ART.scene('port','banner')}
     <div class="goal-top"><div><span class="chip">${TIERS[t].n}</span><div class="muted small" style="margin-top:8px">Company value</div><div class="big num">${fm(nw)}</div></div><div class="muted small" style="text-align:right">${yearOf(st.m)} board target<br><b class="num" style="color:var(--ink)">${fm(st.target)}</b></div></div>
     <div class="bar"><i style="width:${pct}%"></i></div>
     <div class="kpis k3">${kpi('Cash',fm(st.cash),st.cash<0?'down':'')}${kpi('Reputation',Math.round(st.rep)+'/100')}${kpi('Board confidence',Math.round(st.board)+'/100',st.board<35?'down':'')}${kpi('Crew morale',Math.round(st.morale)+'/100',st.morale<45?'down':'')}${kpi('Crew rating of you',Math.round(st.empRep)+'/100',st.empRep<40?'down':'')}${kpi('Fleet',st.ships.length+(st.orders.length?' + '+st.orders.length:'')+' ships')}</div>
@@ -1857,7 +1904,7 @@ function shipCard(sh){
   const nameRow=renaming===sh.id?`<div class="namebox" style="margin-top:0"><label for="rn-${sh.id}">New name</label><input id="rn-${sh.id}" maxlength="30" value="${esc(sh.name)}" autocomplete="off" data-enter="rename|r${sh.id}|${sh.id}"><div style="display:flex;gap:8px"><button type="button" class="btn primary" data-a="rename" data-v="${sh.id}" style="flex:1">Save name</button><button type="button" class="btn" data-a="renameCancel">Cancel</button></div>${nameMsg&&nameMsg.k==='r'+sh.id?`<div class="err">${esc(nameMsg.t)}</div>`:''}<div class="muted small" style="margin-top:4px">Renaming costs RM 15k in flag registry fees.</div></div>`
     :`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="ship-name">${esc(sh.name)}</div><button type="button" class="linkbtn" data-a="renameStart" data-v="${sh.id}" aria-label="Rename ${esc(sh.name)}">Rename</button></div>`;
   const ren=renaming===sh.id;
-  return `<article class="card typed" style="${tvar(sh.cls)}">${ren?nameRow:''}<div class="ship-head"${ren?' style="margin-top:12px"':''}><div style="flex:1;min-width:0">${ren?'':nameRow}<div class="facts"><span>${tBadge(sh.cls)} ${c.nama} · <b>${capTxt(sh.cls,sp(sh).k)}</b></span><span>Length <b>${loaOf(sh)} m</b></span><span>Age <b>${Math.floor(sh.age)} yrs</b></span><span>Value <b class="num">${fm(valueOf(sh))}</b></span>${sp(sh).flag?`<span>Flag <b>${FLAGS[sp(sh).flag].n}</b></span>`:''}</div></div>${statusPill(sh)}</div>
+  return `<article class="card typed" style="${tvar(sh.cls)}">${ART.ship(sh.cls,'banner')}${ren?nameRow:''}<div class="ship-head"${ren?' style="margin-top:12px"':''}><div style="flex:1;min-width:0">${ren?'':nameRow}<div class="facts"><span>${tBadge(sh.cls)} ${c.nama} · <b>${capTxt(sh.cls,sp(sh).k)}</b></span><span>Length <b>${loaOf(sh)} m</b></span><span>Age <b>${Math.floor(sh.age)} yrs</b></span><span>Value <b class="num">${fm(valueOf(sh))}</b></span>${sp(sh).flag?`<span>Flag <b>${FLAGS[sp(sh).flag].n}</b></span>`:''}</div></div>${statusPill(sh)}</div>
     ${specChips(sp(sh))}
     ${condBar('Ship condition (%)',sh.cond)}
     <div class="facts" style="margin-top:10px"><span>Crew <b>${crewCount(sh)}</b> / min ${4+minN(sh.cls)}</span><span>Crew skill <b>${crewScore(sh)||'–'}</b></span><span>${g?`<b class="down">${g} missing certificates</b>`:'<b class="up">Certificates complete</b>'}</span></div>
@@ -1885,7 +1932,7 @@ function typeMonitor(pool){
 }
 function miniRow(sh){
   const lm=sh.lastNet||0,at=needsAttn(sh);
-  return `<button type="button" class="mini-row" style="${tvar(sh.cls)}" data-a="fopen" data-v="${sh.id}"><span>${tBadge(sh.cls)}</span><span style="min-width:0"><span class="who">${esc(sh.name)}</span><span class="sub">${Math.floor(sh.age)} yrs · condition <b class="${sh.cond<62?'attn':''}">${Math.round(sh.cond)}%</b>${at?' · <b class="attn">needs attention</b>':''}</span></span><span class="rt">${statusPill(sh)}<span class="${lm<0?'down':'up'}" style="display:block;margin-top:4px">${fm(lm)}</span></span></button>`;
+  return `<button type="button" class="mini-row" style="${tvar(sh.cls)}" data-a="fopen" data-v="${sh.id}"><span>${ART.ship(sh.cls,'mini')}</span><span style="min-width:0"><span class="who">${esc(sh.name)}</span><span class="sub">${Math.floor(sh.age)} yrs · condition <b class="${sh.cond<62?'attn':''}">${Math.round(sh.cond)}%</b>${at?' · <b class="attn">needs attention</b>':''}</span></span><span class="rt">${statusPill(sh)}<span class="${lm<0?'down':'up'}" style="display:block;margin-top:4px">${fm(lm)}</span></span></button>`;
 }
 function vFleet(){
   if(!st.ships.length&&!st.orders.length)return `<section class="help">You have no ships. Buy one in <b>Buy & Sell</b>.</section>`;
@@ -1964,7 +2011,7 @@ function deptCard(d){
   if(d==='hr')pol=`<div class="setting"><h3>Hiring channel</h3><div class="muted small">Ads are cheap but slow. An agency costs more but is faster.</div>${polRow('hire',['Job ads','Recruitment agency'])}</div>`;
   const pool=showPool===d?`<div class="setting"><h3>Candidates</h3>${headPool(d).map((c,i)=>`<div class="crew-row"><div class="ship-head"><div><div class="who">${esc(c.name)}</div><div class="facts"><span>${c.nat}</span><span><b>${c.yrs} yrs</b> experience</span><span>Salary <b class="num">${fm(c.pay)}</b>/mo</span></div></div>${stars(c.skill)}</div><p class="muted small remark">“${esc(c.note)}”</p><div class="actions"><button type="button" class="btn primary" data-a="appoint" data-v="${d}:${i}">Appoint · RM 30k fee</button></div></div>`).join('')}</div>`:'';
   const dk='dis'+d;
-  return `<section class="card">
+  return `<section class="card">${ART.scene({chartering:'port',crewing:'crew',marine:'inspect',technical:'yard',finance:'money',hr:'office'}[d]||'office','banner')}
     <div class="ship-head"><div><span class="chip">${D.t}</span><div class="ship-name" style="margin-top:8px">${h?esc(h.name):'<span class="down">Vacant</span>'}</div>
       ${h?`<div class="facts"><span>${h.nat}</span><span><b>${h.yrs} yrs</b> experience</span><span>Salary <b class="num">${fm(h.pay)}</b>/mo</span></div>`:''}</div>${h?stars(h.skill):''}</div>
     ${h?`<p class="muted small remark">“${esc(h.note)}”</p>`:'<div class="warnbox">No manager: this team barely works.</div>'}
@@ -2106,7 +2153,7 @@ function vDesigner(){
 }
 function orderCard(o){
   const tot=o.total||12,prog=clamp(1-o.left/tot,0,1),S=o.spec;
-  return `<article class="card"><div class="ship-head"><div style="min-width:0"><div class="ship-name">${esc(o.name||'Unnamed newbuilding')}</div><div class="facts"><span>${CLS[o.cls].nama} · <b>${capTxt(o.cls,S?S.k:1)}</b></span>${S?`<span>LOA <b>${S.loa} m</b></span><span>${YARDS[S.yard].n}</span><span>Flag <b>${FLAGS[S.flag].n}</b></span>`:''}</div></div><span class="pill p-del">${o.left} mo</span></div>
+  return `<article class="card">${ART.scene('yard','banner')}<div class="ship-head"><div style="min-width:0"><div class="ship-name">${esc(o.name||'Unnamed newbuilding')}</div><div class="facts"><span>${CLS[o.cls].nama} · <b>${capTxt(o.cls,S?S.k:1)}</b></span>${S?`<span>LOA <b>${S.loa} m</b></span><span>${YARDS[S.yard].n}</span><span>Flag <b>${FLAGS[S.flag].n}</b></span>`:''}</div></div><span class="pill p-del">${o.left} mo</span></div>
     <div class="cond"><div style="display:flex;justify-content:space-between;gap:8px"><span>${stageNow(o)}</span><b class="num">${Math.round(prog*100)}%</b></div><div class="bar"><i style="width:${prog*100}%"></i></div></div>
     <div class="money"><div><small>Paid so far</small><b class="num">${fm(o.paid)}</b></div><div><small>Contract price</small><b class="num">${fm(o.price)}</b></div><div><small>Delivery</small><b>${mlabel(st.m+o.left)}</b></div></div>
     ${S?specChips(S):''}</article>`;
@@ -2151,7 +2198,7 @@ function vSP(){
     body=boCard();
     body+=`<h2>Ships for sale · ${mk.length}</h2>`;
     if(mk.length)body+=`<div class="ctrl"><button type="button" class="btn" data-a="bselAll">Select all I can afford</button>${bulkSel.length?'<button type="button" class="btn" data-a="bselClear">Clear selection</button>':''}<span class="muted small">Tick several ships, then buy them in one go.</span></div>`;
-    body+=mk.length?`<div class="offers">${mk.slice().sort((a,b)=>typeOrder(a.cls)-typeOrder(b.cls)).map(m=>{const c=CLS[m.cls],tot=m.price*1.01,S=m.spec||NOSPEC,on=bulkSel.includes(m.id);return `<article class="card typed ${on?'picked':''}" style="${tvar(m.cls)}"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">${tBadge(m.cls)}<span class="muted small">Seller: ${m.seller}</span></div><div class="route">${c.nama} · ${capTxt(m.cls,S.k)}</div>
+    body+=mk.length?`<div class="offers">${mk.slice().sort((a,b)=>typeOrder(a.cls)-typeOrder(b.cls)).map(m=>{const c=CLS[m.cls],tot=m.price*1.01,S=m.spec||NOSPEC,on=bulkSel.includes(m.id);return `<article class="card typed ${on?'picked':''}" style="${tvar(m.cls)}">${ART.ship(m.cls,'banner')}<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">${tBadge(m.cls)}<span class="muted small">Seller: ${m.seller}</span></div><div class="route">${c.nama} · ${capTxt(m.cls,S.k)}</div>
       <div class="facts"><span>Built <b>${yearOf(st.m)-m.age}</b> (${m.age} yrs)</span><span>LOA <b>${S.loa||LOA[m.cls][1]} m</b></span><span>Survey condition <b>${m.cond}%</b></span>${S.flag?`<span>Flag <b>${FLAGS[S.flag].n}</b></span>`:''}</div>
       ${specChips(S)}
       <div class="money"><div><small>Price</small><b class="num">${fm(m.price)}</b></div><div><small>Broker 1%</small><b class="num">${fm(m.price*0.01)}</b></div><div><small>Total</small><b class="num">${fm(tot)}</b></div></div>
@@ -2163,7 +2210,7 @@ function vSP(){
   }
   if(spMode==='sell'){
     body=`<div class="offers">${mine.length?mine.map(sh=>{const b=bidFor(sh),scrap=scrapVal(sh),ks='sell'+sh.id,kd='scrap'+sh.id,idle=sh.status==='idle';
-      return `<article class="card typed" style="${tvar(sh.cls)}"><div class="ship-head"><div><div class="ship-name">${esc(sh.name)}</div><div class="facts"><span>${tBadge(sh.cls)} ${CLS[sh.cls].nama}</span><span>Length <b>${loaOf(sh)} m</b></span><span>Age <b>${Math.floor(sh.age)} yrs</b></span><span>Condition <b>${Math.round(sh.cond)}%</b></span></div></div>${statusPill(sh)}</div>
+      return `<article class="card typed" style="${tvar(sh.cls)}">${ART.ship(sh.cls,'banner')}<div class="ship-head"><div><div class="ship-name">${esc(sh.name)}</div><div class="facts"><span>${tBadge(sh.cls)} ${CLS[sh.cls].nama}</span><span>Length <b>${loaOf(sh)} m</b></span><span>Age <b>${Math.floor(sh.age)} yrs</b></span><span>Condition <b>${Math.round(sh.cond)}%</b></span></div></div>${statusPill(sh)}</div>
       <div class="money"><div><small>Best buyer offer</small><b class="num">${fm(b)}</b></div><div><small>Scrap value</small><b class="num">${fm(scrap)}</b></div><div><small>Book value</small><b class="num">${fm(valueOf(sh))}</b></div></div>
       ${idle?`<div class="actions"><button type="button" class="btn ${confirmKey===ks?'danger':''}" data-a="sell" data-v="${sh.id}">${confirmKey===ks?'Confirm sale for '+fm(b):'Sell to buyer'}</button>${sh.age>=18?`<button type="button" class="btn ${confirmKey===kd?'danger':''}" data-a="scrap" data-v="${sh.id}">${confirmKey===kd?'Confirm demolition':'Sell for demolition'}</button>`:''}</div>`:'<div class="muted small" style="margin-top:12px">Ships can be sold only when idle.</div>'}
     </article>`}).join(''):'<section class="help">You have no ships in this fleet to sell.</section>'}</div>
@@ -2379,12 +2426,12 @@ function vMap(){
 
 function vStart(){
   return `<div class="wrap start">
-    <section class="hero"><svg viewBox="0 0 200 90" aria-hidden="true"><path d="M10 60 L190 60 L170 82 L28 82 Z" fill="#fff"/><rect x="40" y="36" width="22" height="22" fill="#fff"/><rect x="66" y="36" width="22" height="22" fill="#fff"/><rect x="92" y="36" width="22" height="22" fill="#fff"/><rect x="118" y="36" width="22" height="22" fill="#fff"/><rect x="150" y="18" width="20" height="40" fill="#fff"/></svg>
+    <section class="hero">
       <h1>FX Shipping</h1>
-      <p>You are the new boss of a shipping company. Buy ships, hire a team and grow the business. Hit the board's yearly target or get fired.</p></section>
+      <p>You are the new boss of a shipping company. Buy ships, hire a team and grow the business. Hit the board's yearly target or get fired.</p>${ART.scene('port','hero-art')}</section>
     <label class="field">Company name<input id="co-name" maxlength="40" placeholder="FX Shipping Sdn Bhd" autocomplete="off" value="${esc(drafts['co-name']||'')}"></label>
     <div><div style="font-weight:600;margin-bottom:8px">Choose your starting fleet</div>
-      <div class="plans">${Object.entries(PLANS).map(([k,p])=>`<button type="button" class="plan" data-a="plan" data-v="${k}" aria-pressed="${startPlan===k}"><b>${p.nama}</b><span>${p.desc} Cash ${fm(p.cash)}.</span></button>`).join('')}</div></div>
+      <div class="plans">${Object.entries(PLANS).map(([k,p])=>`<button type="button" class="plan" data-a="plan" data-v="${k}" aria-pressed="${startPlan===k}">${ART.ship(p.ships[0][0]==='handy'?'bulk':p.ships[0][0],'plan-art')}<b>${p.nama}</b><span>${p.desc} Cash ${fm(p.cash)}.</span></button>`).join('')}</div></div>
     <button type="button" class="btn primary" style="padding:13px" data-a="begin">Start as CEO</button></div>`;
 }
 
@@ -2425,7 +2472,7 @@ function renderModal(){
   if(!st||!st.queue.length){el.hidden=true;el.innerHTML='';return}
   const q=st.queue[0];let h='';
   if(q.kind==='away'){const net=q.rev-q.exp;
-    h=`<div class="eyebrow">While you were away</div><h3>${q.n} month${q.n>1?'s':''} passed</h3>
+    h=`${ART.scene('port','pop')}<div class="eyebrow">While you were away</div><h3>${q.n} month${q.n>1?'s':''} passed</h3>
     <div class="pl" style="margin-bottom:14px"><div><span>Revenue</span><b class="num up">${fm(q.rev)}</b></div><div><span>Expenditure</span><span class="num">-${fm(q.exp)}</span></div><div><span>${net>=0?'Profit':'Loss'}</span><b class="num ${net<0?'down':'up'}">${fm(net)}</b></div><div class="tot"><span>Cash now</span><span class="num ${st.cash<0?'down':''}">${fm(st.cash)}</span></div></div>
     ${(q.big||[]).length?`<ul class="notes">${q.big.map(n=>`<li class="${n.tone==='bad'?'down':'up'}"><b>${esc(n.t)}</b></li>`).join('')}</ul>`:''}
     ${(q.done||[]).length?`<details class="awaydone" style="margin:0 0 12px"><summary><b>Your team handled ${q.done.length} decision${q.done.length>1?'s':''}</b></summary><ul class="notes">${q.done.map(d=>`<li class="${d.tone==='bad'?'down':d.tone==='good'?'up':''}">${esc(d.t)}: ${esc(d.c)}.</li>`).join('')}</ul></details>`:''}
@@ -2433,26 +2480,26 @@ function renderModal(){
     ${q.wait?'<p><b>'+(q.dec>1?q.dec+' decisions are':'A decision is')+' waiting for you.</b> They come up one by one after this.</p>':''}
     <button type="button" class="btn primary" data-a="next">Continue</button>`}
   else if(q.kind==='report'){const net=q.rev-q.exp;
-    h=`<div class="eyebrow">Monthly report · ${mlabel(q.m)}</div><h3>${net>=0?'Profit':'Loss'} of ${fm(Math.abs(net))} this month</h3>
+    h=`${ART.scene(net>=0?'money':'market','pop')}<div class="eyebrow">Monthly report · ${mlabel(q.m)}</div><h3>${net>=0?'Profit':'Loss'} of ${fm(Math.abs(net))} this month</h3>
     <div class="pl" style="margin-bottom:14px"><div><span>Revenue</span><b class="num up">${fm(q.rev)}</b></div><div><span>Expenditure</span><span class="num">-${fm(q.exp)}</span></div><div class="tot"><span>Cash now</span><span class="num ${st.cash<0?'down':''}">${fm(st.cash)}</span></div></div>
     ${q.notes.length?`<ul class="notes">${q.notes.slice(0,14).map(n=>`<li class="${n.tone==='bad'?'down':n.tone==='good'?'up':''}">${esc(n.t)}</li>`).join('')}${q.notes.length>14?`<li class="muted">and ${q.notes.length-14} more in Reports and news</li>`:''}</ul>`:'<p class="muted">A quiet month.</p>'}
     ${st.cash<0&&!st.over?'<p class="down"><b>Warning:</b> cash is negative. Borrow or sell a ship before the end of next month.</p>':''}
     <button type="button" class="btn primary" data-a="next">Continue</button>`}
   else if(q.kind==='event'){const e=EVENTS[q.id];
-    h=`<div class="eyebrow">${q.id==='premium'?'Memo from Crewing':['promo','promoR'].includes(q.id)?'Promotion · your approval':q.id==='incident'?'Incident investigation':q.id==='survey'?'Crew survey':['yearEnd','award'].includes(q.id)?'Year-end':'CEO decision needed'}</div><h3>${esc(q.title)}</h3><p>${esc(q.body)}</p>${q.facts?`<ul class="notes">${q.facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`:''}${q.data?`<div class="voyage" style="margin:0 0 12px">${esc(q.data)}</div>`:''}${q.ask&&!q.result?`<p><b>${esc(q.ask)}</b></p>`:''}`+(q.result?`<div class="result ${q.tone==='bad'?'down':q.tone==='good'?'up':''}">${esc(q.result)}</div><button type="button" class="btn primary" data-a="next">Continue</button>`
+    h=`${ART.forEvent(q)}<div class="eyebrow">${q.id==='premium'?'Memo from Crewing':['promo','promoR'].includes(q.id)?'Promotion · your approval':q.id==='incident'?'Incident investigation':q.id==='survey'?'Crew survey':['yearEnd','award'].includes(q.id)?'Year-end':'CEO decision needed'}</div><h3>${esc(q.title)}</h3><p>${esc(q.body)}</p>${q.facts?`<ul class="notes">${q.facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`:''}${q.data?`<div class="voyage" style="margin:0 0 12px">${esc(q.data)}</div>`:''}${q.ask&&!q.result?`<p><b>${esc(q.ask)}</b></p>`:''}`+(q.result?`<div class="result ${q.tone==='bad'?'down':q.tone==='good'?'up':''}">${esc(q.result)}</div><button type="button" class="btn primary" data-a="next">Continue</button>`
       :`<div class="choices">${(typeof e.choices==='function'?e.choices(q):e.choices).map((c,i)=>`<button type="button" class="choice" data-a="choose" data-v="${i}"><b>${c[0]}</b><span>${c[1]}</span></button>`).join('')}</div>`)}
   else if(q.kind==='board'){
-    h=`<div class="eyebrow">Board meeting · Q${q.q} ${q.y}</div><h3>${esc(q.v)}</h3>
+    h=`${ART.scene('office','pop')}<div class="eyebrow">Board meeting · Q${q.q} ${q.y}</div><h3>${esc(q.v)}</h3>
     <div class="pl" style="margin-bottom:14px"><div><span>Net worth last quarter</span><span class="num">${fm(q.prev)}</span></div><div><span>Net worth now</span><b class="num">${fm(q.nw)}</b></div><div><span>Change</span><span class="num ${q.pct<0?'down':'up'}">${q.pct>=0?'+':''}${q.pct.toFixed(1)}%</span></div><div><span>Year target</span><span class="num">${fm(st.target)}</span></div><div class="tot"><span>Board confidence</span><span class="num">${Math.round(st.board)}/100 (${q.d>=0?'+':''}${q.d})</span></div></div>
     ${st.board<35&&!st.over?'<p class="down">If board confidence falls below 20, you will be fired.</p>':''}<button type="button" class="btn primary" data-a="next">Continue</button>`}
   else if(q.kind==='annual'){
-    h=`<div class="eyebrow">Annual general meeting · ${q.y}</div><h3>${q.hit?'Target achieved':'Target missed'}</h3>
+    h=`${ART.scene('money','pop')}<div class="eyebrow">Annual general meeting · ${q.y}</div><h3>${q.hit?'Target achieved':'Target missed'}</h3>
     <div class="pl" style="margin-bottom:14px"><div><span>Revenue ${q.y}</span><b class="num up">${fm(q.rev)}</b></div><div><span>Expenditure ${q.y}</span><span class="num">-${fm(q.exp)}</span></div><div><span>Net worth</span><b class="num">${fm(q.nw)}</b></div><div><span>Target</span><span class="num">${fm(q.old)}</span></div><div><span>Board confidence</span><span class="num">${Math.round(st.board)}/100 (${q.d>=0?'+':''}${q.d})</span></div><div class="tot"><span>New target for ${q.y+1}</span><span class="num">${fm(q.next)}</span></div></div>
     <button type="button" class="btn primary" data-a="next">Continue</button>`}
   else if(q.kind==='tier'){
-    h=`<div class="eyebrow">Milestone reached</div><h3>${esc(st.company)} is now a ${TIERS[q.t].n}</h3><p>The board is impressed.</p>${TIERS[q.t+1]?`<p class="muted">Next level, ${TIERS[q.t+1].n}: ${TIERS[q.t+1].ships} ships, ${TIERS[q.t+1].divs} divisions and net worth ${fm(TIERS[q.t+1].nw)}.</p>`:''}<button type="button" class="btn primary" data-a="next">Continue</button>`}
+    h=`${ART.scene('port','pop')}<div class="eyebrow">Milestone reached</div><h3>${esc(st.company)} is now a ${TIERS[q.t].n}</h3><p>The board is impressed.</p>${TIERS[q.t+1]?`<p class="muted">Next level, ${TIERS[q.t+1].n}: ${TIERS[q.t+1].ships} ships, ${TIERS[q.t+1].divs} divisions and net worth ${fm(TIERS[q.t+1].nw)}.</p>`:''}<button type="button" class="btn primary" data-a="next">Continue</button>`}
   else if(q.kind==='end'){const nw=netWorth();
-    h=`<div class="eyebrow">Game over</div><h3>You're fired</h3><p>${esc(st.over.why)} The board has appointed a new CEO.</p>
+    h=`${ART.scene('storm','pop')}<div class="eyebrow">Game over</div><h3>You're fired</h3><p>${esc(st.over.why)} The board has appointed a new CEO.</p>
     <div class="pl" style="margin-bottom:14px"><div><span>Months as CEO</span><b class="num">${st.m}</b></div><div><span>Highest level</span><span>${TIERS[st.tierMax].n}</span></div><div><span>Final net worth</span><b class="num">${fm(nw)}</b></div><div><span>Started with</span><span class="num">${fm(st.startNW)}</span></div><div><span>Fleet size</span><span class="num">${st.ships.length} ships</span></div></div>
     <button type="button" class="btn primary" data-a="again">Play again</button>`}
   el.hidden=false;el.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${h}</div>`;
