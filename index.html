@@ -2983,14 +2983,14 @@ function taskCard(tk){return `<section class="card task"><div class="ship-head">
   <p class="small" style="margin:8px 0 0">${esc(tk.b)}</p>
   ${tk.done!=null?`<div class="result ${tk.tone==='bad'?'down':tk.tone==='good'?'up':''}" style="margin-top:10px"><b>${esc(tk.c[tk.done][0])}.</b> ${esc(tk.res)}</div>`:`<div class="choices" style="margin-top:10px">${tk.c.map((c,i)=>`<button type="button" class="choice" data-a="task" data-v="${tk.id}:${i}"><b>${esc(c[0])}</b><span>${esc(c[1])}</span></button>`).join('')}</div>`}</section>`}
 function vCareer(){
-  if(!st.me)return `<section class="card"><h3>You are the CEO</h3><p class="small">This company was started in classic mode, so you run everything from day one. To climb the ladder from Executive, start a new game and pick <b>Career</b>.</p></section>${vLead()}`;
+  if(!st.me)return `<section class="card"><h3>You are the CEO</h3><p class="small">This company was started in classic mode, so you run everything from day one. To climb the ladder from Executive, start a new game and pick <b>Career</b>.</p></section>${vDirection()}${vLead()}`;
   const m=st.me,b=bossOf(),pay=m.rank<3?myPay():m.rank===3?st.heads[m.dept].pay:m.rank===4?st.cx[myTrack()].pay:0,undone=(m.tasks||[]).filter(t=>t.done==null).length;
   const steps=[0,1,2,3,4,5].map(i=>`<li class="${i<m.rank?'done':i===m.rank?'now':''}"><span class="dotc">${i<m.rank?'✓':i+1}</span><span><b>${esc(rungTitle(i))}</b>${i===m.rank&&i<5?`<span class="muted small" style="display:block">${m.mInRank} of ${LADDER[i].min} months minimum</span>`:''}</span></li>`).join('');
   return `<section class="card me-card"><div class="ship-head"><div><div class="eyebrow">Your career</div><div class="ship-name">${esc(m.name)}</div><div class="facts"><span><b>${esc(myTitle())}</b></span><span>Reports to ${esc(b.name)}, ${esc(b.t)}</span>${m.rank<5&&st.ceo?`<span>CEO ${esc(st.ceo.name)}: ${ceoStyle().t.toLowerCase()} on buying ships</span>`:''}</div></div></div>
     <div class="kpis k3">${kpi('Performance',Math.round(m.perf)+'/100',m.perf<45?'down':m.perf>=70?'up':'')}${kpi('In this role',m.mInRank+' mo')}${m.rank<5?kpi('Next appraisal',mlab(nextAppraisal())):kpi('Board confidence',Math.round(st.board)+'/100')}${pay?kpi('Your salary',fm(pay)+'/mo'):''}${kpi('Years at '+esc(st.company.split(' ')[0]),Math.floor((st.m-m.joined)/12))}${m.warn?kpi('Warnings',m.warn,'down'):''}</div>
     ${condBar('Performance',m.perf)}
     <p class="tip muted small" style="margin:10px 0 0">Appraisals happen every June and December. You need the minimum months in the role and a score of 70 to be promoted (85 lets you go up to 3 months early). Two appraisals below 40 and HR lets you go.</p></section>
-  ${m.rank<5?`<h2>This month's tasks${undone?' · '+undone+' to do':''}</h2>${(m.tasks||[]).length?(m.tasks||[]).map(taskCard).join(''):'<section class="card"><p class="muted small" style="margin:0">No tasks this month.</p></section>'}`:`<section class="card"><h3>You made it to CEO</h3><p class="small">You started as an Executive in ${DNAME[m.dept]}. Every tab is now yours to run. Meet the board's target each year or they will replace you.</p></section>`}
+  ${m.rank<5?`<h2>This month's tasks${undone?' · '+undone+' to do':''}</h2>${(m.tasks||[]).length?(m.tasks||[]).map(taskCard).join(''):'<section class="card"><p class="muted small" style="margin:0">No tasks this month.</p></section>'}`:`<section class="card"><h3>You made it to CEO</h3><p class="small">You started as an Executive in ${DNAME[m.dept]}. Every tab is now yours to run. Meet the board's target each year or they will replace you.</p></section>${vDirection()}`}
   <h2>Career ladder</h2><section class="card"><ol class="ladder">${steps}</ol></section>
   ${m.rank<5?`<h2>What you can decide</h2><section class="card"><ul class="notes">${authList().map(t=>`<li>${esc(t)}</li>`).join('')}</ul><p class="muted small" style="margin:6px 0 0">Anything outside your authority is decided by your bosses, and you will see what they chose.</p></section>`:''}
   ${(m.apps||[]).length?`<h2>Appraisals</h2><section class="card pl">${m.apps.slice(0,8).map(a=>`<div><span>${mlab(a.m)} · ${esc(a.r)}</span><span class="num">${a.p}/100</span></div>`).join('')}</section>`:''}
@@ -3049,11 +3049,12 @@ const _endMonth=endMonth;
 endMonth=function(){if(!st||st.over||st.queue.length)return _endMonth();const m0=st.m;_endMonth();if(!st||st.m===m0)return;
   st.tb={};
   if(career()&&!st.over){npcQueue();npcFleet(m0);appraisal(m0);if(isCareer()&&st.me.rank<3)st.queue=st.queue.filter(q=>q.kind!=='board');genTasks()}
+  if(!st.over&&!isCareer()){cxQueue(m0);cxGrowth(m0)}
   syncGrades();ensureSeat();save();render()};
 const _meetClose=meetClose;
 meetClose=function(note){if(isCareer()&&st.meet&&st.meet.m===st.m){st.meet.items.forEach(it=>{if(it.done!=null||it.can||canMeet(it))return;meetDo(it,it.best);note((st.ceo?st.ceo.name:'The CEO')+' (CEO) decided on '+DNAME[it.d]+': '+it.res,it.tone,'meet')})}_meetClose(note)};
 const _genAgenda=genAgenda;
-genAgenda=function(){_genAgenda();if(career()&&st&&st.meet)st.meet.items.forEach(it=>{const h=st.heads[it.d];if(h&&h.me){it.can=false;it.rec=null}})};
+genAgenda=function(){_genAgenda();cxMeet();if(career()&&st&&st.meet)st.meet.items.forEach(it=>{const h=st.heads[it.d];if(h&&h.me){it.can=false;it.rec=null}})};
 const _ar=annualReview,_br=boardReview;
 function ceoSwap(){if(isCareer()&&st.over&&st.over.type==='fired'&&st.neg<2){const old=st.ceo;st.over=null;st.ceo={name:NAMES.Malaysian()};st.board=60;addLog('The board replaced CEO '+(old?old.name:'')+' with '+st.ceo.name+'.','bad')}}
 annualReview=function(){_ar();ceoSwap()};boardReview=function(){_br();ceoSwap()};
@@ -3081,7 +3082,7 @@ function migrate5(){const s=st;if(!s)return;
     s.cx=s.cx||{coo:null,cfo:null,cto:null};s.cxOn=false;s.grade={};DK().forEach(d=>s.grade[d]=gradeInit(s.staff[d]||0));
     addLog('Update: new IT department, office staff grades, a leadership team (COO, CFO, CTO) you can appoint, and an IMO page with surveys, audits and new rules.','')}
   s.pol.cyber=s.pol.cyber??1;s.pol.itsys=s.pol.itsys??1;s.pol.autoSvy=s.pol.autoSvy??1;s.ready=s.ready||{};s.nzf=s.nzf||{state:'pending'};
-  s.ships.forEach(annInit);syncGrades();ensureSeat();if(s.me&&!s.me.tasks)genTasks()}
+  s.ships.forEach(annInit);syncGrades();ensureSeat();if(s.me&&!s.me.tasks)genTasks();if(s.meet&&s.meet.m===s.m)cxMeet()}
 const _adopt=adopt;
 adopt=function(o){_adopt(o);migrate5()};
 
@@ -3104,7 +3105,7 @@ deptCard=function(d){let h=_deptCard(d);
   if(d==='it')h=h.replace('<div class="actions">',itPol()+'<div class="actions">');
   if(st.heads[d]&&st.heads[d].me)h=h.replace(/<div class="actions"><button type="button" class="btn[^"]*" data-a="pool"[\s\S]*?<\/div>/,'<p class="small up" style="margin:12px 0 0">This is you. Your performance score sets this department\'s leadership stars.</p>');
   return h};
-const _vDepts=vDepts;vDepts=function(){return vLead()+'<h2>Departments</h2>'+_vDepts()};
+const _vDepts=vDepts;vDepts=function(){return vDirection()+vLead()+'<h2>Departments</h2>'+_vDepts()};
 const _vHR=vHR;vHR=function(){return _vHR().replace('<h2>Salary and benefits</h2>',vGrades()+'<h2>Salary and benefits</h2>')};
 
 render=function(){
@@ -3159,6 +3160,8 @@ act=function(a,v){
   if(a==='svy'){const sh=shipById(+v);if(!sh||sh.status==='delivery')return;const lap=sh.lapsed,c=svyCost(sh)*(lap?2:1);if(st.cash<c)return toast('Not enough cash.');spend('imo',c);if(lap)spend('penalty',60000);sh.lapsed=false;sh.annDue=Math.max(sh.annDue,st.m)+12;addLog(sh.name+(lap?' had its overdue survey done and certificates restored':' passed its annual statutory survey')+'. Next due '+mlab(sh.annDue)+'.',lap?'':'good','marine');save();render();return}
   if(a==='prep'){const r=REGS.find(x=>x.id===v);if(!r||!unprepared(r))return;const c=r.act.cost();if(st.cash<c)return toast('Not enough cash.');spend('imo',c);st.ready[r.id]=true;addLog(r.act.l+' done for '+r.t+'.','good','imo');save();render();return}
   if(a==='gPromote'){const [d,k]=v.split(':'),g=st.grade[d],nx=k==='ex'?'sx':'mg';if(!g||!g[k])return;if(nx==='mg'&&g.mg>=Math.max(1,Math.ceil((st.staff[d]||0)/3)))return toast('This team already has enough Managers.');g[k]--;g[nx]++;st.oShock+=0.6;addLog('Promoted a '+DNAME[d]+' '+GR.find(x=>x.k===k).t+' to '+GR.find(x=>x.k===nx).t+'.','good','hr');save();render();return}
+  if(a==='dir'){const [k,i]=v.split(':');dirOf(k);st.dir[k]=+i;save();render();return}
+  if(a==='deleg'){const [k,i]=v.split(':');delegOf(k);st.deleg[k]=+i;if(st.meet)cxMeet();save();render();return}
   if(a==='cxPool'){cxPoolOpen=cxPoolOpen===v?null:v;st.cxPool=st.cxPool||{};if(!st.cxPool[v])st.cxPool[v]=[genCx(v,2),genCx(v,3),genCx(v,4)];render();return}
   if(a==='cxHire'){const [k,i]=v.split(':'),c=st.cxPool&&st.cxPool[k]&&st.cxPool[k][+i];if(!c)return;spend('recruit',80000);const old=st.cx[k];st.cx[k]=c;st.cxPool[k]=null;cxPoolOpen=null;addLog('Appointed '+c.name+' as '+CX[k].t+(old?', replacing '+old.name:'')+'.','good');save();render();return}
   if(a==='cxDismiss'){const h=st.cx[v];if(!h)return;spend('sever',h.pay*3);st.cx[v]=null;addLog(h.name+' left the leadership team.','bad');save();render();return}
@@ -3193,14 +3196,14 @@ const CEO_STYLE={
   growth:{t:'Growth-focused',d:'Buys often and is happy to use bank loans.',buf:3,ltv:0.5,gap:4,age:17}};
 function ceoStyle(){if(!st.ceo)st.ceo={name:NAMES.Malaysian()};if(!st.ceo.style)st.ceo.style=pick(Object.keys(CEO_STYLE));return CEO_STYLE[st.ceo.style]}
 function avgExp(){const h=st.hist.slice(-3);return h.length?h.reduce((a,x)=>a+x.exp,0)/h.length:officeCostTotal()}
-function npcPlan(){const S=ceoStyle(),buf=Math.max(10e6,avgExp()*S.buf),fv=fleetValue();
+function npcPlan(S0){const S=S0||ceoStyle(),buf=Math.max(10e6,avgExp()*S.buf),fv=fleetValue();
   const c=st.market.filter(m=>st.divs.includes(segOf(m.cls))&&m.age<=S.age&&m.cond>=55).map(m=>{let v=m.price;try{v=valueOf(m)}catch(e){}return {m,sc:v/m.price-m.age*0.01}}).sort((a,b)=>b.sc-a.sc);
   for(const {m} of c){const need=m.price*1.01,short=Math.max(0,need-(st.cash-buf));if(short<=0)return {m,L:0};
     const L=r10k(Math.min(short*1.05,loanCap(),m.price*0.6));let v=m.price;try{v=valueOf(m)}catch(e){}
     if(L>=short&&(st.loan+L)/Math.max(1,fv+v)<=S.ltv)return {m,L}}
   return null}
-function npcBuyExec(m,L){if(L>0)st.loan+=L,st.cash+=L;capOut(m.price);spend('commission',m.price*0.01);const sh=newShip(m.cls,m.age,false);sh.spec=m.spec||null;sh.port='Singapore';sh.cond=m.cond;sh.status='delivery';sh.left=1;annInit(sh);st.ships.push(sh);st.market=st.market.filter(x=>x!==m);st.ceo.lastBuy=st.m;
-  const t='CEO '+st.ceo.name+' bought '+sh.name+' ('+CLS[m.cls].nama+', '+m.age+' years old) for '+fm(m.price)+(L?', with a bank loan of '+fm(L):'')+'.';addLog(t,'good');return t}
+function npcBuyExec(m,L,who){if(L>0)st.loan+=L,st.cash+=L;capOut(m.price);spend('commission',m.price*0.01);const sh=newShip(m.cls,m.age,false);sh.spec=m.spec||null;sh.port='Singapore';sh.cond=m.cond;sh.status='delivery';sh.left=1;annInit(sh);st.ships.push(sh);st.market=st.market.filter(x=>x!==m);if(st.ceo&&!who)st.ceo.lastBuy=st.m;
+  const t=(who||'CEO '+st.ceo.name)+' bought '+sh.name+' ('+CLS[m.cls].nama+', '+m.age+' years old) for '+fm(m.price)+(L?', with a bank loan of '+fm(L):'')+'.';addLog(t,'good');return t}
 function npcScrap(){const out=[];st.ships.filter(sh=>tooOld(sh)&&sh.status==='idle').forEach(sh=>{try{const p=scrapVal(sh);capIn(p);filled(sh).forEach(r=>sendHome(sh.crew[r]));(sh.jr||[]).forEach(sendHome);st.ships=st.ships.filter(x=>x!==sh);const t='CEO '+st.ceo.name+' sold '+sh.name+' for recycling at an authorised yard for '+fm(p)+'.';addLog(t,'');out.push(t)}catch(e){}});return out}
 function consulted(){const m=st.me;return m&&(m.rank===4||(m.rank===3&&['chartering','technical','finance'].includes(m.dept)))}
 function npcFleet(m0){if(!isCareer()||st.over)return;const S=ceoStyle(),notes=npcScrap();
@@ -3212,6 +3215,49 @@ EV_DOM.npcBuy='any';
 EVENTS.npcBuy={elig:()=>[],choices:[
   ['Support the purchase','The CEO goes ahead.',(s,sh,q)=>{const m=s.market.find(x=>x.id===q.extra.mid);if(!m||s.cash+q.extra.L<m.price*1.01)return ['The ship was sold to another owner before the deal closed.',''];s.me.perf=Math.min(100,s.me.perf+1);return [npcBuyExec(m,q.extra.L),'good']}],
   ['Advise against it','Keep the cash. The CEO may still decide to buy.',(s,sh,q)=>{const m=s.market.find(x=>x.id===q.extra.mid);if(m&&Math.random()<0.3){return ['The CEO overruled you. '+npcBuyExec(m,q.extra.L),'']}s.ceo.lastBuy=s.m;return ['The CEO took your advice and held off for now.','']}]]};
+
+/* ---------- CEO sets direction, the C-suite runs the day-to-day ---------- */
+const DELEG=[{l:'I decide',d:'Everything in their area comes to you.'},{l:'Big items to me',d:'They decide routine items. Spending over RM 3M, policy shifts with big risk and major events come to you.'},{l:'Fully delegated',d:'They decide everything in their area and report back.'}];
+const DIR={
+  spend:{t:'Spending',d:'How your leadership team handles incidents, repairs and claims.',lv:['Lean','Balanced','Quality first']},
+  growth:{t:'Fleet growth',d:'Whether the COO and CFO bring you ships to buy each quarter.',lv:['Hold cash','Steady','Expand']}};
+const BIG_EV=new Set(['refi','union','tender','redsea','bigBreak','cii','ciiPlan','claim','squeeze']);
+const ceoMode=()=>!!(st&&!isCareer());
+function cxFor(d){const k=CXOF(d),h=k&&st.cx&&st.cx[k];return h&&!h.me?{k,h}:null}
+function delegOf(k){st.deleg=st.deleg||{coo:1,cfo:1,cto:1};return st.deleg[k]??1}
+function dirOf(k){st.dir=st.dir||{spend:1,growth:1};return st.dir[k]??1}
+/* meeting items: the C-suite decides as soon as the agenda is set */
+function cxMeet(){if(!ceoMode()||!st.meet||!st.cx)return;
+  st.meet.items.forEach(it=>{if(it.done!=null)return;const c=cxFor(it.d);if(!c)return;const lv=delegOf(c.k);if(lv===0)return;
+    if(lv===1&&(it.cost||0)>3e6){it.esc=c.k;return}
+    const n=AG[it.k].opts(it.p).length,good=Math.random()<0.55+0.08*c.h.skill;const i=good||n<2?it.best:pick([...Array(n).keys()].filter(x=>x!==it.best));
+    meetDo(it,i);const L0=st.log[0];if(L0&&L0.t===DNAME[it.d]+': '+it.res)L0.t=DNAME[it.d]+' · '+c.h.name+' ('+CX[c.k].s+') decided: '+it.res;it.res=c.h.name+' ('+CX[c.k].s+') decided: '+it.res;it.byCx=c.k})}
+/* events: handled by the C-suite and reported, unless escalated */
+function cxPick(ch){const s=dirOf('spend'),n=ch.length;if(n<2)return 0;if(s===0)return Math.random()<0.5?n-1:0;if(s===1)return Math.random()<0.85?0:n-1;return 0}
+function cxQueue(m0){if(!ceoMode()||!st.cx)return;const notes=[];
+  st.queue=st.queue.filter(q=>{if(q.kind!=='event'||q.result)return true;const d=EV_DOM[q.id];if(!d||d==='any'||d==='ceo'||!DEPTS[d])return true;const c=cxFor(d);if(!c)return true;const lv=delegOf(c.k);
+    if(lv===0||(lv===1&&(BIG_EV.has(q.id)||(q.id==='docAudit'&&q.extra&&q.extra.tier==='C'))))return true;
+    const e=EVENTS[q.id];if(!e)return true;try{const sh=q.ship!=null?shipById(q.ship):null,ch=typeof e.choices==='function'?e.choices(q):e.choices;if(!ch||!ch.length)return true;const i=cxPick(ch),[res,tone]=ch[i][2](st,sh,q);
+      const t=c.h.name+' ('+CX[c.k].s+') handled "'+q.title+'": '+ch[i][0]+'. '+res;addLog(t,tone);notes.push({t,tone});return false}catch(err){return true}});
+  fix();const rep=st.queue.find(q=>q.kind==='report'&&q.m===m0);if(rep&&notes.length)rep.notes.unshift(...notes)}
+/* fleet growth proposals for the CEO */
+function cxGrowth(m0){if(!ceoMode()||!st.cx)return;const g=dirOf('growth');if(!g||m0%3!==2)return;const who=st.cx.coo||st.cx.cfo;if(!who||st.queue.some(q=>q.id==='cxBuy'))return;
+  const S=CEO_STYLE[g===2?'growth':'balanced'];if(st.m-(st.cxLastBuy??-99)<S.gap||st.cash<=0)return;const p=npcPlan(S);if(!p)return;const m=p.m;
+  st.queue.push({kind:'event',id:'cxBuy',extra:{mid:m.id,L:p.L},title:'Your team proposes a ship purchase',body:`${who.name} (${st.cx.coo?'COO':'CFO'}) recommends buying a ${m.age}-year-old ${CLS[m.cls].nama} for ${fm(m.price)}${p.L?', with a bank loan of '+fm(p.L):' from cash'}. Cash now ${fm(st.cash)}, loan ${fm(st.loan)}.`,ask:'Approve the purchase?'})}
+EV_DOM.cxBuy='any';
+EVENTS.cxBuy={elig:()=>[],choices:[
+  ['Approve','Your team completes the deal.',(s,sh,q)=>{const m=s.market.find(x=>x.id===q.extra.mid);if(!m||s.cash+q.extra.L<m.price*1.01)return ['Another owner bought the ship first.',''];s.cxLastBuy=s.m;return [npcBuyExec(m,q.extra.L,'Your team'),'good']}],
+  ['Reject','Keep the cash for now.',s=>{s.cxLastBuy=s.m;return ['The team will look again next quarter.','']}]]};
+function vDirection(){if(!ceoMode())return '';const any=st.cx&&Object.values(st.cx).some(Boolean);
+  return `<h2>Company direction</h2><section class="card"><p class="tip muted small" style="margin:0">As CEO you set the direction. Your COO, CFO and CTO make the day-to-day calls in their areas and report back in the monthly report.${any?'':' <b>Appoint them below first.</b>'}</p>
+  <div class="setting"><h3>Commercial strategy</h3><div class="muted small">How Chartering employs the fleet.</div>${polRow('mode',['Voyage first','Balanced','Time charter first'])}</div>
+  ${Object.entries(DIR).map(([k,o])=>`<div class="setting"><h3>${o.t}</h3><div class="muted small">${o.d}</div><div class="seg">${o.lv.map((l,i)=>`<button type="button" data-a="dir" data-v="${k}:${i}" aria-pressed="${dirOf(k)===i}">${l}</button>`).join('')}</div></div>`).join('')}
+  ${Object.keys(CX).map(k=>{const h=st.cx&&st.cx[k];return `<div class="setting"><h3>${CX[k].s}: ${h?esc(h.name):'vacant'}</h3><div class="muted small">${h?DELEG[delegOf(k)].d:'No '+CX[k].s+', so '+andList(CX[k].depts.map(d=>DNAME[d]))+' decisions come to you.'}</div>${h?`<div class="seg">${DELEG.map((x,i)=>`<button type="button" data-a="deleg" data-v="${k}:${i}" aria-pressed="${delegOf(k)===i}">${x.l}</button>`).join('')}</div>`:''}</div>`}).join('')}</section>`}
+
+const _vMeeting=vMeeting;
+vMeeting=function(){const h=_vMeeting();if(!ceoMode())return h;const its=(st.meet&&st.meet.items)||[],by=its.filter(i=>i.byCx).length,esc_=its.filter(i=>i.esc&&i.done==null).length,any=st.cx&&Object.values(st.cx).some(Boolean);
+  const box=any?`<section class="help">Your leadership team already decided ${by} item${by===1?'':'s'} this month.${esc_?' '+esc_+' big item'+(esc_>1?'s are':' is')+' waiting for you.':''} Change how much they decide in <b>Office · Departments</b>.</section>`:`<section class="help">You are deciding everything yourself because you have no COO, CFO or CTO. Appoint them in <b>Office · Departments</b> and they will handle routine items while you set the direction.</section>`;
+  return box+h};
 
 window.claude?.hot?.snapshot?.(()=>({st,tab,fleetTab,spTab,spMode,design,mapReg,mapSel,crewSel,fleetType,fleetView,fleetFilt}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
