@@ -469,9 +469,9 @@ const MAINT=[{label:'Minimum',mult:0.85,decay:1.45},{label:'Standard',mult:1,dec
 const MINREP=[0,3.5,4];const PREM=[0,0.05,0.1,0.15];const DOCKAT=[0,60,65,70];
 const EXP={wages:'Crew wages, overtime and leave',food:'Victualling',allow:'Crew allowances and bonuses',fuel:'Fuel (bunkers)',port:'Port and agency charges',insur:'Insurance (H&M and P&I)',stores:'Stores, spares and lube oil',mgmt:'Ship management',repair:'Repairs and breakdowns',dock:'Dry docking',train:'STCW training',recruit:'Recruitment and crew travel',staff:'Department heads',opay:'Office staff salaries, EPF and SOCSO',oben:'Office staff benefits and training',obonus:'Office staff year-end bonus',budget:'Department operating budgets',sever:'Severance and notice pay',bad:'Bad debts written off',office:'Head office, branches and divisions',setup:'Division and office set-up',hseq:'HSEQ programme',interest:'Loan interest',penalty:'Claims, fines and penalties',commission:'Broker commissions',standby:'Standby pay for crew on leave'};
 const PLANS={
-  a:{nama:'Container & Bulk',desc:'One container feeder and one Supramax. Balanced and a good place to start.',ships:[['feeder',11],['supra',9]],cash:27.5e6},
+  a:{nama:'Container & Bulk',desc:'One container feeder, one Supramax and one Handysize. Balanced and a good place to start.',ships:[['feeder',11],['supra',9],['handy',14]],cash:22e6},
   b:{nama:'Tanker & Bunker',desc:'One MR product tanker and two bunker tankers in Singapore. Older ships, less cash.',ships:[['mr',13],['bunk',8],['bunk',16]],cash:19e6},
-  c:{nama:'Start Small',desc:'One old Handysize and one bunker tanker, with plenty of cash to expand.',ships:[['handy',15],['bunk',10]],cash:42.5e6}
+  c:{nama:'Start Small',desc:'One old Handysize and two bunker tankers, with plenty of cash to expand.',ships:[['handy',15],['bunk',10],['bunk',17]],cash:38e6}
 };
 /* ---------- shipyard: custom newbuild specs ---------- */
 const LOA={ulcv:[366,400,400],cape:[280,292,300],ultra:[195,200,200],chem:[140,150,160],lr1:[220,228,230],afra:[240,250,250],vlcc:[320,330,333],bunks:[60,70,80],lngb:[95,105,120],lpgs:[95,105,115],vlgc:[225,230,230],sslng:[160,175,185],lngc:[285,295,300],fcb:[35,40,50],ocv:[110,130,150],feeder:[150,172,190],panamax:[240,260,294],neo:[280,300,366],handy:[160,180,190],supra:[180,190,200],kamsar:[215,229,229],mr:[170,183,190],lr2:[228,250,256],bunk:[85,100,110],lpg:[160,180,190],psv:[70,85,95],ahts:[60,75,90]};
@@ -1322,7 +1322,7 @@ function officeMonth(note,mStart){
 
 /* ---------- turn ---------- */
 function endMonth(){
-  if(!st||st.over||st.queue.length)return;
+  if(!st||st.over||(st.queue.length&&!catching))return;
   const s=st,notes=[],mStart=s.m;const note=(t,tone,cat)=>{notes.push({t,tone});addLog(t,tone,cat)};
   meetClose(note);
   const te=eff('technical');
@@ -2451,8 +2451,10 @@ function renderModal(){
   if(q.kind==='away'){const net=q.rev-q.exp;
     h=`<div class="eyebrow">While you were away</div><h3>${q.n} month${q.n>1?'s':''} passed</h3>
     <div class="pl" style="margin-bottom:14px"><div><span>Revenue</span><b class="num up">${fm(q.rev)}</b></div><div><span>Expenditure</span><span class="num">-${fm(q.exp)}</span></div><div><span>${net>=0?'Profit':'Loss'}</span><b class="num ${net<0?'down':'up'}">${fm(net)}</b></div><div class="tot"><span>Cash now</span><span class="num ${st.cash<0?'down':''}">${fm(st.cash)}</span></div></div>
+    ${(q.big||[]).length?`<ul class="notes">${q.big.map(n=>`<li class="${n.tone==='bad'?'down':'up'}"><b>${esc(n.t)}</b></li>`).join('')}</ul>`:''}
+    ${(q.done||[]).length?`<details class="awaydone" style="margin:0 0 12px"><summary><b>Your team handled ${q.done.length} decision${q.done.length>1?'s':''}</b></summary><ul class="notes">${q.done.map(d=>`<li class="${d.tone==='bad'?'down':d.tone==='good'?'up':''}">${esc(d.t)}: ${esc(d.c)}.</li>`).join('')}</ul></details>`:''}
     ${q.notes.length?`<ul class="notes">${q.notes.slice(-12).map(n=>`<li class="${n.tone==='bad'?'down':n.tone==='good'?'up':''}">${esc(n.t)}</li>`).join('')}</ul>`:'<p class="muted">Nothing major happened.</p>'}
-    ${q.wait?'<p><b>A decision needs you.</b> The clock waits until you answer it.</p>':''}${st.owed?'<p class="muted small">'+st.owed+' more month'+(st.owed>1?'s':'')+' will run after that.</p>':''}
+    ${q.wait?'<p><b>'+(q.dec>1?q.dec+' decisions are':'A decision is')+' waiting for you.</b> They come up one by one after this.</p>':''}
     <button type="button" class="btn primary" data-a="next">Continue</button>`}
   else if(q.kind==='report'){const net=q.rev-q.exp;
     h=`<div class="eyebrow">Monthly report · ${mlabel(q.m)}</div><h3>${net>=0?'Profit':'Loss'} of ${fm(Math.abs(net))} this month</h3>
@@ -2528,21 +2530,39 @@ function syncClock(){
   if(st.owed&&!st.queue.length)catchUp();
   else{const w=document.querySelector('.when');if(w)w.textContent=whenTxt()}
 }
+/* while you are away your management team takes the decisions, so you come back to one summary */
+const AWAY_PASS=['bargain'];
+function autoDecide(done){
+  st.queue=st.queue.filter(q=>{
+    if(q.kind!=='event'||!EVENTS[q.id])return true;
+    try{const e=EVENTS[q.id],sh=q.ship!=null?shipById(q.ship):null,ch=typeof e.choices==='function'?e.choices(q):e.choices;
+      if(!ch||!ch.length)return true;
+      const i=AWAY_PASS.includes(q.id)?ch.length-1:0,[res,tone]=ch[i][2](st,sh,q);fix();
+      addLog(q.title+'. Team decided: '+ch[i][0]+'. '+res,tone);done.push({t:q.title,c:ch[i][0],r:res,tone});return false}
+    catch(err){return true}});
+}
 function catchUp(){
   if(catching||!st||!st.owed||st.queue.length||st.over)return;
-  catching=true;let n=0,rev=0,exp=0,notes=[];const m0=st.m;
+  catching=true;let n=0,rev=0,exp=0,notes=[],big=[],done=[];const m0=st.m;
   try{
-    while(st.owed>0&&!st.over&&!st.queue.length){
+    /* run every waiting month in one go; decisions are collected and shown after one summary */
+    while(st.owed>0&&!st.over){
       const before=st.m;endMonth();if(st.m===before)break;
       st.owed--;n++;
-      st.queue=st.queue.filter(q=>{if(q.kind!=='report')return true;rev+=q.rev;exp+=q.exp;q.notes.forEach(x=>{if(x.tone)notes.push(x)});return false});
+      st.queue=st.queue.filter(q=>{
+        if(q.kind==='report'){rev+=q.rev;exp+=q.exp;q.notes.forEach(x=>{if(x.tone)notes.push(x)});return false}
+        if(q.kind==='board'){big.push({t:'Board meeting Q'+q.q+' '+q.y+': '+q.v+' Confidence '+(q.d>=0?'+':'')+q.d+'.',tone:q.d>=0?'good':'bad'});return false}
+        if(q.kind==='annual'){big.push({t:'Annual meeting '+q.y+': target '+(q.hit?'achieved':'missed')+'. New target '+fm(q.next)+'.',tone:q.hit?'good':'bad'});return false}
+        if(q.kind==='tier'){big.push({t:st.company+' is now a '+TIERS[q.t].n+'.',tone:'good'});return false}
+        return true});
+      autoDecide(done);
     }
   }finally{catching=false}
-  if(n)st.queue.unshift({kind:'away',n,rev,exp,notes,m0,wait:st.queue.length>0});
+  if(n){const dec=st.queue.filter(q=>q.kind==='event').length;st.queue=st.queue.filter(q=>q.kind!=='end').concat(st.queue.filter(q=>q.kind==='end'));st.queue.unshift({kind:'away',n,rev,exp,notes,big,done,dec,m0,wait:dec>0})}
   save();render();
 }
 function liveCard(){
-  return `<section class="card"><div class="ship-head"><div><h3>Live time ${liveOn()?'on':'off'}</h3><div class="muted small" style="margin-top:4px">${liveOn()?'Every hour you are away, one month passes. Decisions pause the clock until you answer them. Up to '+MAX_OWED+' months can build up.':'Months only pass when you tap End month.'}</div></div><button type="button" class="btn" data-a="rtToggle">${liveOn()?'Turn off':'Turn on'}</button></div></section>`;
+  return `<section class="card"><div class="ship-head"><div><h3>Live time ${liveOn()?'on':'off'}</h3><div class="muted small" style="margin-top:4px">${liveOn()?'Every hour you are away, one month passes. When you come back you get one summary. Your team handles the decisions while you are away. Up to '+MAX_OWED+' months can build up.':'Months only pass when you tap End month.'}</div></div><button type="button" class="btn" data-a="rtToggle">${liveOn()?'Turn off':'Turn on'}</button></div></section>`;
 }
 
 function save(){try{if(st)localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
