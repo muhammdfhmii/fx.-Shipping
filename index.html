@@ -2547,7 +2547,7 @@ function liveCard(){
 
 function save(){try{if(st)localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
 function load(){try{let s=localStorage.getItem(KEY);if(!s)s=localStorage.getItem(OLDKEY);const o=s?JSON.parse(s):null;return o&&(o.v===3||o.v===4)?o:null}catch(e){return null}}
-function adopt(o){st=o;const wasV3=st.v===3;upgrade(st);if(wasV3){DK().forEach(d=>{if(st.heads[d]===undefined)st.heads[d]=genHead(d,3)});st.omorale=oMoraleTarget();addLog('New departments added: Finance and HR & Admin. Office staff are now managed in HR & Office.','')}if(!st.meet)genAgenda()}
+function adopt(o){st=o;if(Array.isArray(st.queue))st.queue=st.queue.filter(q=>q&&['away','report','board','annual','tier','end'].includes(q.kind)||(q&&q.kind==='event'&&EVENTS[q.id]));const wasV3=st.v===3;upgrade(st);if(wasV3){DK().forEach(d=>{if(st.heads[d]===undefined)st.heads[d]=genHead(d,3)});st.omorale=oMoraleTarget();addLog('New departments added: Finance and HR & Admin. Office staff are now managed in HR & Office.','')}if(!st.meet)genAgenda()}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;act(b.dataset.a,b.dataset.v);if(st&&st.owed&&!st.queue.length)setTimeout(catchUp,250)});
 setInterval(syncClock,30000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')syncClock()});
