@@ -2986,7 +2986,7 @@ function vCareer(){
   if(!st.me)return `<section class="card"><h3>You are the CEO</h3><p class="small">This company was started in classic mode, so you run everything from day one. To climb the ladder from Executive, start a new game and pick <b>Career</b>.</p></section>${vLead()}`;
   const m=st.me,b=bossOf(),pay=m.rank<3?myPay():m.rank===3?st.heads[m.dept].pay:m.rank===4?st.cx[myTrack()].pay:0,undone=(m.tasks||[]).filter(t=>t.done==null).length;
   const steps=[0,1,2,3,4,5].map(i=>`<li class="${i<m.rank?'done':i===m.rank?'now':''}"><span class="dotc">${i<m.rank?'✓':i+1}</span><span><b>${esc(rungTitle(i))}</b>${i===m.rank&&i<5?`<span class="muted small" style="display:block">${m.mInRank} of ${LADDER[i].min} months minimum</span>`:''}</span></li>`).join('');
-  return `<section class="card me-card"><div class="ship-head"><div><div class="eyebrow">Your career</div><div class="ship-name">${esc(m.name)}</div><div class="facts"><span><b>${esc(myTitle())}</b></span><span>Reports to ${esc(b.name)}, ${esc(b.t)}</span></div></div></div>
+  return `<section class="card me-card"><div class="ship-head"><div><div class="eyebrow">Your career</div><div class="ship-name">${esc(m.name)}</div><div class="facts"><span><b>${esc(myTitle())}</b></span><span>Reports to ${esc(b.name)}, ${esc(b.t)}</span>${m.rank<5&&st.ceo?`<span>CEO ${esc(st.ceo.name)}: ${ceoStyle().t.toLowerCase()} on buying ships</span>`:''}</div></div></div>
     <div class="kpis k3">${kpi('Performance',Math.round(m.perf)+'/100',m.perf<45?'down':m.perf>=70?'up':'')}${kpi('In this role',m.mInRank+' mo')}${m.rank<5?kpi('Next appraisal',mlab(nextAppraisal())):kpi('Board confidence',Math.round(st.board)+'/100')}${pay?kpi('Your salary',fm(pay)+'/mo'):''}${kpi('Years at '+esc(st.company.split(' ')[0]),Math.floor((st.m-m.joined)/12))}${m.warn?kpi('Warnings',m.warn,'down'):''}</div>
     ${condBar('Performance',m.perf)}
     <p class="tip muted small" style="margin:10px 0 0">Appraisals happen every June and December. You need the minimum months in the role and a score of 70 to be promoted (85 lets you go up to 3 months early). Two appraisals below 40 and HR lets you go.</p></section>
@@ -3048,7 +3048,7 @@ officeMonth=function(note,mStart){_officeMonth(note,mStart);syncGrades();ensureS
 const _endMonth=endMonth;
 endMonth=function(){if(!st||st.over||st.queue.length)return _endMonth();const m0=st.m;_endMonth();if(!st||st.m===m0)return;
   st.tb={};
-  if(career()&&!st.over){npcQueue();appraisal(m0);if(isCareer()&&st.me.rank<3)st.queue=st.queue.filter(q=>q.kind!=='board');genTasks()}
+  if(career()&&!st.over){npcQueue();npcFleet(m0);appraisal(m0);if(isCareer()&&st.me.rank<3)st.queue=st.queue.filter(q=>q.kind!=='board');genTasks()}
   syncGrades();ensureSeat();save();render()};
 const _meetClose=meetClose;
 meetClose=function(note){if(isCareer()&&st.meet&&st.meet.m===st.m){st.meet.items.forEach(it=>{if(it.done!=null||it.can||canMeet(it))return;meetDo(it,it.best);note((st.ceo?st.ceo.name:'The CEO')+' (CEO) decided on '+DNAME[it.d]+': '+it.res,it.tone,'meet')})}_meetClose(note)};
@@ -3185,6 +3185,33 @@ document.addEventListener('input',e=>{if(e.target.id==='me-name')drafts['me-name
 .reg .btn,.gbtns .btn{white-space:normal;text-align:left;max-width:100%}
 .gloss-d{margin-top:10px}.gloss-d summary{cursor:pointer;font-weight:600;font-size:13.5px;color:var(--accent)}
 `;document.head.appendChild(css)})();
+
+/* ---------- the NPC CEO grows the fleet while you are not CEO ---------- */
+const CEO_STYLE={
+  cautious:{t:'Cautious',d:'Keeps a big cash cushion and rarely borrows.',buf:6,ltv:0.3,gap:9,age:12},
+  balanced:{t:'Balanced',d:'Buys a ship when cash and the market allow.',buf:4,ltv:0.42,gap:6,age:15},
+  growth:{t:'Growth-focused',d:'Buys often and is happy to use bank loans.',buf:3,ltv:0.5,gap:4,age:17}};
+function ceoStyle(){if(!st.ceo)st.ceo={name:NAMES.Malaysian()};if(!st.ceo.style)st.ceo.style=pick(Object.keys(CEO_STYLE));return CEO_STYLE[st.ceo.style]}
+function avgExp(){const h=st.hist.slice(-3);return h.length?h.reduce((a,x)=>a+x.exp,0)/h.length:officeCostTotal()}
+function npcPlan(){const S=ceoStyle(),buf=Math.max(10e6,avgExp()*S.buf),fv=fleetValue();
+  const c=st.market.filter(m=>st.divs.includes(segOf(m.cls))&&m.age<=S.age&&m.cond>=55).map(m=>{let v=m.price;try{v=valueOf(m)}catch(e){}return {m,sc:v/m.price-m.age*0.01}}).sort((a,b)=>b.sc-a.sc);
+  for(const {m} of c){const need=m.price*1.01,short=Math.max(0,need-(st.cash-buf));if(short<=0)return {m,L:0};
+    const L=r10k(Math.min(short*1.05,loanCap(),m.price*0.6));let v=m.price;try{v=valueOf(m)}catch(e){}
+    if(L>=short&&(st.loan+L)/Math.max(1,fv+v)<=S.ltv)return {m,L}}
+  return null}
+function npcBuyExec(m,L){if(L>0)st.loan+=L,st.cash+=L;capOut(m.price);spend('commission',m.price*0.01);const sh=newShip(m.cls,m.age,false);sh.spec=m.spec||null;sh.port='Singapore';sh.cond=m.cond;sh.status='delivery';sh.left=1;annInit(sh);st.ships.push(sh);st.market=st.market.filter(x=>x!==m);st.ceo.lastBuy=st.m;
+  const t='CEO '+st.ceo.name+' bought '+sh.name+' ('+CLS[m.cls].nama+', '+m.age+' years old) for '+fm(m.price)+(L?', with a bank loan of '+fm(L):'')+'.';addLog(t,'good');return t}
+function npcScrap(){const out=[];st.ships.filter(sh=>tooOld(sh)&&sh.status==='idle').forEach(sh=>{try{const p=scrapVal(sh);capIn(p);filled(sh).forEach(r=>sendHome(sh.crew[r]));(sh.jr||[]).forEach(sendHome);st.ships=st.ships.filter(x=>x!==sh);const t='CEO '+st.ceo.name+' sold '+sh.name+' for recycling at an authorised yard for '+fm(p)+'.';addLog(t,'');out.push(t)}catch(e){}});return out}
+function consulted(){const m=st.me;return m&&(m.rank===4||(m.rank===3&&['chartering','technical','finance'].includes(m.dept)))}
+function npcFleet(m0){if(!isCareer()||st.over)return;const S=ceoStyle(),notes=npcScrap();
+  if(m0%3===2&&st.cash>0&&st.m-(st.ceo.lastBuy??-99)>=S.gap&&!st.queue.some(q=>q.id==='npcBuy')){const p=npcPlan();
+    if(p){if(consulted()){const m=p.m;st.queue.push({kind:'event',id:'npcBuy',extra:{mid:m.id,L:p.L},title:'CEO wants to buy a ship',body:`${st.ceo.name} wants to buy a ${m.age}-year-old ${CLS[m.cls].nama} for ${fm(m.price)}${p.L?', borrowing '+fm(p.L)+' from the bank':' from cash'}. Cash now ${fm(st.cash)}, loan ${fm(st.loan)}. As ${myShort()}, your view counts.`,ask:'What do you advise?'})}
+      else notes.push(npcBuyExec(p.m,p.L))}}
+  const rep=st.queue.find(q=>q.kind==='report'&&q.m===m0);if(rep)notes.forEach(t=>rep.notes.push({t,tone:'good'}))}
+EV_DOM.npcBuy='any';
+EVENTS.npcBuy={elig:()=>[],choices:[
+  ['Support the purchase','The CEO goes ahead.',(s,sh,q)=>{const m=s.market.find(x=>x.id===q.extra.mid);if(!m||s.cash+q.extra.L<m.price*1.01)return ['The ship was sold to another owner before the deal closed.',''];s.me.perf=Math.min(100,s.me.perf+1);return [npcBuyExec(m,q.extra.L),'good']}],
+  ['Advise against it','Keep the cash. The CEO may still decide to buy.',(s,sh,q)=>{const m=s.market.find(x=>x.id===q.extra.mid);if(m&&Math.random()<0.3){return ['The CEO overruled you. '+npcBuyExec(m,q.extra.L),'']}s.ceo.lastBuy=s.m;return ['The CEO took your advice and held off for now.','']}]]};
 
 window.claude?.hot?.snapshot?.(()=>({st,tab,fleetTab,spTab,spMode,design,mapReg,mapSel,crewSel,fleetType,fleetView,fleetFilt}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
