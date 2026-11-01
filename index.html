@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0F4AA8">
+<meta name="theme-color" content="#0A2E6E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,6 +18,8 @@ img{max-width:100%}
 [hidden]{display:none!important}
 </style>
 <title>FX Shipping</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* Blue and white: navy-blue bar, white cards, blue accents; red/green kept only for money and warnings */
 :root{
@@ -358,6 +360,150 @@ svg.map{display:block;width:100%;height:auto;max-height:68vh;background:var(--se
 .natchips button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-weight:600;font-size:13.5px;color:var(--muted)}
 .natchips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 </style>
+<style>
+/* ===== Rebuild: "Harbour" skin — deep-blue header, floating white cards, 3D hero ===== */
+:root{
+  --bg:#EDF2FA; --surface:#FFFFFF; --ink:#0B1B33; --muted:#5E6F89; --line:#E3EAF4;
+  --accent:#1556C9; --accent-2:#3E86F5; --accent-ink:#FFFFFF; --soft:#EAF1FD;
+  --hdr:#0A2E6E; --hdr-ink:#FFFFFF; --hdr-muted:#B9CCEB;
+  --r:18px; --r-sm:12px;
+  --shadow:0 1px 2px rgba(10,46,110,.05),0 10px 28px -8px rgba(10,46,110,.16);
+  --f-display:"Manrope","Segoe UI",system-ui,sans-serif;
+  --f-body:"Manrope","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-num:"Manrope","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#081325; --surface:#0F1E36; --ink:#EAF1FB; --muted:#93A6C2; --line:#1D3050; --accent:#6AA5FF; --accent-2:#8CBBFF; --accent-ink:#071226; --soft:#16294A;
+  --hdr:#06204F; --hdr-muted:#9FB6DA; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -8px rgba(0,0,0,.6)}}
+:root[data-theme="dark"]{--bg:#081325; --surface:#0F1E36; --ink:#EAF1FB; --muted:#93A6C2; --line:#1D3050; --accent:#6AA5FF; --accent-2:#8CBBFF; --accent-ink:#071226; --soft:#16294A; --hdr:#06204F; --hdr-muted:#9FB6DA; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -8px rgba(0,0,0,.6)}
+body{background:var(--bg);font-size:15px;letter-spacing:-.005em}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+body::before{background:var(--hdr)}
+
+/* header */
+.top{background:linear-gradient(120deg,#082A66 0%,#0F44A3 55%,#1E63D6 100%);box-shadow:0 8px 24px -12px rgba(10,46,110,.55)}
+.top-row{padding-block:14px 12px;gap:12px}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{flex:none;width:38px;height:38px;border-radius:12px;background:#FFFFFF;color:#0F44A3;display:grid;place-items:center;font-weight:800;font-size:15px;letter-spacing:-.02em;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.brand>div{min-width:0}
+.co{font-weight:800;font-size:17px;letter-spacing:-.01em}
+.when{font-size:12.5px}
+.cashpill{background:rgba(255,255,255,.12);border-radius:14px;padding:6px 12px;text-align:left}
+.cashpill small{letter-spacing:.04em;text-transform:none;font-size:11px}
+.cashpill b{font-size:16px;font-weight:800}
+.btn-end{background:#FFFFFF;color:#0F44A3;padding:11px 18px;font-weight:800;box-shadow:0 6px 16px -6px rgba(0,0,0,.45)}
+.btn-end:hover:not(:disabled){transform:translateY(-1px)}
+.tipbtn{border-color:rgba(255,255,255,.35);width:34px;height:34px}
+.tabs{gap:6px;padding:0 0 14px}
+.tab{background:rgba(255,255,255,.1);padding:8px 15px;font-weight:700;font-size:13.5px}
+.tab[aria-selected="true"]{background:#FFFFFF;color:#0F44A3;box-shadow:0 4px 12px -4px rgba(0,0,0,.35)}
+@media (max-width:520px){.cashpill{padding:5px 9px}.cashpill b{font-size:14.5px}.btn-end{padding:10px 13px}.logo{width:32px;height:32px;border-radius:10px;font-size:13px}.co{font-size:15.5px}.tipbtn{display:none}}
+
+/* content */
+main{padding-block:20px 120px;gap:14px}
+h2{font-size:16px;letter-spacing:-.01em;text-transform:none;font-weight:800;margin:14px 0 -4px;gap:8px}
+h2::before{content:"";width:6px;height:18px;border-radius:3px;background:linear-gradient(180deg,var(--accent-2),var(--accent))}
+h2::after{display:none}
+.card,.mapcard{border:0;border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
+.mapcard{padding:0}
+.card>.art.banner{width:calc(100% + 36px);margin:-18px -18px 16px;border-radius:var(--r) var(--r) 0 0;height:140px}
+.card.typed{border-left:0;box-shadow:inset 4px 0 0 var(--tc),var(--shadow)}
+.help{border:0;background:linear-gradient(135deg,var(--soft),var(--surface));border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px}
+.chip{border:0;background:var(--soft);color:var(--accent);border-radius:999px;padding:4px 10px;letter-spacing:.04em;font-size:11px}
+.goal-top .big,.big{font-weight:800;letter-spacing:-.02em}
+.kpis{gap:8px}
+.kpi{background:var(--soft);border-radius:var(--r-sm);padding:10px 12px;min-width:0}
+.kpi small{letter-spacing:.02em;text-transform:none;font-size:11.5px;font-weight:600}
+.kpi b{font-size:16.5px;font-weight:800;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{height:10px;background:var(--soft)}
+.bar>i{background:linear-gradient(90deg,var(--accent-2),var(--accent))}
+.ship-name{font-weight:800;letter-spacing:-.015em}
+.pill{border-radius:999px;font-weight:800}
+.btn{border:0;background:var(--soft);color:var(--accent);border-radius:999px;padding:10px 16px;font-weight:700;transition:transform .12s,background .12s}
+.btn:hover:not(:disabled){background:color-mix(in srgb,var(--accent) 14%,var(--surface));color:var(--accent)}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn.primary{background:linear-gradient(135deg,var(--accent-2),var(--accent));color:#fff;box-shadow:0 6px 16px -8px var(--accent)}
+.btn.primary:hover:not(:disabled){filter:brightness(1.06);color:#fff;background:linear-gradient(135deg,var(--accent-2),var(--accent))}
+.btn.danger{background:var(--bad-soft);color:var(--bad)}
+.seg{background:var(--soft);border:0;border-radius:14px;padding:4px}
+.seg button{border-radius:11px;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--accent);box-shadow:0 2px 8px -2px rgba(10,46,110,.25)}
+.subtabs button{border:0;background:var(--surface);box-shadow:var(--shadow)}
+.subtabs button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.money div,.voyage{background:var(--soft);border-radius:var(--r-sm)}
+.choice{border:0;background:var(--soft);border-radius:14px}
+.choice:hover{box-shadow:inset 0 0 0 2px var(--accent)}
+.sheet{border-radius:24px}
+.opt{border:0;background:var(--soft);border-radius:14px}
+.opt[aria-pressed="true"]{background:var(--surface);box-shadow:inset 0 0 0 2px var(--accent)}
+.stepper button{border:0;background:var(--soft);color:var(--accent);border-radius:12px}
+.namebox input,.assign select,.bo-grid select,label.field input{border:1.5px solid var(--line);border-radius:12px}
+.warnbox{border-radius:12px}
+.log li{padding-bottom:10px;border-bottom:1px solid var(--line)}
+.log li:last-child{border-bottom:0;padding-bottom:0}
+
+/* start screen */
+.start{padding-block:28px 60px}
+.hero{background:linear-gradient(135deg,#082A66,#1556C9 70%,#3E86F5);border-radius:24px;padding:28px 22px;box-shadow:var(--shadow)}
+.hero h1{font-weight:800;letter-spacing:-.03em}
+.hero svg.art.hero-art{border-radius:16px}
+.plan{border:0;background:var(--surface);box-shadow:var(--shadow);border-radius:var(--r)}
+.plan[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--accent),var(--shadow);background:var(--surface)}
+
+/* bottom nav: floating pill on phones */
+.bnav{left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom,0px));padding:0;border:0;border-radius:22px;background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:0 12px 32px -10px rgba(10,46,110,.4),0 0 0 1px var(--line)}
+.bnav .in{padding:6px}
+.bnav button{border-radius:16px;padding:8px 2px;font-weight:700}
+.bnav button[aria-current="page"]{background:var(--accent);color:#fff}
+.bnav button[aria-current="page"]::before{display:none}
+.bnav .dot{border:2px solid var(--surface)}
+
+/* desktop: navigation becomes a sidebar */
+@media (min-width:1000px){
+  body{padding-left:232px}
+  body::before{left:232px}
+  .bnav{left:0;top:0;bottom:0;right:auto;width:232px;border-radius:0;background:var(--surface);box-shadow:1px 0 0 var(--line);-webkit-backdrop-filter:none;backdrop-filter:none;padding-top:env(safe-area-inset-top,0px)}
+  .bnav::before{content:"FX Shipping";display:block;padding:24px 22px 18px;font-weight:800;font-size:18px;letter-spacing:-.02em;color:var(--accent)}
+  .bnav .in{display:flex;flex-direction:column;gap:4px;padding:0 12px;max-width:none}
+  .bnav button{grid-template-columns:24px 1fr;justify-items:start;align-items:center;gap:12px;padding:12px 14px;font-size:14.5px;text-align:left}
+  .bnav .dot{position:static;margin-left:auto;grid-column:3}
+  .bnav button{display:grid;grid-template-columns:24px 1fr auto}
+  .wrap{max-width:900px}
+  main{padding-bottom:60px}
+}
+
+/* 3D hero */
+.s3-wrap{position:relative;margin:-18px -18px 16px;border-radius:var(--r) var(--r) 0 0;overflow:hidden}
+.hero3d{height:300px;background:linear-gradient(180deg,#CFE1F7,#EAF2FD 55%,#2E6FD1 56%,#123E86);position:relative}
+.hero3d.flat{height:auto;background:none}
+.hero3d .art{border-radius:0!important;margin:0!important;width:100%!important;height:180px!important}
+.hero3d canvas{display:block;width:100%;height:100%;cursor:grab;outline:none}
+.hero3d canvas:active{cursor:grabbing}
+@media (min-width:700px){.hero3d{height:360px}}
+.s3-ctl{position:absolute;top:10px;right:10px;display:flex;gap:6px}
+.s3-ctl button,.s3-pop button{border:0;border-radius:999px;padding:6px 12px;font-weight:800;font-size:12.5px;background:rgba(255,255,255,.92);color:#0F44A3;box-shadow:0 4px 12px -4px rgba(10,46,110,.4)}
+.s3-hint{position:absolute;left:10px;bottom:10px;font-size:11.5px;font-weight:700;color:#fff;background:rgba(8,42,102,.55);padding:4px 10px;border-radius:999px;pointer-events:none}
+.s3-pop{position:absolute;left:10px;top:10px;max-width:calc(100% - 110px);background:rgba(255,255,255,.96);color:#0B1B33;border-radius:14px;padding:10px 12px;display:grid;gap:2px;box-shadow:0 10px 24px -8px rgba(10,46,110,.5)}
+.s3-pop b{font-weight:800}.s3-pop span{font-size:12.5px;color:#5E6F89}
+.s3-pop button{justify-self:start;margin-top:6px;background:#1556C9;color:#fff}
+.hero-card .hq-cap{margin-top:-2px}
+.hero-card{padding-bottom:16px}
+.hero .s3-wrap{margin:18px 0 0;border-radius:16px}.hero .hero3d{height:220px}
+
+/* offices */
+.hq-area{font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--accent);text-transform:uppercase}
+.hq-price{text-align:right;white-space:nowrap}.hq-price b{font-size:17px;font-weight:800;display:block}.hq-price small{font-size:11.5px;color:var(--muted)}
+.hq-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
+.hq-stats div{background:var(--soft);border-radius:12px;padding:8px 10px}
+.hq-stats small{display:block;font-size:11px;color:var(--muted);font-weight:600}.hq-stats b{font-weight:800}
+@media (max-width:420px){.hq-stats{grid-template-columns:repeat(2,1fr)}}
+.perks{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.perks span{font-size:12px;font-weight:700;color:var(--muted);border:1.5px solid var(--line);border-radius:999px;padding:3px 10px}
+.hq-card.is-cur{box-shadow:inset 0 0 0 2px var(--accent),var(--shadow)}
+.hq-card.is-view:not(.is-cur){box-shadow:inset 0 0 0 2px var(--accent-2),var(--shadow)}
+@media (prefers-reduced-motion:reduce){.btn,.btn-end{transition:none}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 <div id="app"></div>
@@ -456,6 +602,59 @@ const OFFICES={
   jk:{n:'Jakarta',cost:1.2e6,mo:100e3,boost:{offshore:.05,bulk:.03,container:.02},d:'Indonesian coal, nickel and offshore projects.'},
   ld:{n:'London',cost:3e6,mo:250e3,boost:{container:.03,bulk:.03,tanker:.03,bunker:.03,gas:.03,lng:.03,offshore:.03},d:'Shipbroking, insurance and finance network.'}
 };
+/* ---------- head office: rent the office you want ---------- */
+const HQS={
+  shop:{n:'Shophouse above a shop',area:'Port Klang',rent:45e3,desks:25,mo:-6,boost:0,rep:-2,floors:3,style:'shop',lease:24,perks:['Next to the port','Street parking','No lift'],d:'Two floors above a hardware shop near the wharf. Cheap, crowded and hot in the afternoon.'},
+  cowork:{n:'Co-working suite',area:'Bangsar South',rent:70e3,desks:35,mo:2,boost:0,rep:0,floors:12,style:'cowork',lease:0,perks:['Pay monthly, leave any time','Shared café','Hot desks'],d:'A private room in a shared workspace. Flexible and lively, but little room to grow.'},
+  std:{n:'Grade B office floor',area:'Jalan Ampang',rent:100e3,desks:60,mo:0,boost:0,rep:0,floors:18,style:'b',lease:36,perks:['Own reception','Two meeting rooms','Car park next door'],d:'A tidy older tower. It does the job. This is where every company starts.'},
+  sentral:{n:'Grade A floor above the train hub',area:'KL Sentral',rent:160e3,desks:90,mo:4,boost:.01,rep:2,floors:30,style:'a',lease:36,perks:['Train and airport link','Board room','Staff lounge'],d:'A modern tower over the rail hub. Staff love the easy trip to work and clients come straight from the airport.'},
+  trx:{n:'Full floor in the new finance district',area:'Tun Razak Exchange',rent:260e3,desks:140,mo:6,boost:.02,rep:4,floors:45,style:'glass',lease:60,perks:['Green building','Gym and showers','Banks next door'],d:'A glass tower among the banks. Lenders and charterers take you more seriously here.'},
+  klcc:{n:'Sky floors facing the twin towers',area:'KLCC',rent:420e3,desks:200,mo:8,boost:.035,rep:6,floors:60,style:'sky',lease:60,perks:['Private lift lobby','Rooftop event deck','Concierge'],d:'The top floors of a tower facing the twin towers. The best-known address in town. Everyone wants to work here.'},
+  marina:{n:'Waterfront tower',area:'Marina Bay, Singapore',rent:650e3,desks:160,mo:7,boost:.03,segb:{bunker:.04,tanker:.03,gas:.02,lng:.02},rep:7,floors:50,style:'marina',lease:60,perks:['Harbour view','Next to traders and insurers','Highest rent in the game'],d:'Move head office to Singapore, the centre of Asian shipping. Bunker and tanker clients pay more, but the rent is huge.'}
+};
+const FIT=[{l:'Basic',per:1500,mo:-2,d:'Second-hand desks, plain walls.'},{l:'Modern',per:4000,mo:2,d:'New furniture, good lighting, proper meeting rooms.'},{l:'Luxury',per:9000,mo:5,d:'Designer interior, quiet rooms, a real coffee bar.'}];
+let hqView=null;
+const hqOf=()=>HQS[(st.hq&&st.hq.k)||'std']||HQS.std;
+const hqRent=()=>Math.round(hqOf().rent*((st.hq&&st.hq.inc)||1));
+function hqCrowd(){const n=officeHeads(),d=hqOf().desks;return n>d?n-d:0}
+function hqBreak(){const h=hqOf(),left=st.hq.until-st.m;return h.lease&&left>0?hqRent()*3:0}
+function hqMoveCost(k){const h=HQS[k];return {fit:h.desks*FIT[st.hq.fit].per,agent:h.rent,move:2000*officeHeads(),brk:hqBreak()}}
+const sumCost=c=>Object.values(c).reduce((a,b)=>a+b,0);
+function hqMoralePts(){const h=hqOf(),cr=hqCrowd(),out=[['Office: '+h.n,h.mo+FIT[st.hq.fit].mo]];if(cr)out.push(['Not enough desks ('+cr+' short)',-Math.min(15,4+Math.ceil(cr/h.desks*30))]);return out}
+function hqMonth(note,mStart){const h=hqOf();if(h.lease&&mStart>=st.hq.until){st.hq.inc=(st.hq.inc||1)*1.05;st.hq.until=mStart+h.lease;note('Your lease at '+h.area+' renewed for '+(h.lease/12)+' years. Rent goes up 5% to '+fm(hqRent())+' a month.','','hr')}
+  const cr=hqCrowd();if(cr&&mStart%3===0)note('The office is overcrowded: '+cr+' staff have no desk. Morale and work quality are falling.','bad','hr')}
+function hqAct(a,v){
+  if(a==='hqview'){hqView=v===st.hq.k?null:v;confirmKey=null;render();const e=document.getElementById('scene3d');if(e)e.scrollIntoView({behavior:'smooth',block:'center'});return true}
+  if(a==='hqmove'){const h=HQS[v];if(!h||v===st.hq.k)return true;const c=hqMoveCost(v),tot=sumCost(c);if(st.cash<tot)return true;const key='hq'+v;if(confirmKey!==key){confirmKey=key;render();return true}
+    const old=hqOf();spend('setup',tot);st.hq={k:v,fit:st.hq.fit,until:st.m+h.lease,inc:1,since:st.m};st.rep=clamp(st.rep+h.rep-old.rep,0,100);st.oShock+=h.mo>old.mo?4:-3;hqView=null;confirmKey=null;
+    addLog('Head office moved to '+h.n+', '+h.area+'. Rent '+fm(h.rent)+' a month'+(h.lease?', '+(h.lease/12)+'-year lease':', monthly')+'. Moving cost '+fm(tot)+(c.brk?' including '+fm(c.brk)+' to break the old lease':'')+'.','good','hr');save();render();window.scrollTo(0,0);return true}
+  if(a==='hqfit'){const i=+v;if(i===st.hq.fit)return true;const cost=hqOf().desks*FIT[i].per;if(st.cash<cost)return true;const key='fit'+i;if(confirmKey!==key){confirmKey=key;render();return true}
+    spend('setup',cost);const up=i>st.hq.fit;st.hq.fit=i;st.oShock+=up?3:-3;confirmKey=null;addLog('Office refitted to '+FIT[i].l.toLowerCase()+' standard for '+fm(cost)+'.',up?'good':'','hr');save();render();return true}
+  return false}
+function vHQ(){
+  const h=hqOf(),k=st.hq.k,n=officeHeads(),cr=hqCrowd(),left=h.lease?Math.max(0,st.hq.until-st.m):null,fit=FIT[st.hq.fit];
+  const view=hqView&&HQS[hqView]?hqView:k,sel=HQS[view],mine=view===k;
+  const pts=hqMoralePts().reduce((a,x)=>a+x[1],0);
+  const card=([kk,o])=>{const cur=kk===k,c=cur?null:hqMoveCost(kk),tot=c?sumCost(c):0,ck=confirmKey==='hq'+kk,fitsNow=n<=o.desks;
+    return `<article class="card hq-card ${cur?'is-cur':''} ${view===kk?'is-view':''}"><div class="ship-head"><div style="min-width:0"><div class="hq-area">${esc(o.area)}</div><div class="ship-name">${esc(o.n)}</div></div>${cur?'<span class="pill p-voy">Your office</span>':`<div class="hq-price"><b class="num">${fm(o.rent)}</b><small>a month</small></div>`}</div>
+      <p class="small muted" style="margin:6px 0 0">${esc(o.d)}</p>
+      <div class="hq-stats"><div><small>Desks</small><b class="${fitsNow?'':'down'}">${o.desks}</b></div><div><small>Lease</small><b>${o.lease?o.lease/12+' yrs':'Monthly'}</b></div><div><small>Staff mood</small><b class="${o.mo<0?'down':o.mo>0?'up':''}">${o.mo>0?'+':''}${o.mo}</b></div><div><small>Clients</small><b>${o.boost||o.segb?'+'+Math.round(((o.boost||0)+Math.max(0,...Object.values(o.segb||{0:0})))*100)+'%':'–'}</b></div></div>
+      <div class="perks">${o.perks.map(p=>`<span>${esc(p)}</span>`).join('')}</div>
+      ${cur?'':`${!fitsNow?`<div class="warnbox">Only ${o.desks} desks. You have ${n} office people, so it would be crowded.</div>`:''}
+      ${ck?`<div class="result small" style="margin-top:12px">Fit-out ${fm(c.fit)} · agent fee ${fm(c.agent)} · moving ${fm(c.move)}${c.brk?` · break old lease ${fm(c.brk)}`:''}</div>`:''}
+      <div class="actions"><button type="button" class="btn" data-a="hqview" data-v="${kk}" aria-pressed="${view===kk}">${view===kk?'Showing in 3D':'View in 3D'}</button><button type="button" class="btn ${ck?'danger':'primary'}" data-a="hqmove" data-v="${kk}" ${st.cash<tot?'disabled':''}>${st.cash<tot?'Need '+fm(tot):ck?'Confirm move · '+fm(tot):'Move here · '+fm(tot)}</button></div>`}</article>`};
+  return `<section class="card hero-card">${scene3d('office',view,ART.scene('office','banner'))}
+    <div class="hq-cap"><span class="chip">${mine?'Your head office':'Preview'}</span><div class="ship-name" style="margin-top:6px">${esc(sel.n)}</div><div class="muted small">${esc(sel.area)}${mine?'':` · <button type="button" class="linkbtn" data-a="hqview" data-v="${k}">Back to my office</button>`}</div></div></section>
+  <h2>Your office now</h2>
+  <section class="card"><div class="kpis k3" style="margin-top:0">${kpi('Rent',fm(hqRent())+'/mo')}${kpi('Desks used',n+' of '+h.desks,cr?'down':'')}${kpi('Effect on morale',(pts>0?'+':'')+pts,pts<0?'down':pts>0?'up':'')}${kpi('Lease',left==null?'Monthly':left+' mo left')}${kpi('Interior',fit.l)}${kpi('Client boost',h.boost||h.segb?'+'+Math.round(((h.boost||0)+Math.max(0,...Object.values(h.segb||{0:0})))*100)+'%':'None')}</div>
+    ${cr?`<div class="warnbox">${cr} office staff have no desk. Move to a bigger office or cut headcount.</div>`:''}
+    <p class="tip muted small" style="margin:12px 0 0">Leaving before the lease ends costs 3 months of rent. Rent rises 5% when a lease renews.</p></section>
+  <h2>Interior</h2>
+  <section class="card"><div class="seg">${FIT.map((f,i)=>{const c=h.desks*f.per,ck=confirmKey==='fit'+i;return `<button type="button" data-a="hqfit" data-v="${i}" aria-pressed="${st.hq.fit===i}" ${i!==st.hq.fit&&st.cash<c?'disabled':''}>${ck?'Confirm':f.l}<br><small class="num">${i===st.hq.fit?'Current':fm(c)}</small></button>`}).join('')}</div>
+    <p class="muted small" style="margin:10px 0 0">${esc(fit.d)} Staff mood ${fit.mo>0?'+':''}${fit.mo}. A refit is paid per desk.</p></section>
+  <h2>Offices for rent</h2>
+  <div class="offers">${Object.entries(HQS).map(card).join('')}</div>`;
+}
 const TIERS=[{n:'Start-up owner',ships:0,divs:1,nw:0},{n:'Regional operator',ships:5,divs:2,nw:200e6},{n:'Established group',ships:10,divs:3,nw:400e6},{n:'Major shipping group',ships:18,divs:4,nw:800e6},{n:'Asian shipping giant',ships:30,divs:5,nw:1.5e9}];
 const ALLOW=[
   {k:'ot',t:'Fixed overtime',d:'Fixed overtime pay.',lv:['None','25%','35%'],val:[0,0.25,0.35],pts:[-10,0,4],def:1},
@@ -524,7 +723,7 @@ const STAGES=[['Contract signed',0,0.2],['Steel cutting',0.25,0.1],['Keel laying
 const NOSPEC={k:1,fm:1,em:1,om:1,pm:1,vm:1,saf:0,dm:1,bd:1,eq:[],eng:'conv',loa:null,flag:null,yard:null};
 
 let drafts={};let st=null,tab='overview',confirmKey=null,startPlan='a',showPool=null,fleetTab='all',renaming=null,nameMsg=null,spTab='all',spMode='buy',design=null,mapReg='all',mapSel=null,mapFocus=null,fleetType='all',fleetView='cards',fleetFilt='all',fleetOpen=null,bulkSel=[],bo=null;
-const TABS=[['overview','Overview'],['meeting','Meeting'],['fleet','Fleet'],['map','Map'],['contracts','Contracts'],['depts','Departments'],['hr','HR & Office'],['crewing','Crewing'],['crew','Crew List'],['safety','Safety'],['payroll','Crew Pay'],['sp','Buy & Sell'],['finance','Finance'],['company','Company']];
+const TABS=[['overview','Overview'],['meeting','Meeting'],['fleet','Fleet'],['map','Map'],['contracts','Contracts'],['depts','Departments'],['hr','HR & Office'],['hq','Office space'],['crewing','Crewing'],['crew','Crew List'],['safety','Safety'],['payroll','Crew Pay'],['sp','Buy & Sell'],['finance','Finance'],['company','Company']];
 const OPS=['chartering','crewing','marine','technical','finance'];
 const DNAME={chartering:'Chartering',crewing:'Crewing',marine:'Marine',technical:'Technical',finance:'Finance',hr:'HR & Admin'};
 const rnd=(a,b)=>a+Math.random()*(b-a);
@@ -585,16 +784,17 @@ const ob=k=>{const b=OBEN.find(x=>x.k===k);return b.val[st.oben[k]]};
 const oPay=()=>OPAY[st.opay].v;
 function effStaff(d){return Math.max(0,st.staff[d]-0.5*((st.ramp&&st.ramp[d])||0))}
 function coverage(d){if(d==='hr')return Math.min(1,(1+effStaff('hr'))*12/Math.max(1,officeHeads()-1-st.staff.hr));return Math.min(1,(1+effStaff(d))*DPER[d]/Math.max(1,st.ships.length))}
-function prodMult(){return clamp(0.8+st.omorale*0.0033,0.82,1.1)*(1+ob('train')/8000)*(ob('flex')?0.98:1)}
+function prodMult(){return (st.hq&&hqCrowd()?0.95:1)*clamp(0.8+st.omorale*0.0033,0.82,1.1)*(1+ob('train')/8000)*(ob('flex')?0.98:1)}
 function eff(d){const h=st.heads[d];return Math.min(1.15,(h?h.skill/5:0.2)*coverage(d)*BUDGET[st.budget[d]].f*prodMult())}
 function deptBudget(d){const n=st.ships.length,m=BUDGET[st.budget[d]].m;const base=d==='hr'?5000+1000*officeHeads():d==='finance'?6000+2000*n:8000+4000*n;return Math.round(base*m/500)*500}
-function officeCost(){const n=staffCount();return {pay:n*oPay()*1.145,ben:n*(ob('med')+ob('train')+ob('team')),heads:DK().reduce((a,d)=>a+(st.heads[d]?st.heads[d].pay:0),0),budget:DK().reduce((a,d)=>a+deptBudget(d),0),rent:100000+50000*st.divs.length+st.offices.reduce((a,k)=>a+OFFICES[k].mo,0)}}
+function officeCost(){const n=staffCount();return {pay:n*oPay()*1.145,ben:n*(ob('med')+ob('train')+ob('team')),heads:DK().reduce((a,d)=>a+(st.heads[d]?st.heads[d].pay:0),0),budget:DK().reduce((a,d)=>a+deptBudget(d),0),rent:hqRent()+50000*st.divs.length+st.offices.reduce((a,k)=>a+OFFICES[k].mo,0)}}
 function moraleParts(){
   const parts=[['Base',58],['Office salary ('+OPAY[st.opay].l.toLowerCase()+')',OPAY[st.opay].p]];
   OBEN.forEach(b=>parts.push([b.t,b.pts[st.oben[b.k]]]));
   parts.push(['Department budgets',Math.round(DK().reduce((a,d)=>a+BUDGET[st.budget[d]].mo,0)/3)]);
   parts.push(['HR Manager',st.heads.hr?Math.round((st.heads.hr.skill-3)*2.5):-6]);
   let ol=0;OPS.forEach(d=>{const c=coverage(d);if(c<0.6)ol-=5;else if(c<0.85)ol-=2});parts.push(['Workload (overloaded teams)',ol]);
+  hqMoralePts().forEach(x=>parts.push(x));
   if(Math.abs(st.oShock||0)>=1)parts.push(['Recent events',Math.round(st.oShock)]);
   return parts.filter(x=>x[1]!==0||x[0]==='Base');
 }
@@ -639,7 +839,7 @@ function packagePts(){const segs=new Set(st.ships.map(s=>segOf(s.cls)));let p=0;
 function wageRatio(){const yours=RK.reduce((a,r)=>a+st.wages[r],0)+st.wages.rating*4;const mk=RK.reduce((a,r)=>a+RANKS[r].mk,0)+RATING_MK*4;return yours/mk}
 function moraleTarget(){return clamp(62+(wageRatio()-1)*160+packagePts()+[3,0,-5][st.pol.contract??1]+(st.press>0?-4:0)+((st.culture??50)-50)/10,10,97)}
 function acceptChance(p,offer){return clamp(0.5+(offer/p.expect-1)*2.5+(st.empRep-50)/120+(p.ex?0.2:0),0.05,0.97)}
-function boostFor(seg){return st.offices.reduce((a,k)=>a+(OFFICES[k].boost[seg]||0),0)}
+function boostFor(seg){const h=hqOf();return st.offices.reduce((a,k)=>a+(OFFICES[k].boost[seg]||0),0)+(h.boost||0)+((h.segb&&h.segb[seg])||0)}
 function tierIdx(){const nw=netWorth(),n=st.ships.length+st.orders.length,d=st.divs.length;let t=0;TIERS.forEach((x,i)=>{if(n>=x.ships&&d>=x.divs&&nw>=x.nw)t=i});return t}
 
 /* ---------- ledger ---------- */
@@ -735,6 +935,7 @@ function upgrade(o){
   if(!o.pol.natOff)o.pol.natOff=[...NAT_DEF];if(!o.pol.natRat)o.pol.natRat=[...NAT_DEF];if(o.pol.natMix==null)o.pol.natMix=0;
   if(o.insM==null)o.insM=1;o.meetCd=o.meetCd||{};if(o.waiver==null)o.waiver=0;
   (o.ships||[]).forEach(sh=>{if(sh.size==null)sh.size=CLS[sh.cls].ratings;if(!sh.jr)staffJr(sh);RK.forEach(r=>{const p=sh.crew[r];if(p&&p.rankM==null){p.rankM=Math.round(rnd(3,14));p.lastShip=sh.id;p.shipM=Math.min(p.onb||0,12)}})});(o.pool||[]).forEach(p=>{if(p.rankM==null)p.rankM=Math.round(rnd(3,14))});
+  if(!o.hq)o.hq={k:'std',fit:1,until:(o.m||0)+36,inc:1,since:o.m||0};
   o.v=4;return o;
 }
 function fresh(company,plan){
@@ -1371,7 +1572,7 @@ function endMonth(){
   if(s.pol.rotation){const sb=s.pool.filter(p=>p.lastShip&&shipById(p.lastShip)).length;if(sb)spend('standby',sb*1200)}
   genPromos();autoCrew(note);autoCrewJr(note);autoTrain();autoDock(note);
   if(mStart%12===2&&av('fest')){const b=s.ships.reduce((a,sh)=>a+shipBasic(sh),0)*0.5;spend('allow',b);note('Festive bonus of '+fm(b)+' paid to all crew.','good')}
-  officeMonth(note,mStart);
+  officeMonth(note,mStart);hqMonth(note,mStart);
   if(s.hseq)spend('hseq',190000);spend('interest',s.loan*effRate()/12);
   if(mStart%3===2&&s.loan>0){const due=Math.min(s.loan,r10k(s.loan*0.025)),pay=Math.min(due,Math.max(0,s.cash));s.cash-=pay;s.loan-=pay;
     if(pay<due){s.board-=5;s.rate+=0.005;note('Missed part of the quarterly loan repayment ('+fm(due-pay)+' unpaid). The bank raised the rate by 0.5%.','bad','fin')}else note('Quarterly loan repayment of '+fm(due)+' paid to the bank.','','fin')}
@@ -1428,6 +1629,10 @@ function act(a,v){
   if(a==='tips'){tipsOn=!tipsOn;try{localStorage.setItem('fx-tips',tipsOn?'1':'0')}catch(e){}render();return}
   if(a==='group'){const g=GROUPS.find(x=>x.k===v);if(!g)return;const last=(window._lastTab||{})[v];tab=last&&g.tabs.includes(last)?last:g.tabs[0];confirmKey=null;showPool=null;renaming=null;nameMsg=null;render();window.scrollTo(0,0);return}
   if(a==='tab'){tab=v;(window._lastTab=window._lastTab||{})[groupOf(v).k]=v;confirmKey=null;showPool=null;renaming=null;nameMsg=null;render();window.scrollTo(0,0);return}
+  if(hqAct(a,v))return;
+  if(a==='3dtoggle'){FX3D.toggle();render();return}
+  if(a==='3dreset'){FX3D.reset();return}
+  if(a==='open3d'){tab='fleet';fleetTab='all';fleetType='all';fleetView='list';fleetOpen=+v;render();window.scrollTo(0,0);return}
   if(a==='plan'){startPlan=v;render();return}
   if(a==='begin'){const n=(document.getElementById('co-name').value||'').trim()||'FX Shipping Sdn Bhd';fresh(n.slice(0,40),startPlan);tab='overview';render();return}
   if(!st)return;
@@ -1860,7 +2065,7 @@ function vOverview(){
   const nw=netWorth(),t=tierIdx(),nx=TIERS[t+1],L=st.hist[st.hist.length-1];
   const pct=clamp((nw-st.yearNW)/Math.max(1,st.target-st.yearNW)*100,0,100);
   const divRows=st.divs.map(d=>{const sh=st.ships.filter(s=>segOf(s.cls)===d);return `<div><div class="idx-row"><span>${SEG[d]}</span><div class="idx-track"><i style="width:${(st.idx[d]-0.6)*100}%"></i><u></u></div><span class="num" style="text-align:right">${Math.round(st.idx[d]*100)}</span></div><div class="muted small">${sh.length} ships · ${sh.filter(s=>s.status==='voyage').length} trading</div></div>`}).join('');
-  return `<section class="card">${ART.scene('port','banner')}
+  return `<section class="card hero-card">${scene3d('port','',ART.scene('port','banner'))}
     <div class="goal-top"><div><span class="chip">${TIERS[t].n}</span><div class="muted small" style="margin-top:8px">Company value</div><div class="big num">${fm(nw)}</div></div><div class="muted small" style="text-align:right">${yearOf(st.m)} board target<br><b class="num" style="color:var(--ink)">${fm(st.target)}</b></div></div>
     <div class="bar"><i style="width:${pct}%"></i></div>
     <div class="kpis k3">${kpi('Cash',fm(st.cash),st.cash<0?'down':'')}${kpi('Reputation',Math.round(st.rep)+'/100')}${kpi('Board confidence',Math.round(st.board)+'/100',st.board<35?'down':'')}${kpi('Crew morale',Math.round(st.morale)+'/100',st.morale<45?'down':'')}${kpi('Crew rating of you',Math.round(st.empRep)+'/100',st.empRep<40?'down':'')}${kpi('Fleet',st.ships.length+(st.orders.length?' + '+st.orders.length:'')+' ships')}</div>
@@ -2428,7 +2633,7 @@ function vStart(){
   return `<div class="wrap start">
     <section class="hero">
       <h1>FX Shipping</h1>
-      <p>You are the new boss of a shipping company. Buy ships, hire a team and grow the business. Hit the board's yearly target or get fired.</p>${ART.scene('port','hero-art')}</section>
+      <p>You are the new boss of a shipping company. Buy ships, hire a team and grow the business. Hit the board's yearly target or get fired.</p>${scene3d('port','',ART.scene('port','hero-art'))}</section>
     <label class="field">Company name<input id="co-name" maxlength="40" placeholder="FX Shipping Sdn Bhd" autocomplete="off" value="${esc(drafts['co-name']||'')}"></label>
     <div><div style="font-weight:600;margin-bottom:8px">Choose your starting fleet</div>
       <div class="plans">${Object.entries(PLANS).map(([k,p])=>`<button type="button" class="plan" data-a="plan" data-v="${k}" aria-pressed="${startPlan===k}">${ART.ship(p.ships[0][0]==='handy'?'bulk':p.ships[0][0],'plan-art')}<b>${p.nama}</b><span>${p.desc} Cash ${fm(p.cash)}.</span></button>`).join('')}</div></div>
@@ -2439,32 +2644,182 @@ const GROUPS=[
   {k:'home',l:'Home',tabs:['overview','meeting'],i:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>'},
   {k:'fleet',l:'Fleet',tabs:['fleet','map','contracts','sp'],i:'<path d="M3 16l2 4h14l2-4z"/><path d="M6 16V9h12v7"/><path d="M12 9V4"/><path d="M9 6h6"/>'},
   {k:'crew',l:'Crew',tabs:['crewing','crew','payroll','safety'],i:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c2.9.4 5 2.8 5 5.8"/>'},
-  {k:'office',l:'Office',tabs:['depts','hr'],i:'<rect x="4" y="3" width="11" height="18" rx="1"/><path d="M15 9h5v12h-5"/><path d="M7.5 7h4M7.5 11h4M7.5 15h4"/>'},
+  {k:'office',l:'Office',tabs:['hq','depts','hr'],i:'<rect x="4" y="3" width="11" height="18" rx="1"/><path d="M15 9h5v12h-5"/><path d="M7.5 7h4M7.5 11h4M7.5 15h4"/>'},
   {k:'money',l:'Money',tabs:['finance','company'],i:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14.5" r="1.5"/>'}
 ];
-const TABLABEL={overview:'Summary',meeting:'Meeting',fleet:'Ships',map:'Map',contracts:'Cargo',sp:'Buy & sell',crewing:'Crewing',crew:'Crew list',payroll:'Crew pay',safety:'Safety',depts:'Departments',hr:'HR & office',finance:'Finance',company:'Company'};
+const TABLABEL={overview:'Summary',meeting:'Meeting',fleet:'Ships',map:'Map',contracts:'Cargo',sp:'Buy & sell',crewing:'Crewing',crew:'Crew list',payroll:'Crew pay',safety:'Safety',depts:'Departments',hr:'HR & office',hq:'Office space',finance:'Finance',company:'Company'};
 const groupOf=t=>GROUPS.find(g=>g.tabs.includes(t))||GROUPS[0];
 let tipsOn=(()=>{try{return localStorage.getItem('fx-tips')==='1'}catch(e){return false}})();
+/* ---------- 3D views (three.js): harbour with your fleet, and head office buildings ---------- */
+const FX3D=(()=>{
+  const T=()=>window.THREE;
+  let ok=null,R=null,scene=null,cam=null,host=null,raf=0,mode=null,key='',sig='';
+  let water=null,waterBase=null,fleet=[],world=null,t0=performance.now(),last=0;
+  let yaw=0.75,pitch=0.42,dist=170,tgt=[0,0,0],minD=60,maxD=320,auto=true,drag=null,pinch=null,ro=null,io=null,visible=true;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const COL={hull:0x0E2A57,band:0x1A5FD0,white:0xF7FAFF,win:0x173B73,deck:0x8FA6C4,sea:0x1C59B8,land:0xE3EAF4,quay:0xC2D0E4,crane:0x1A5FD0,glass:0x1E5FD0,city:0xF2F6FC,road:0xB5C3D8};
+  function can(){if(ok!==null)return ok;try{const c=document.createElement('canvas');ok=!!(T()&&(c.getContext('webgl2')||c.getContext('webgl')))}catch(e){ok=false}return ok}
+  const mats={};
+  function M(c,o){const k=c+'|'+JSON.stringify(o||{});if(!mats[k])mats[k]=new (T().MeshLambertMaterial)(Object.assign({color:c},o||{}));return mats[k]}
+  function box(w,h,d,c,x,y,z,o){const m=new (T().Mesh)(new (T().BoxGeometry)(w,h,d),M(c,o));m.position.set(x||0,(y||0)+h/2,z||0);return m}
+  function cyl(r,h,c,x,y,z,seg){const m=new (T().Mesh)(new (T().CylinderGeometry)(r,r,h,seg||12),M(c));m.position.set(x||0,(y||0)+h/2,z||0);return m}
+  function label(txt,w,h,bg,fg){const cv=document.createElement('canvas');cv.width=w*4;cv.height=h*4;const g=cv.getContext('2d');g.fillStyle=bg;g.fillRect(0,0,cv.width,cv.height);g.fillStyle=fg;g.font='800 '+(h*2.6)+'px Manrope,system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,cv.width/2,cv.height/2+2);const tx=new (T().CanvasTexture)(cv);return new (T().MeshBasicMaterial)({map:tx})}
+
+  /* ---- ships ---- */
+  const LEN={container:62,bulk:58,tanker:60,bunker:30,gas:54,lng:66,offshore:28};
+  function hullGeo(L,B,H){
+    const s=new (T().Shape)();s.moveTo(0,0);s.lineTo(L*0.78,0);s.lineTo(L*0.97,H*0.25);s.lineTo(L,H);s.lineTo(L*0.78,H);s.lineTo(0,H);s.lineTo(0,H*0.2);s.lineTo(0,0);
+    const g=new (T().ExtrudeGeometry)(s,{depth:B,bevelEnabled:false});g.translate(-L/2,0,-B/2);
+    const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i)+L/2;if(x>L*0.78){const f=1-(x-L*0.78)/(L*0.22)*0.88;p.setZ(i,p.getZ(i)*f)}}
+    g.computeVertexNormals();return g}
+  function makeShip(cls,seg,status){
+    const g=new (T().Group)();const sc=(CLS[cls]&&CLS[cls].scale)||1;const L=LEN[seg]*(0.75+0.25*sc)*(cls==='ulcv'||cls==='vlcc'||cls==='lngc'||cls==='cape'?1.25:1),B=L*0.16,H=L*0.09;
+    const hull=new (T().Mesh)(hullGeo(L,B,H),M(COL.hull));g.add(hull);
+    g.add(box(L*0.8,H*0.18,B*1.01,COL.band,-L*0.06,H*0.05,0));
+    g.add(box(L*0.86,0.25,B*0.92,COL.deck,-L*0.04,H,0));
+    const sx=seg==='offshore'?L*0.25:-L*0.38;
+    const sup=box(L*0.12,H*1.5,B*0.8,COL.white,sx,H,0);g.add(sup);
+    g.add(box(L*0.125,H*0.18,B*0.82,COL.win,sx,H+H*1.15,0));
+    g.add(box(L*0.07,H*0.9,B*0.3,COL.band,sx-L*0.03,H*2.5,0));
+    const x0=seg==='offshore'?-L*0.45:-L*0.28,x1=seg==='offshore'?L*0.15:L*0.36;
+    if(seg==='container'){const P=[0x1A5FD0,0x5B8FE0,0xFFFFFF,0x0E2A57,0xA9C6EE,0x2E6FD1];let k=cls.length;for(let x=x0;x<x1;x+=L*0.075){const h=(2+((k*7)%3))*H*0.35;g.add(box(L*0.07,h,B*0.86,P[(k++*5)%P.length],x+L*0.035,H,0))}}
+    else if(seg==='bulk'){for(let x=x0;x<x1;x+=L*0.13){g.add(box(L*0.1,H*0.3,B*0.7,0xE7EEF9,x+L*0.05,H,0));if(x+L*0.13<x1)g.add(cyl(0.35,H*1.6,COL.hull,x+L*0.115,H,0,6))}}
+    else if(seg==='tanker'||seg==='bunker'){g.add(cyl(0.45,0.1,0xffffff,0,H,0));const p=new (T().Mesh)(new (T().CylinderGeometry)(B*0.07,B*0.07,x1-x0,8),M(0xD7E3F4));p.rotation.z=Math.PI/2;p.position.set((x0+x1)/2,H+B*0.12,B*0.18);g.add(p);g.add(box(1,H*0.6,1,COL.white,(x0+x1)/2,H,0))}
+    else if(seg==='lng'){const n=4,step=(x1-x0)/n;for(let i=0;i<n;i++){const s=new (T().Mesh)(new (T().SphereGeometry)(B*0.46,14,10),M(0xF4F7FC));s.position.set(x0+step*(i+0.5),H+B*0.22,0);g.add(s)}}
+    else if(seg==='gas'){for(let i=0;i<2;i++){const c=new (T().Mesh)(new (T().CylinderGeometry)(B*0.32,B*0.32,(x1-x0)*0.45,14),M(0xF4F7FC));c.rotation.z=Math.PI/2;c.position.set(x0+(x1-x0)*(0.25+0.5*i),H+B*0.32,0);g.add(c)}}
+    else if(seg==='offshore'){g.add(box(L*0.5,0.2,B*0.85,0xC9D6E8,-L*0.2,H+0.25,0));g.add(box(L*0.05,H*1.4,B*0.1,COL.band,-L*0.3,H,B*0.3))}
+    g.userData={L,B,H};return g}
+
+  /* ---- harbour ---- */
+  function city(grp,cx,cz,w,d,maxH,seed){let s=seed;const r=()=>{s=(s*9301+49297)%233280;return s/233280};
+    for(let x=cx-w/2;x<cx+w/2;x+=14)for(let z=cz-d/2;z<cz+d/2;z+=14){if(r()<0.25)continue;const h=6+r()*maxH;const c=r()<0.3?0xDCE7F7:COL.city;grp.add(box(9+r()*3,h,9+r()*3,c,x,3,z))}}
+  function buildPort(){
+    const g=new (T().Group)();
+    const land=box(560,3,150,COL.land,0,0,-115);g.add(land);
+    g.add(box(560,0.6,14,COL.quay,0,3,-47));
+    for(let i=0;i<5;i++){const x=-160+i*55;const cr=new (T().Group)();cr.add(box(1.4,26,1.4,COL.crane,-4,3,-44));cr.add(box(1.4,26,1.4,COL.crane,4,3,-44));cr.add(box(1.4,26,1.4,COL.crane,-4,3,-52));cr.add(box(1.4,26,1.4,COL.crane,4,3,-52));cr.add(box(10,2,40,COL.crane,0,29,-36));cr.add(box(5,4,5,COL.white,0,26,-40));cr.position.x=x;g.add(cr)}
+    // dry dock
+    g.add(box(4,6,80,0x9FB2CC,192,-3,-6));g.add(box(4,6,80,0x9FB2CC,228,-3,-6));g.add(box(40,6,4,0x9FB2CC,210,-3,-46));
+    city(g,-40,-140,420,90,30,7);
+    // head office tower
+    const hq=HQS[(st&&st.hq&&st.hq.k)||'std'],fl=Math.max(4,Math.min(60,hq.floors)),H=fl*1.15;
+    const HH=Math.max(24,H*1.6),hx=-20,hz=-78;g.add(box(24,HH,24,COL.glass,hx,3,hz,{emissive:0x0A2E6E,emissiveIntensity:0.18}));
+    for(let y=4;y<HH;y+=3.2)g.add(box(24.3,0.35,24.3,0xFFFFFF,hx,3+y,hz));
+    g.add(box(26,1.6,26,0xFFFFFF,hx,3+HH,hz));
+    const sign=new (T().Mesh)(new (T().PlaneGeometry)(16,7),label('FX',16,7,'#FFFFFF','#1556C9'));sign.position.set(hx,3+HH-6,hz+12.2);g.add(sign);
+    const sea=new (T().PlaneGeometry)(900,700,70,56);sea.rotateX(-Math.PI/2);sea.translate(0,0,250);
+    water=new (T().Mesh)(sea,new (T().MeshPhongMaterial)({color:COL.sea,shininess:90,specular:0xBFD8FF,flatShading:true}));waterBase=Float32Array.from(sea.attributes.position.array);g.add(water);
+    return g}
+  function placeFleet(){
+    fleet.forEach(f=>world.remove(f.obj));fleet=[];
+    if(!st)return;
+    let bx=-250,dk=0,row=0;const n=st.ships.length;
+    st.ships.forEach((sh,i)=>{const seg=segOf(sh.cls);const o=makeShip(sh.cls,seg,sh.status);const L=o.userData.L;const f={obj:o,id:sh.id,status:sh.status};
+      if(sh.status==='voyage'){f.r=70+((i*37)%90);f.a=(i*2.399)%(Math.PI*2);f.sp=(0.02+((i*13)%7)*0.003)*(i%2?1:-1);f.cz=95}
+      else if(sh.status==='dock'&&dk<2){o.position.set(210,-1.5,-24+dk*20);o.rotation.y=Math.PI/2;o.scale.setScalar(Math.min(1,62/L));dk++}
+      else{if(bx+L>175){bx=-250;row++}o.position.set(bx+L/2,0,-33+row*20);bx+=L+8}
+      world.add(o);fleet.push(f)})}
+  /* ---- office buildings ---- */
+  function tower(g,style,floors,x,z,mine){
+    const H=floors*1.2,w=style==='shop'?12:style==='cowork'?22:style==='b'?20:18,d=w;
+    const glass=['a','glass','sky','marina'].includes(style);
+    const c=style==='b'?0xE8EEF7:style==='cowork'?0xF4F7FC:glass?COL.glass:0xFFFFFF;
+    if(style==='shop'){for(let i=-2;i<=2;i++){const s=box(10,floors*3.2,14,i===0?0xFFFFFF:0xE6EDF7,x+i*10.5,0,z);g.add(s);g.add(box(10.4,0.6,14.4,i===0?COL.band:0x9FB2CC,x+i*10.5,floors*3.2,z));for(let f=1;f<floors;f++)g.add(box(6,1.4,0.3,i===0&&f>=1?0x3E86F5:COL.win,x+i*10.5,f*3.2+0.6,z+7.05));g.add(box(8,2.2,0.3,0x0E2A57,x+i*10.5,0,z+7.05))}return floors*3.2}
+    if(style==='sky'||style==='glass'){const parts=style==='sky'?[[1,0.55],[0.82,0.25],[0.62,0.15],[0.4,0.05]]:[[1,0.7],[0.75,0.3]];let y=0;parts.forEach(([s,f])=>{const h=H*f;g.add(box(w*s,h,d*s,c,x,y,z,{emissive:0x0A2E6E,emissiveIntensity:0.12}));y+=h});if(style==='sky')g.add(cyl(0.4,10,0xFFFFFF,x,y,z,6));}
+    else g.add(box(w,H,d,c,x,0,z,glass?{emissive:0x0A2E6E,emissiveIntensity:0.12}:undefined));
+    for(let y=3;y<H*(style==='sky'?0.55:style==='glass'?0.7:1);y+=glass?2.4:1.2*2)g.add(box(w+0.2,0.22,d+0.2,glass?0xFFFFFF:0xC6D3E6,x,y,z));
+    if(mine){const fy=Math.max(3,H*(style==='sky'?0.5:style==='glass'?0.6:0.62));g.add(box(w+0.6,3,d+0.6,0x1556C9,x,fy,z,{emissive:0x1556C9,emissiveIntensity:0.55}));
+      const sign=new (T().Mesh)(new (T().PlaneGeometry)(Math.min(w*0.8,14),3.2),label('FX',14,3.2,'#FFFFFF','#1556C9'));sign.position.set(x,fy+1.5,z+(d+0.6)/2+0.05);g.add(sign)}
+    return H}
+  function buildOffice(k){
+    const h=HQS[k]||HQS.std,g=new (T().Group)();
+    g.add(box(420,1,420,0xDDE6F2,0,-1,0));
+    for(let i=-4;i<=4;i++){g.add(box(420,0.1,7,COL.road,0,0,i*46+23));g.add(box(7,0.1,420,COL.road,i*46+23,0,0))}
+    if(h.style==='marina'){const sea=new (T().PlaneGeometry)(420,180,40,18);sea.rotateX(-Math.PI/2);sea.translate(0,0.2,120);water=new (T().Mesh)(sea,new (T().MeshPhongMaterial)({color:COL.sea,shininess:70,flatShading:true}));waterBase=Float32Array.from(sea.attributes.position.array);g.add(water)}
+    let s=31;const r=()=>{s=(s*9301+49297)%233280;return s/233280};
+    const big=h.floors>25;
+    for(let ix=-4;ix<=4;ix++)for(let iz=-4;iz<=4;iz++){if(!ix&&!iz)continue;const x=ix*46,z=iz*46;if(h.style==='marina'&&z>20)continue;const dd=Math.hypot(ix,iz);const n=1+Math.floor(r()*3);
+      if(ix>=0&&iz>=0&&dd<2.9)continue;const cap=dd<2.2?Math.max(6,(h.floors*1.2)*0.55):dd<3.5?h.floors*1.2*0.9+10:999;
+      for(let q=0;q<n;q++){const hh=Math.min(cap,(big?10:4)+r()*(big?60:18)/(0.6+dd*0.35));g.add(box(12+r()*10,hh,12+r()*10,r()<0.35?0xDCE7F7:0xF3F6FB,x+(r()-0.5)*18,0,z+(r()-0.5)*18))}}
+    if(h.style==='sky'){[-1,1].forEach(sd=>{const x=sd*14-70,z=-90;let y=0;[[9,40],[7.5,22],[5.5,14],[3.5,10]].forEach(([rr,hh])=>{const c=cyl(rr,hh,0xE9EEF5,x,y,z,16);g.add(c);y+=hh});g.add(cyl(0.5,16,0xFFFFFF,x,y,z,6))});g.add(box(28,2,3,0xC6D3E6,-70,40,-90))}
+    if(h.style==='a'){g.add(box(60,1.2,6,0x9FB2CC,0,8,-30));}
+    const H=tower(g,h.style,h.floors,0,0,true);
+    g.add(box(60,0.4,40,0xF4F7FC,26,0,36));
+    return {g,H}}
+
+  /* ---- loop and controls ---- */
+  function camSet(){const c=Math.cos(pitch);cam.position.set(tgt[0]+dist*Math.sin(yaw)*c,tgt[1]+dist*Math.sin(pitch),tgt[2]+dist*Math.cos(yaw)*c);cam.lookAt(tgt[0],tgt[1],tgt[2])}
+  function frame(now){raf=requestAnimationFrame(frame);if(!visible||document.hidden||!host||!host.isConnected)return;const t=(now-t0)/1000,dt=Math.min(0.05,(now-last)/1000);last=now;
+    if(water&&!reduce){const p=water.geometry.attributes.position,b=waterBase;for(let i=0;i<p.count;i++){const x=b[i*3],z=b[i*3+2];p.array[i*3+1]=b[i*3+1]+Math.sin(x*0.045+t*1.1)*0.9+Math.cos(z*0.05+t*0.8)*0.7}p.needsUpdate=true}
+    fleet.forEach((f,i)=>{if(f.r){if(!reduce)f.a+=f.sp*dt*4;const x=Math.cos(f.a)*f.r*1.6,z=f.cz+Math.sin(f.a)*f.r*0.5;f.obj.position.set(x,reduce?0:Math.sin(t*1.3+i)*0.35,z);const sg=Math.sign(f.sp),dx=-Math.sin(f.a)*f.r*1.6*sg,dz=Math.cos(f.a)*f.r*0.5*sg;f.obj.rotation.y=Math.atan2(-dz,dx);}
+      else if(f.status!=='dock'&&!reduce){f.obj.position.y=Math.sin(t*1.2+i)*0.2}});
+    if(auto&&!drag&&!reduce)yaw+=dt*0.05;camSet();R.render(scene,cam)}
+  function size(){if(!host||!R)return;const w=host.clientWidth||300,h=host.clientHeight||240;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+  function bind(cv){
+    const pts=new Map();
+    cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);auto=false;if(pts.size===1)drag={x:e.clientX,y:e.clientY,moved:0};else if(pts.size===2){const a=[...pts.values()];pinch={d:Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]),dist}}});
+    cv.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,[e.clientX,e.clientY]);if(pinch&&pts.size===2){const a=[...pts.values()];const d=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);dist=Math.max(minD,Math.min(maxD,pinch.dist*pinch.d/Math.max(20,d)));return}if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.moved+=Math.abs(dx)+Math.abs(dy);drag.x=e.clientX;drag.y=e.clientY;yaw-=dx*0.006;pitch=Math.max(0.12,Math.min(1.35,pitch+dy*0.004))});
+    const up=e=>{const d=drag;pts.delete(e.pointerId);if(pts.size<2)pinch=null;if(!pts.size){drag=null;if(d&&d.moved<6)tap(e)}};
+    cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{pts.delete(e.pointerId);drag=null;pinch=null});
+    cv.addEventListener('wheel',e=>{e.preventDefault();auto=false;dist=Math.max(minD,Math.min(maxD,dist*(1+Math.sign(e.deltaY)*0.08)))},{passive:false})}
+  function tap(e){if(mode!=='port'||!fleet.length)return;const rc=cv().getBoundingClientRect();const v=new (T().Vector2)((e.clientX-rc.left)/rc.width*2-1,-((e.clientY-rc.top)/rc.height)*2+1);const ray=new (T().Raycaster)();ray.setFromCamera(v,cam);
+    const hit=ray.intersectObjects(fleet.map(f=>f.obj),true)[0];const pop=host&&host.parentNode&&host.parentNode.querySelector('.s3-pop');if(!pop)return;
+    if(!hit){pop.hidden=true;return}let o=hit.object;while(o.parent&&!fleet.some(f=>f.obj===o))o=o.parent;const f=fleet.find(x=>x.obj===o);const sh=f&&shipById(f.id);if(!sh){pop.hidden=true;return}
+    const stt={voyage:sh.c&&sh.c.type==='TC'?'Rented out':'At sea',idle:'In port',dock:'In dry dock'}[sh.status]||'Arriving';
+    pop.innerHTML=`<b>${esc(sh.name)}</b><span>${CLS[sh.cls].nama} · ${stt}${sh.left&&sh.status!=='idle'?' · '+sh.left+' mo':''}</span><button type="button" data-a="open3d" data-v="${sh.id}">Open ship</button>`;pop.hidden=false}
+  const cv=()=>R&&R.domElement;
+  function init(){const TH=T();R=new TH.WebGLRenderer({antialias:true,alpha:false,powerPreference:'low-power'});R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));R.domElement.className='s3-canvas';R.domElement.setAttribute('aria-label','3D view. Drag to turn, pinch or scroll to zoom.');R.domElement.style.touchAction='none';bind(R.domElement);
+    cam=new TH.PerspectiveCamera(40,1.6,1,2000);ro=new ResizeObserver(size);
+    io=new IntersectionObserver(es=>{visible=es.some(x=>x.isIntersecting)});}
+  function build(m,k){const TH=T();scene=new TH.Scene();scene.background=new TH.Color(0xCFE1F7);scene.fog=new TH.Fog(0xCFE1F7,260,760);
+    scene.add(new TH.HemisphereLight(0xEAF2FF,0x3A5682,0.7));const sun=new TH.DirectionalLight(0xFFFFFF,0.95);sun.position.set(160,140,220);scene.add(sun);
+    water=null;fleet=[];
+    if(m==='port'){world=buildPort();scene.add(world);placeFleet();tgt=[-10,0,20];dist=window.innerWidth<600?300:240;minD=80;maxD=420;pitch=0.38}
+    else{const o=buildOffice(k);world=o.g;scene.add(world);tgt=[0,Math.min(40,o.H*0.45),0];dist=Math.max(50,o.H*1.9);minD=25;maxD=320;pitch=0.32;scene.fog=new TH.Fog(0xCFE1F7,200,620)}
+    mode=m;key=k||'';sig=fsig();camSet()}
+  const fsig=()=>st?st.ships.map(s=>s.id+':'+s.cls+':'+s.status).join(',')+'|'+((st.hq&&st.hq.k)||''):'';
+  function mount(){
+    const el=document.getElementById('scene3d');
+    if(!el){host=null;return}
+    if(!on()||!can()){el.classList.add('flat');return}
+    if(!R)init();
+    const m=el.dataset.mode,k=el.dataset.hq||'';
+    if(m!==mode||k!==key)build(m,k);else if(m==='port'&&fsig()!==sig){sig=fsig();world&&scene.remove(world);world=buildPort();scene.add(world);placeFleet()}
+    el.innerHTML='';el.appendChild(R.domElement);host=el;ro.disconnect();ro.observe(el);io.disconnect();io.observe(el);size();
+    if(!raf){last=performance.now();raf=requestAnimationFrame(frame)}}
+  function on(){try{return localStorage.getItem('fx-3d')!=='0'}catch(e){return true}}
+  function toggle(){try{localStorage.setItem('fx-3d',on()?'0':'1')}catch(e){}}
+  function reset(){auto=true;yaw=0.75;if(mode==='port'){pitch=0.38;dist=window.innerWidth<600?300:240}else{pitch=0.32}}
+  return {mount,can:()=>on()&&can(),on,toggle,reset}
+})();
+function scene3d(mode,hq,fallback){
+  const want=FX3D.on();
+  return `<div class="s3-wrap"><div id="scene3d" class="hero3d" data-mode="${mode}" ${hq?`data-hq="${hq}"`:''}>${fallback}</div>
+    ${mode==='port'?'<div class="s3-pop" hidden></div>':''}
+    <div class="s3-ctl"><button type="button" data-a="3dtoggle" aria-pressed="${want}">${want?'3D':'2D'}</button>${want?'<button type="button" data-a="3dreset" aria-label="Reset view">Reset</button>':''}</div>
+    ${want?`<div class="s3-hint">${mode==='port'?'Drag to turn · tap a ship':'Drag to turn · pinch to zoom'}</div>`:''}</div>`;
+}
+
 function render(){
   const app=document.getElementById('app');
   document.body.classList.toggle('notips',!tipsOn);
-  if(!st){app.innerHTML=vStart();renderModal();return}
+  if(!st){app.innerHTML=vStart();renderModal();FX3D.mount();return}
   if(!TABS.some(t=>t[0]===tab))tab='overview';
   const vac=st.ships.reduce((a,s)=>a+RK.filter(r=>!s.crew[r]).length,0),noHead=OPS.filter(d=>!st.heads[d]).length,exh=aboard(st,p=>p.fat>=80).length;
   const mp=meetPending();
-  const flag={meeting:mp,crewing:vac,depts:noHead,hr:st.omorale<45?1:0,safety:exh};
+  const flag={hq:st.hq&&hqCrowd()?1:0,meeting:mp,crewing:vac,depts:noHead,hr:st.omorale<45?1:0,safety:exh};
   const gdot=g=>g.tabs.reduce((a,t)=>a+(flag[t]||0),0);
-  const body=(tab==='overview'?liveCard():'')+{overview:vOverview,meeting:vMeeting,fleet:vFleet,map:vMap,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,crew:vCrew,safety:vSafety,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
+  const body=(tab==='overview'?liveCard():'')+{hq:vHQ,overview:vOverview,meeting:vMeeting,fleet:vFleet,map:vMap,contracts:vContracts,depts:vDepts,hr:vHR,crewing:vCrewing,crew:vCrew,safety:vSafety,payroll:vPayroll,sp:vSP,finance:vFinance,company:vCompany}[tab]();
   const G=groupOf(tab);
   app.innerHTML=`<header class="top"><div class="wrap">
-    <div class="top-row"><div class="brand"><div class="co">${esc(st.company)}</div><div class="when">${whenTxt()}</div></div>
+    <div class="top-row"><div class="brand"><span class="logo" aria-hidden="true">FX</span><div><div class="co">${esc(st.company)}</div><div class="when">${whenTxt()}</div></div></div>
       <div class="cashpill"><small>Cash</small><b class="${st.cash<0?'neg':''}">${fm(st.cash)}</b></div>
       <button type="button" class="tipbtn" data-a="tips" aria-pressed="${tipsOn}" aria-label="${tipsOn?'Hide':'Show'} tips">?</button>
       <button type="button" class="btn-end" data-a="end" ${st.over?'disabled':''}>End month</button></div>
     ${G.tabs.length>1?`<nav class="tabs" role="tablist">${G.tabs.map(k=>`<button type="button" class="tab" role="tab" data-a="tab" data-v="${k}" aria-selected="${tab===k}">${TABLABEL[k]}${flag[k]?' ('+(flag[k]>9?'9+':flag[k])+')':''}</button>`).join('')}</nav>`:'<div style="height:6px"></div>'}
   </div></header><main class="wrap">${body}</main>
   <nav class="bnav" aria-label="Main menu"><div class="in">${GROUPS.map(g=>{const d=gdot(g);return `<button type="button" data-a="group" data-v="${g.k}" ${g===G?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${g.i}</svg>${g.l}${d?`<span class="dot">${d>9?'9+':d}</span>`:''}</button>`}).join('')}</div></nav>`;
-  renderModal();
+  renderModal();FX3D.mount();
 }
 
 function renderModal(){
